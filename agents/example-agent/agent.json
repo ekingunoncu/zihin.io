@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "agent": {
+    "id": "example-agent",
+    "slug": "example-agent",
+    "name": "Example Agent",
+    "description": "A simple example agent to demonstrate how zihin.io marketplace works. Includes an example MCP server and a macro tool.",
+    "icon": "🧪",
+    "basePrompt": "You are a helpful example assistant. Use the tools available to you to help the user. This is a demo agent to showcase how agents with MCP servers and macro tools work on zihin.io.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gunongcu",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": ["example", "demo", "starter"],
+    "createdAt": "2026-02-17T00:00:00.000Z",
+    "updatedAt": "2026-02-17T00:00:00.000Z",
+    "examplePrompts": [
+      "What can you do?",
+      "Show me how tools work",
+      "Open example.com and get the page title"
+    ],
+    "requiredMCPs": [
+      {
+        "name": "Example MCP Server",
+        "url": "https://example.com/mcp",
+        "description": "An example MCP server for demonstration purposes."
+      }
+    ],
+    "macros": {
+      "servers": [
+        {
+          "name": "Example Automation",
+          "description": "Example browser automation tools for demonstration.",
+          "category": "other",
+          "tools": [
+            {
+              "name": "get_page_title",
+              "displayName": "Get Page Title",
+              "description": "Navigates to a URL and returns the page title.",
+              "version": "1.0.0",
+              "parameters": [
+                {
+                  "name": "url",
+                  "type": "string",
+                  "description": "The URL to navigate to",
+                  "required": true,
+                  "default": "https://example.com"
+                }
+              ],
+              "steps": [
+                {
+                  "action": "navigate",
+                  "label": "Open the page",
+                  "url": "{{url}}"
+                },
+                {
+                  "action": "wait",
+                  "label": "Wait for page load",
+                  "timeout": 2000
+                },
+                {
+                  "action": "code",
+                  "label": "Extract page title",
+                  "code": "return document.title;"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

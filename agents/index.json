@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "example-agent",
+    "name": "Example Agent",
+    "description": "A simple example agent to demonstrate how zihin.io marketplace works. Includes an example MCP server.",
+    "icon": "🧪",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gunongcu",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "tags": ["example", "demo", "starter"],
+    "updatedAt": "2026-02-17T00:00:00.000Z"
+  }
+]
