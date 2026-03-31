@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-reply-tweet",
+    "slug": "reply-to-tweet",
+    "name": "reply_to_tweet",
+    "displayName": "Reply To Tweet",
+    "description": "Reply to a specific tweet by URL. Opens the tweet and posts a reply.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.1",
+    "tags": [
+      "x-automation"
+    ],
+    "parameters": [
+      {
+        "name": "tweet_url",
+        "type": "string",
+        "description": "Full URL of the tweet to reply to (e.g. https://x.com/user/status/123456)",
+        "required": true
+      },
+      {
+        "name": "reply_text",
+        "type": "string",
+        "description": "The reply text (max 280 characters)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open the tweet\n  await browser.open(`${params.tweet_url}`)\n\n  // Wait for page content\n  await browser.waitForSelector('[data-testid=\\'tweetText\\']', 15000)\n\n  // Let page settle\n  await browser.wait(1000)\n\n  // Wait for reply box\n  await browser.waitForSelector('[data-testid^=\\'tweetTextarea\\']', 10000)\n\n  // Focus reply box\n  await browser.click('[data-testid^=\\'tweetTextarea\\']')\n\n  // Wait for focus\n  await browser.wait(300)\n\n  // Type reply text\n  const type_reply = await browser.evaluate(`const txt = params.reply_text; if (txt.length > 280) throw new Error('Reply exceeds 280 characters (' + txt.length + ' chars). Please shorten it.'); const el = document.querySelector('[data-testid^=\"tweetTextarea\"] [contenteditable=\"true\"], [data-testid^=\"tweetTextarea\"][contenteditable=\"true\"], [data-testid^=\"tweetTextarea\"]'); if (!el) throw new Error('Reply textarea not found'); el.focus(); document.execCommand('insertText', false, txt); el.dispatchEvent(new Event('input', {bubbles: true})); return { typed: true, characters: txt.length }`)\n\n  await browser.wait(500)\n\n  // Send reply\n  await browser.click('[data-testid=\\'tweetButtonInline\\'], [data-testid^=\\'tweetButton\\']')\n\n  // Wait for reply to post\n  await browser.wait(2000)\n\n  const result = await browser.evaluate(`return { success: true, message: 'Reply posted successfully' }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

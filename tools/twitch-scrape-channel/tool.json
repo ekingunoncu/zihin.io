@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "twitch-scrape-channel",
+    "slug": "twitch-scrape-channel",
+    "name": "twitch_scrape_channel",
+    "displayName": "Twitch Scrape Channel",
+    "description": "Scrape a Twitch channel profile page. Returns channel name, bio, follower count, stream status, panels, schedule, and recent videos.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "twitch",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "channel_name",
+        "type": "string",
+        "description": "Twitch channel name (e.g. 'shroud', 'pokimane', 'xqc')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open channel about page\n  await browser.open(`https://www.twitch.tv/${params.channel_name}/about`)\n\n  // Wait for channel page to load\n  await browser.waitForSelector('h1, [data-a-target=\\'profile-username\\'], [class*=\\'channel-header\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load panels\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract channel profile\n  const channel_data = await browser.evaluate(`const nameEl = document.querySelector('h1, [data-a-target=\"profile-username\"], [class*=\"channel-header\"] h1'); const bioEl = document.querySelector('[class*=\"channel-info-content\"] p, [data-a-target=\"profile-bio\"], [class*=\"about-section\"] p'); const followersEl = document.querySelector('[data-a-target=\"followers-count\"], [class*=\"followers\"]'); const isLive = !!document.querySelector('[class*=\"live-indicator\"], [data-a-target=\"player-overlay-click-handler\"]'); const avatarEl = document.querySelector('[class*=\"channel-info\"] img, [class*=\"avatar\"] img, figure img'); const panels = []; const panelEls = document.querySelectorAll('[class*=\"channel-panels\"] [class*=\"panel\"], [data-a-target=\"channel-panels\"] > div'); panelEls.forEach(function(el) { const titleEl = el.querySelector('h2, h3, [class*=\"title\"]'); const contentEl = el.querySelector('[class*=\"description\"], p'); const imgEl = el.querySelector('img'); panels.push({ title: titleEl ? titleEl.textContent.trim() : '', content: contentEl ? contentEl.textContent.trim().substring(0, 500) : '', has_image: !!imgEl }); }); const videos = []; const videoEls = document.querySelectorAll('[class*=\"video-tower\"] article, [data-a-target=\"video-tower-card\"]'); for (let i = 0; i < Math.min(videoEls.length, 8); i++) { const el = videoEls[i]; const titleEl = el.querySelector('h3, [class*=\"title\"]'); const viewsEl = el.querySelector('[class*=\"views\"]'); const dateEl = el.querySelector('[class*=\"date\"], time'); const linkEl = el.querySelector('a'); videos.push({ title: titleEl ? titleEl.textContent.trim() : '', views: viewsEl ? viewsEl.textContent.trim() : '', date: dateEl ? dateEl.textContent.trim() : '', url: linkEl ? linkEl.href : '' }); } return { channel_name: '' + params.channel_name + '', display_name: nameEl ? nameEl.textContent.trim() : '', bio: bioEl ? bioEl.textContent.trim().substring(0, 1000) : '', followers: followersEl ? followersEl.textContent.trim() : '', is_live: isLive, avatar: avatarEl ? avatarEl.getAttribute('src') : '', panel_count: panels.length, panels: panels.slice(0, 10), recent_videos: videos, url: window.location.href }`)\n\n  return channel_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

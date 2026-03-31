@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "indeed-scrape-company",
+    "slug": "indeed-scrape-company",
+    "name": "indeed_scrape_company",
+    "displayName": "Indeed Scrape Company",
+    "description": "Scrape company information from Indeed's company page including overall rating, review count, salary data, about section, and key stats.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "indeed",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "company",
+        "type": "string",
+        "description": "Company name or Indeed company slug (e.g. 'Google' or 'Google-Inc')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open company page\n  await browser.open(`https://www.indeed.com/cmp/${params.company}`)\n\n  // Wait for company page to load\n  await browser.waitForSelector('[data-testid=\"company-name\"], .css-1b3lbgk, .cmp-CompanyName, h1', 15000)\n\n  // Let page settle\n  await browser.wait(2000)\n\n  // Scroll to load more content\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract company information\n  const company_info = await browser.evaluate(`const nameEl = document.querySelector('[data-testid=\"company-name\"], .css-1b3lbgk, .cmp-CompanyName, h1'); const ratingEl = document.querySelector('[data-testid=\"rating-value\"], .css-1unnuiz, .cmp-OverallRating-value, [itemprop=\"ratingValue\"]'); const reviewCountEl = document.querySelector('[data-testid=\"review-count\"], .css-1yh6bo3 a, .cmp-OverallRating-reviewCount, [itemprop=\"reviewCount\"]'); const aboutEl = document.querySelector('[data-testid=\"about-company\"], .cmp-About-description, .css-1r0wrwl, .cmp-CompanyOverview-description'); const industryEl = document.querySelector('[data-testid=\"company-industry\"], .cmp-CompanyOverview-details dd:nth-child(2), .css-1w0fhqr'); const sizeEl = document.querySelector('[data-testid=\"company-size\"], .cmp-CompanyOverview-details dd:nth-child(4), .css-1plafzr'); const foundedEl = document.querySelector('[data-testid=\"company-founded\"], .cmp-CompanyOverview-details dd:nth-child(6)'); const revenueEl = document.querySelector('[data-testid=\"company-revenue\"], .cmp-CompanyOverview-details dd:nth-child(8)'); const headquartersEl = document.querySelector('[data-testid=\"company-headquarters\"], .cmp-CompanyOverview-details dd:nth-child(10)'); const ratingCategories = []; const categoryEls = document.querySelectorAll('.cmp-RatingBreakdown-item, [data-testid=\"rating-breakdown-item\"], .css-1bdln1k'); categoryEls.forEach(function(el) { const label = el.querySelector('.css-1rk87ix, .cmp-RatingBreakdown-label, span:first-child'); const value = el.querySelector('.css-1unnuiz, .cmp-RatingBreakdown-value, span:last-child'); if (label && value) ratingCategories.push({ category: label.textContent.trim(), rating: value.textContent.trim() }); }); return { name: nameEl ? nameEl.textContent.trim() : '' + params.company + '', overall_rating: ratingEl ? ratingEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', about: aboutEl ? aboutEl.textContent.trim().slice(0, 1000) : '', industry: industryEl ? industryEl.textContent.trim() : '', company_size: sizeEl ? sizeEl.textContent.trim() : '', founded: foundedEl ? foundedEl.textContent.trim() : '', revenue: revenueEl ? revenueEl.textContent.trim() : '', headquarters: headquartersEl ? headquartersEl.textContent.trim() : '', rating_categories: ratingCategories, url: window.location.href }`)\n\n  return company_info\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

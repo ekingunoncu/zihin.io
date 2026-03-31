@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "bluesky-bulk-scrape-profiles",
+    "slug": "bluesky-bulk-scrape-profiles",
+    "name": "bluesky_bulk_scrape_profiles",
+    "displayName": "Bluesky Bulk Scrape Profiles",
+    "description": "Scrape multiple Bluesky profiles in parallel using concurrent browser tabs. Pass all handles as a single comma-separated string. Use this instead of calling bluesky_scrape_profile multiple times.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "bluesky",
+      "scrape",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "handles",
+        "type": "string",
+        "description": "Comma-separated Bluesky handles (e.g. 'user1.bsky.social,user2.bsky.social,custom.domain')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build profile URL list\n  const items = await browser.evaluate(`return params.handles.split(',').map(h => ({ url: 'https://bsky.app/profile/' + h.trim(), handle: h.trim() }))`)\n\n  // Scrape each profile in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

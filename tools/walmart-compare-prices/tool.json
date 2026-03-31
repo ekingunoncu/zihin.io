@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "walmart-compare-prices",
+    "slug": "walmart-compare-prices",
+    "name": "walmart_compare_prices",
+    "displayName": "Walmart Compare Prices",
+    "description": "Compare prices for similar products on Walmart. Searches for a query and extracts pricing details from multiple items sorted by price for easy comparison.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "walmart"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Product search query to compare prices (e.g. 'bluetooth speaker', 'air fryer')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Walmart sorted by price\n  await browser.open(`https://www.walmart.com/search?q=${params.query}&sort=price_low`)\n\n  // Wait for results\n  await browser.waitForSelector('[data-item-id], [class*=\\'product-card\\'], [class*=\\'search-result\\']', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(1500)\n\n  // Extract and compare prices\n  const comparison_data = await browser.evaluate(`const items = []; const cards = document.querySelectorAll('[data-item-id], [class*=\"product-card\"], [class*=\"search-result-gridview-item\"]'); for (let i = 0; i < Math.min(cards.length, 20); i++) { const el = cards[i]; const titleEl = el.querySelector('[data-automation-id=\"product-title\"], [class*=\"product-title\"], [class*=\"title\"] a'); const priceEl = el.querySelector('[data-automation-id=\"product-price\"], [class*=\"price-main\"], [class*=\"price\"]'); const originalPriceEl = el.querySelector('[class*=\"was-price\"], [class*=\"list-price\"], s, del'); const ratingEl = el.querySelector('[class*=\"rating\"] [class*=\"stars\"]'); const reviewCountEl = el.querySelector('[class*=\"review-count\"]'); const sellerEl = el.querySelector('[class*=\"seller\"], [class*=\"fulfilled\"]'); const linkEl = el.querySelector('a[href*=\"/ip/\"]'); const shippingEl = el.querySelector('[class*=\"shipping\"], [class*=\"delivery\"]'); items.push({ title: titleEl ? titleEl.textContent.trim().substring(0, 200) : '', price: priceEl ? priceEl.textContent.trim() : '', original_price: originalPriceEl ? originalPriceEl.textContent.trim() : '', rating: ratingEl ? ratingEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', seller: sellerEl ? sellerEl.textContent.trim() : '', shipping: shippingEl ? shippingEl.textContent.trim() : '', url: linkEl ? linkEl.href : '' }); } const prices = items.map(function(item) { return parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0; }).filter(function(p) { return p > 0; }); const avgPrice = prices.length > 0 ? (prices.reduce(function(a, b) { return a + b; }, 0) / prices.length).toFixed(2) : '0'; return { query: params.query, item_count: items.length, price_summary: { average: '$' + avgPrice, lowest: prices.length > 0 ? '$' + Math.min.apply(null, prices).toFixed(2) : '$0', highest: prices.length > 0 ? '$' + Math.max.apply(null, prices).toFixed(2) : '$0' }, items: items }`)\n\n  return comparison_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tripadvisor-scrape-attraction",
+    "slug": "tripadvisor-scrape-attraction",
+    "name": "tripadvisor_scrape_attraction",
+    "displayName": "Tripadvisor Scrape Attraction",
+    "description": "Scrape attraction details from TripAdvisor. Returns attraction name, rating, review count, category, address, suggested duration, description, and tips.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tripadvisor",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "attraction_url",
+        "type": "string",
+        "description": "Full TripAdvisor attraction URL (e.g. 'https://www.tripadvisor.com/Attraction_Review-g187147-d...')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open attraction page\n  await browser.open(`${params.attraction_url}`)\n\n  // Wait for attraction page to load\n  await browser.waitForSelector('h1#HEADING, [data-test-target=\\'attraction-detail-info\\'], [class*=\\'AttractionHeader\\']', 15000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Scroll to load more content\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Extract attraction details\n  const result = await browser.evaluate(`const nameEl = document.querySelector('h1#HEADING, h1[data-test-target=\"top-info-header\"], h1[class*=\"attraction\"]'); const name = nameEl ? nameEl.textContent.trim() : ''; const ratingEl = document.querySelector('svg[aria-label*=\"bubble\"], .ui_bubble_rating, [class*=\"ratingValue\"]'); const rating = ratingEl ? (ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim() || '') : ''; const reviewCountEl = document.querySelector('a[href*=\"#REVIEWS\"] span, [class*=\"reviewCount\"], [data-test-target=\"review-count\"]'); const reviewCount = reviewCountEl ? reviewCountEl.textContent.trim() : ''; const rankEl = document.querySelector('[class*=\"ranking\"], [data-test-target=\"attraction-ranking\"], .popRanking'); const ranking = rankEl ? rankEl.textContent.trim() : ''; const addressEl = document.querySelector('[class*=\"address\"], [data-test-target=\"attraction-address\"], span[class*=\"street\"], .address'); const address = addressEl ? addressEl.textContent.trim() : ''; const categoryEls = document.querySelectorAll('[class*=\"tag\"] a, [class*=\"category\"] a, .header_links a, [data-test-target=\"attraction-detail-info\"] a'); const categories = []; for (const el of categoryEls) { const text = el.textContent.trim(); if (text && text.length < 50 && !categories.includes(text)) categories.push(text); } const durationEl = document.querySelector('[class*=\"duration\"], [class*=\"suggestedDuration\"], [data-test-target=\"suggested-duration\"]'); const duration = durationEl ? durationEl.textContent.trim() : ''; const descEl = document.querySelector('[class*=\"description\"], [data-test-target=\"about-description\"], .attractionDescription, [class*=\"aboutText\"]'); const description = descEl ? descEl.textContent.trim().substring(0, 500) : ''; const hoursEl = document.querySelector('[class*=\"hours\"], [data-test-target=\"attraction-hours\"], .operatingHours'); const hours = hoursEl ? hoursEl.textContent.trim().substring(0, 200) : ''; const priceEl = document.querySelector('[class*=\"price\"], [class*=\"ticket\"], [data-test-target=\"attraction-price\"]'); const price = priceEl ? priceEl.textContent.trim() : ''; const imgEl = document.querySelector('img[class*=\"photo\"], [class*=\"heroPhoto\"] img, .attractions-detail-hero img'); const image = imgEl ? imgEl.src : ''; return { name: name, rating: rating, review_count: reviewCount, ranking: ranking, categories: categories.slice(0, 10), address: address, suggested_duration: duration, hours: hours, price: price, description: description, image: image, url: window.location.href }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

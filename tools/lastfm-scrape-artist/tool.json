@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "lastfm-scrape-artist",
+    "slug": "lastfm-scrape-artist",
+    "name": "lastfm_scrape_artist",
+    "displayName": "Lastfm Scrape Artist",
+    "description": "Scrape a Last.fm artist page including bio, top tracks, listeners, scrobbles, and tags.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "lastfm",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "artist_name",
+        "type": "string",
+        "description": "Artist name (URL encoded)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Last.fm artist page\n  await browser.open(`https://www.last.fm/music/${params.artist_name}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1.header-new-title, .header-metadata-tnew, .page-content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract artist data\n  const result = await browser.evaluate(`const name = document.querySelector('h1.header-new-title')?.textContent?.trim() || ''; const metaItems = document.querySelectorAll('.header-metadata-tnew-item'); let listeners = ''; let scrobbles = ''; metaItems.forEach(item => { const title = item.querySelector('.header-metadata-tnew-title')?.textContent?.trim() || ''; const abbr = item.querySelector('abbr[title]'); const val = abbr ? abbr.getAttribute('title') : item.querySelector('.header-metadata-tnew-display p')?.textContent?.trim() || ''; if (title.includes('Listener')) listeners = val || ''; if (title.includes('Scrobble')) scrobbles = val || ''; }); const bio = document.querySelector('.wiki-block-inner')?.textContent?.trim()?.slice(0, 500) || ''; const topTracks = []; document.querySelectorAll('.chartlist-row').forEach((el, i) => { if (i < 10) { const trackName = el.querySelector('.chartlist-name a.link-block-target')?.textContent?.trim() || ''; const playCount = el.querySelector('.chartlist-count-bar-value')?.textContent?.trim() || ''; topTracks.push({ name: trackName, plays: playCount }); } }); const tags = []; document.querySelectorAll('.catalogue-tags .tag a').forEach(t => tags.push(t.textContent?.trim())); return { name, listeners, scrobbles, bio, top_tracks: topTracks, tags, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

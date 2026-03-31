@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "walmart-scrape-reviews",
+    "slug": "walmart-scrape-reviews",
+    "name": "walmart_scrape_reviews",
+    "displayName": "Walmart Scrape Reviews",
+    "description": "Scrape customer reviews from a Walmart product page. Returns reviews with author, rating, title, content, date, and verified purchase status.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "walmart",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "product_url",
+        "type": "string",
+        "description": "Walmart product URL (e.g. 'https://www.walmart.com/ip/Product-Name/123456789')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open product page\n  await browser.open(`${params.product_url}`)\n\n  // Wait for page to load\n  await browser.waitForSelector('h1, [data-testid=\\'product-title\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to reviews section\n  await browser.scroll({ direction: 'down', amount: 3000 })\n\n  await browser.wait(2000)\n\n  // Scroll through reviews\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(1500)\n\n  // Extract reviews\n  const reviews_data = await browser.evaluate(`const reviews = []; const reviewEls = document.querySelectorAll('[data-testid=\"review-card\"], [class*=\"review-card\"], [class*=\"customer-review\"], [itemprop=\"review\"]'); for (let i = 0; i < Math.min(reviewEls.length, 20); i++) { const el = reviewEls[i]; const authorEl = el.querySelector('[class*=\"author\"], [itemprop=\"author\"], [class*=\"reviewer\"]'); const ratingEl = el.querySelector('[class*=\"rating\"] [class*=\"stars\"], [itemprop=\"ratingValue\"]'); const titleEl = el.querySelector('[class*=\"review-title\"], h3, h4'); const contentEl = el.querySelector('[class*=\"review-text\"], [itemprop=\"reviewBody\"], [class*=\"review-body\"]'); const dateEl = el.querySelector('[class*=\"date\"], time, [itemprop=\"datePublished\"]'); const verifiedEl = el.querySelector('[class*=\"verified\"], [class*=\"badge\"]'); reviews.push({ author: authorEl ? authorEl.textContent.trim() : 'Anonymous', rating: ratingEl ? ratingEl.textContent.trim() : '', title: titleEl ? titleEl.textContent.trim() : '', content: contentEl ? contentEl.textContent.trim().substring(0, 800) : '', date: dateEl ? dateEl.textContent.trim() : '', verified_purchase: !!verifiedEl }); } const overallRatingEl = document.querySelector('[itemprop=\"ratingValue\"], [data-testid=\"reviews-stars\"]'); const totalReviewsEl = document.querySelector('[itemprop=\"reviewCount\"], [data-testid=\"reviews-count\"]'); return { overall_rating: overallRatingEl ? overallRatingEl.textContent.trim() : '', total_reviews: totalReviewsEl ? totalReviewsEl.textContent.trim() : '', scraped_count: reviews.length, reviews: reviews, url: window.location.href }`)\n\n  return reviews_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

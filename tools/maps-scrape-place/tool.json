@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "maps-scrape-place",
+    "slug": "maps-scrape-place",
+    "name": "maps_scrape_place",
+    "displayName": "Maps Scrape Place",
+    "description": "Scrape detailed information about a place on Google Maps: name, address, phone, website, rating, hours, and reviews count.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-maps",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "place_url",
+        "type": "string",
+        "description": "Google Maps place URL (e.g. from maps_search_places results)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open place page\n  await browser.open(`${params.place_url}`)\n\n  // Wait for place details\n  await browser.waitForSelector('h1, [role=\\'main\\'] h1', 15000)\n\n  // Let page settle\n  await browser.wait(2000)\n\n  // Extract place details\n  const place_details = await browser.evaluate(`const nameEl = document.querySelector('h1.DUwDvf, h1'); const ratingEl = document.querySelector('div.F7nice span[aria-hidden=\"true\"], span.ceNzKf, div.jANrlb div.fontDisplayLarge'); const reviewCountEl = document.querySelector('div.F7nice span[aria-label*=\"review\"], button[jsaction*=\"review\"] span'); const addressBtn = document.querySelector('button[data-item-id=\"address\"], button[data-item-id^=\"address\"], button[aria-label*=\"Address\"]'); const phoneBtn = document.querySelector('button[data-item-id^=\"phone\"], a[href^=\"tel:\"], button[aria-label*=\"Phone\"]'); const websiteLink = document.querySelector('a[data-item-id=\"authority\"], a[data-item-id^=\"authority\"], a[aria-label*=\"Website\"]'); const categoryEl = document.querySelector('button[jsaction*=\"category\"], span.DkEaL, .YhemCb'); const hoursEl = document.querySelector('div[aria-label*=\"hour\" i], button[data-item-id=\"oh\"]'); const priceEl = document.querySelector('span[aria-label*=\"Price\"]'); return { name: nameEl ? nameEl.textContent.trim() : 'Unknown', rating: ratingEl ? ratingEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', address: addressBtn ? addressBtn.textContent.trim().replace(/^Address:\\s*/i, '') : '', phone: phoneBtn ? phoneBtn.textContent.trim().replace(/^Phone:\\s*/i, '') : '', website: websiteLink ? websiteLink.href : '', category: categoryEl ? categoryEl.textContent.trim() : '', hours: hoursEl ? hoursEl.getAttribute('aria-label') || hoursEl.textContent.trim() : '', price_level: priceEl ? priceEl.getAttribute('aria-label') || priceEl.textContent.trim() : '', url: window.location.href }`)\n\n  return place_details\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

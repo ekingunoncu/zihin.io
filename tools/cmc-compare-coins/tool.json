@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "cmc-compare-coins",
+    "slug": "cmc-compare-coins",
+    "name": "cmc_compare_coins",
+    "displayName": "CMC Compare Coins",
+    "description": "Compare multiple cryptocurrencies side by side by scraping their CoinMarketCap pages in parallel. Returns price, market cap, volume, and price changes for each coin.",
+    "category": "Finance",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "coinmarketcap"
+    ],
+    "parameters": [
+      {
+        "name": "coin_slugs",
+        "type": "string",
+        "description": "Comma-separated CoinMarketCap coin slugs (e.g. 'bitcoin,ethereum,solana,cardano')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build coin URL list\n  const items = await browser.evaluate(`return params.coin_slugs.split(',').map(s => ({ url: 'https://coinmarketcap.com/currencies/' + s.trim() + '/', slug: s.trim() }))`)\n\n  // Scrape each coin in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

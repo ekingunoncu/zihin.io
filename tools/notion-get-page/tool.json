@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "notion-get-page",
+    "slug": "notion-get-page",
+    "name": "notion_get_page",
+    "displayName": "Notion Get Page",
+    "description": "Get the content of a Notion page including title, blocks, and properties. Returns structured page content.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "notion"
+    ],
+    "parameters": [
+      {
+        "name": "page_url",
+        "type": "string",
+        "description": "Notion page URL (e.g. 'https://www.notion.so/Page-Title-abc123')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Notion page\n  await browser.open(`${params.page_url}`)\n\n  // Wait for page content\n  await browser.waitForSelector('.notion-page-content, .notion-scroller, [data-content-editable-root]', 15000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Extract page content from DOM\n  const result = await browser.evaluate(`const title = document.querySelector('.notion-page__title, [placeholder=\"Untitled\"], .notranslate[data-content-editable-leaf]')?.textContent?.trim() || ''; const blocks = []; const contentEls = document.querySelectorAll('.notion-page-content [data-block-id], .notion-scroller .notion-selectable'); for (let i = 0; i < Math.min(contentEls.length, 50); i++) { const el = contentEls[i]; const text = el.textContent?.trim() || ''; if (text) blocks.push({ type: el.getAttribute('data-block-type') || el.className.match(/notion-(\\w+)-block/)?.[1] || 'text', content: text.substring(0, 300) }); } const properties = []; const propEls = document.querySelectorAll('.notion-collection-page-properties .notion-collection_view-block [data-block-id]'); propEls.forEach(p => { const label = p.querySelector('.notion-collection-property-title')?.textContent?.trim() || ''; const value = p.querySelector('.notion-collection-property-value, .notion-property-value')?.textContent?.trim() || ''; if (label || value) properties.push({ label, value }); }); return { title: title, block_count: blocks.length, blocks: blocks, properties: properties, url: window.location.href }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

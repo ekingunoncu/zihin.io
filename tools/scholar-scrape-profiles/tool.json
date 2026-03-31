@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "scholar-scrape-profiles",
+    "slug": "scholar-scrape-profiles",
+    "name": "scholar_scrape_profiles",
+    "displayName": "Scholar Scrape Profiles",
+    "description": "Search for author profiles on Google Scholar. Returns up to 10 matching profiles with name, affiliation, research interests, citation count, and profile URL.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-scholar",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Author search query (e.g. 'Geoffrey Hinton', 'deep learning MIT')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search for author profiles\n  await browser.open(`https://scholar.google.com/citations?view_op=search_authors&mauthors=${params.query}&hl=en`)\n\n  // Wait for author results\n  await browser.waitForSelector('.gsc_1usr, #gsc_sa_ccl', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more profiles\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract author profiles\n  const profiles_data = await browser.evaluate(`const profiles = []; const items = document.querySelectorAll('.gsc_1usr'); for (let i = 0; i < Math.min(items.length, 10); i++) { const el = items[i]; const nameEl = el.querySelector('.gs_ai_name a'); const affiliationEl = el.querySelector('.gs_ai_aff'); const interestEls = el.querySelectorAll('.gs_ai_one_int'); const citedByEl = el.querySelector('.gs_ai_cby'); const imgEl = el.querySelector('.gs_ai_pho img'); const interests = []; interestEls.forEach(function(intEl) { interests.push(intEl.textContent.trim()); }); const profileLink = nameEl ? nameEl.getAttribute('href') : ''; const userId = profileLink ? (profileLink.match(/user=([^&]+)/) || [])[1] || '' : ''; profiles.push({ name: nameEl ? nameEl.textContent.trim() : '', affiliation: affiliationEl ? affiliationEl.textContent.trim() : '', interests: interests, cited_by: citedByEl ? citedByEl.textContent.trim() : '', image: imgEl ? imgEl.getAttribute('src') : '', user_id: userId, profile_url: profileLink ? 'https://scholar.google.com' + profileLink : '' }); } var params = new URLSearchParams(window.location.search); return { query: params.get('mauthors') || '', result_count: profiles.length, profiles: profiles }`)\n\n  return profiles_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

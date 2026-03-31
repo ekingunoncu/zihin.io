@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "goodreads-scrape-book",
+    "slug": "goodreads-scrape-book",
+    "name": "goodreads_scrape_book",
+    "displayName": "Goodreads Scrape Book",
+    "description": "Scrape a Goodreads book page.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "goodreads",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "book_id",
+        "type": "string",
+        "description": "Book ID or slug",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Goodreads\n  await browser.open(`https://www.goodreads.com/book/show/${params.book_id}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1, [data-testid=\"bookTitle\"], .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`let nd = null; try { const s = document.querySelector('script#__NEXT_DATA__'); if (s) nd = JSON.parse(s.textContent); } catch(e) {} const title = document.querySelector('[data-testid=\"bookTitle\"], h1#bookTitle, h1')?.textContent?.trim() || ''; const author = document.querySelector('[data-testid=\"name\"], a.ContributorLink, a.authorName, [itemprop=\"author\"]')?.textContent?.trim() || ''; const ratingEl = document.querySelector('[class*=\"RatingStatistics__rating\"], [itemprop=\"ratingValue\"]'); const rating = ratingEl?.textContent?.trim() || ''; const desc = document.querySelector('[data-testid=\"description\"] [class*=\"Formatted\"], [data-testid=\"description\"], #description span, .readable span[style]')?.textContent?.trim()?.slice(0, 1000) || ''; const genres = []; document.querySelectorAll('[data-testid=\"genresList\"] a, .bookPageGenreLink, a[href*=\"/genres/\"]').forEach(g => { const t = g.textContent?.trim(); if (t && !genres.includes(t)) genres.push(t); }); const pages = document.querySelector('[data-testid=\"pagesFormat\"], [itemprop=\"numberOfPages\"], p[data-testid=\"pagesFormat\"]')?.textContent?.trim() || ''; const ratingCount = document.querySelector('[data-testid=\"ratingsCount\"]')?.textContent?.trim() || ''; const reviewCount = document.querySelector('[data-testid=\"reviewsCount\"]')?.textContent?.trim() || ''; const img = document.querySelector('[class*=\"BookCover\"] img, #coverImage, img.bookCoverImg')?.src || ''; return { title, author, rating, rating_count: ratingCount, review_count: reviewCount, description: desc, genres, pages, cover_image: img, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

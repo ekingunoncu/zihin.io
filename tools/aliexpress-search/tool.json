@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "aliexpress-search",
+    "slug": "aliexpress-search",
+    "name": "aliexpress_search",
+    "displayName": "Aliexpress Search",
+    "description": "Search for products on AliExpress. Returns up to 15 results with title, price, rating, orders, seller, image, and URL.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "aliexpress",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'wireless earbuds', 'phone case', 'LED lights')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search AliExpress\n  await browser.open(`https://www.aliexpress.com/w/wholesale-${params.query}.html`)\n\n  // Wait for results\n  await browser.waitForSelector('[class*=\\'search-item\\'], [class*=\\'product-card\\'], [class*=\\'SearchResultList\\']', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract product results\n  const search_results = await browser.evaluate(`const results = []; const items = document.querySelectorAll('[class*=\"search-item-card\"], [class*=\"product-card\"], [class*=\"list--gallery\"] > div, a[href*=\"/item/\"]'); for (let i = 0; i < Math.min(items.length, 15); i++) { const el = items[i]; const titleEl = el.querySelector('h1, h3, [class*=\"title\"], [class*=\"name\"] a'); const priceEl = el.querySelector('[class*=\"price\"], [class*=\"Price\"]'); const ratingEl = el.querySelector('[class*=\"rating\"], [class*=\"star\"]'); const ordersEl = el.querySelector('[class*=\"sold\"], [class*=\"orders\"]'); const imgEl = el.querySelector('img'); const linkEl = el.tagName === 'A' ? el : el.querySelector('a[href*=\"/item/\"]'); const storeEl = el.querySelector('[class*=\"store\"], [class*=\"shop\"]'); results.push({ title: titleEl ? titleEl.textContent.trim().substring(0, 200) : '', price: priceEl ? priceEl.textContent.trim() : '', rating: ratingEl ? ratingEl.textContent.trim() : '', orders: ordersEl ? ordersEl.textContent.trim() : '', store: storeEl ? storeEl.textContent.trim() : '', url: linkEl ? linkEl.href : '', image: imgEl ? imgEl.getAttribute('src') : '' }); } return { query: params.query, result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

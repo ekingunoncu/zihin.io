@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "huggingface-search-models",
+    "slug": "huggingface-search-models",
+    "name": "huggingface_search_models",
+    "displayName": "Huggingface Search Models",
+    "description": "Search AI models on Hugging Face. Returns model names, authors, downloads, likes, and tags.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "huggingface",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Model search query",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open HF model search\n  await browser.open(`https://huggingface.co/models?search=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('h4, article', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract models\n  const results = await browser.evaluate(`const results = []; const cards = document.querySelectorAll('article, main a[href]:has(h4)'); for (let i = 0; i < Math.min(cards.length, 15); i++) { const c = cards[i]; const titleEl = c.querySelector('h4'); if (!titleEl) continue; const link = c.closest('a[href]') || c.querySelector('a[href]') || c; const spans = Array.from(c.querySelectorAll('span')).map(s => s.textContent.trim()).filter(Boolean); results.push({ name: titleEl.textContent.trim(), url: link.href || '', meta: spans.slice(0, 5) }); } return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

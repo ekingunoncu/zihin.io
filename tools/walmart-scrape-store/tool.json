@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "walmart-scrape-store",
+    "slug": "walmart-scrape-store",
+    "name": "walmart_scrape_store",
+    "displayName": "Walmart Scrape Store",
+    "description": "Scrape Walmart store information for a given location. Returns nearby stores with address, phone, hours, services available, and distance.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "walmart",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "location",
+        "type": "string",
+        "description": "Location to find stores (e.g. 'Austin TX', '90210', 'Chicago IL')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search for stores\n  await browser.open(`https://www.walmart.com/store/finder?location=${params.location}`)\n\n  // Wait for store results\n  await browser.waitForSelector('[class*=\\'store-card\\'], [class*=\\'store-list\\'], [data-testid=\\'store-card\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to see more stores\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract store information\n  const store_data = await browser.evaluate(`const stores = []; const storeEls = document.querySelectorAll('[data-testid=\"store-card\"], [class*=\"store-card\"], [class*=\"store-list\"] > div, [class*=\"store-item\"]'); for (let i = 0; i < Math.min(storeEls.length, 10); i++) { const el = storeEls[i]; const nameEl = el.querySelector('[class*=\"store-name\"], h2, h3, [class*=\"title\"]'); const addressEl = el.querySelector('[class*=\"address\"], address'); const phoneEl = el.querySelector('[class*=\"phone\"], a[href^=\"tel:\"]'); const hoursEl = el.querySelector('[class*=\"hours\"], [class*=\"open-until\"]'); const distEl = el.querySelector('[class*=\"distance\"]'); const typeEl = el.querySelector('[class*=\"store-type\"], [class*=\"badge\"]'); const services = []; const serviceEls = el.querySelectorAll('[class*=\"service\"] li, [class*=\"feature\"] li, [class*=\"amenity\"]'); serviceEls.forEach(function(s) { services.push(s.textContent.trim()); }); const linkEl = el.querySelector('a[href*=\"/store/\"]'); stores.push({ name: nameEl ? nameEl.textContent.trim() : '', address: addressEl ? addressEl.textContent.trim() : '', phone: phoneEl ? phoneEl.textContent.trim() : '', hours: hoursEl ? hoursEl.textContent.trim() : '', distance: distEl ? distEl.textContent.trim() : '', store_type: typeEl ? typeEl.textContent.trim() : '', services: services.slice(0, 10), url: linkEl ? linkEl.href : '' }); } return { location: '' + params.location + '', store_count: stores.length, stores: stores, url: window.location.href }`)\n\n  return store_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

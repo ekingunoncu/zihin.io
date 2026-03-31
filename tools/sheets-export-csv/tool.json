@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "sheets-export-csv",
+    "slug": "sheets-export-csv",
+    "name": "sheets_export_csv",
+    "displayName": "Sheets Export CSV",
+    "description": "Export the active sheet of a Google Spreadsheet as CSV data. Uses the built-in export URL pattern to download the spreadsheet content as comma-separated values.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-sheets"
+    ],
+    "parameters": [
+      {
+        "name": "spreadsheet_url",
+        "type": "string",
+        "description": "Full Google Sheets URL (e.g. https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open spreadsheet\n  await browser.open(`${params.spreadsheet_url}`)\n\n  // Wait for spreadsheet to load\n  await browser.waitForSelector('table.waffle, .waffle', 20000)\n\n  // Let spreadsheet fully render\n  await browser.wait(3000)\n\n  // Export spreadsheet as CSV via export URL\n  const export_result = await browser.evaluate(`const url = window.location.href; const idMatch = url.match(/\\/spreadsheets\\/d\\/([a-zA-Z0-9_-]+)/); if (!idMatch) return { error: 'Could not extract spreadsheet ID from URL' }; const spreadsheetId = idMatch[1]; let gid = '0'; const gidMatch = url.match(/[#&?]gid=(\\d+)/); if (gidMatch) { gid = gidMatch[1]; } else { const activeTab = document.querySelector('.docs-sheet-active-tab, .docs-sheet-tab[aria-selected=\"true\"]'); if (activeTab) { const tabId = activeTab.getAttribute('id') || ''; const tabGid = tabId.replace('sheet-button-', '').replace(/\\D/g, '') || activeTab.dataset.id || activeTab.getAttribute('data-id'); if (tabGid) gid = tabGid; } } const exportUrl = \\`https://docs.google.com/spreadsheets/d/\\${spreadsheetId}/export?format=csv&gid=\\${gid}\\`; try { const response = await fetch(exportUrl, { credentials: 'include', redirect: 'follow' }); if (!response.ok) throw new Error(\\`Export failed with status \\${response.status}\\`); const csvText = await response.text(); const lines = csvText.split('\\n'); const preview = lines.slice(0, 20).join('\\n'); const titleEl = document.querySelector('.docs-title-input, input.docs-title-input, .docs-titlebar-text'); const title = titleEl ? (titleEl.value || titleEl.textContent || '').trim() : ''; return { success: true, title: title, spreadsheet_id: spreadsheetId, gid: gid, total_rows: lines.length, csv_preview: preview, csv_data: csvText }; } catch (e) { return { error: 'Failed to export CSV: ' + e.message, export_url: exportUrl, suggestion: 'Make sure you are logged into Google and have access to this spreadsheet' }; }`)\n\n  return export_result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

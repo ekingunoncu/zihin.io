@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-scrape-trending",
+    "slug": "scrape-trending",
+    "name": "scrape_trending",
+    "displayName": "Scrape Trending",
+    "description": "Scrape the current trending topics on X/Twitter.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.1",
+    "tags": [
+      "x-automation",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open trending page\n  await browser.open('https://x.com/explore/tabs/trending')\n\n  // Wait for page content\n  await browser.waitForSelector('[data-testid=\\'cellInnerDiv\\']', 15000)\n\n  // Let page settle\n  await browser.wait(2000)\n\n  // Scroll for more trends\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract trending topics\n  const trending = await browser.evaluate(`const trends = []; const trendCells = document.querySelectorAll('[data-testid=\"trend\"]'); if (trendCells.length > 0) { trendCells.forEach((cell, i) => { if (i >= 20) return; const spans = cell.querySelectorAll('span'); const texts = Array.from(spans).map(s => s.textContent.trim()).filter(t => t.length > 0); let topic = ''; let category = ''; let postCount = ''; for (const t of texts) { if (t.match(/trending/i)) continue; if (t.match(/^\\d+\\s*·/)) continue; if (t.match(/posts$/i) || t.match(/[KMB]\\s*posts/i) || t.match(/^[\\d,.]+[KMB]?$/)) { postCount = t; } else if (t.match(/·/) || t.match(/trending in/i)) { category = t; } else if (t.startsWith('#') || t.length > 2) { if (!topic) topic = t; } } if (topic) trends.push({ rank: i + 1, topic: topic, category: category, post_count: postCount }); }); } else { const cells = document.querySelectorAll('[data-testid=\"cellInnerDiv\"]'); cells.forEach((cell, i) => { if (i >= 20) return; const links = cell.querySelectorAll('a[href]'); const spans = cell.querySelectorAll('span'); const texts = Array.from(spans).map(s => s.textContent.trim()).filter(t => t.length > 1); let topic = ''; let category = ''; let postCount = ''; let link = ''; for (const a of links) { const href = a.getAttribute('href') || ''; if (href.includes('/search?q=') || href.includes('/hashtag/')) { link = href; const lt = a.textContent.trim(); if (lt) topic = lt; } } for (const t of texts) { if (t.match(/trending/i) && !topic) continue; if (t.match(/posts$/i) || t.match(/[KMB]\\s*posts/i)) { postCount = t; } else if (t.match(/·/) || t.match(/trending in/i)) { category = t; } else if ((t.startsWith('#') || t.length > 2) && !topic) { topic = t; } } if (topic) trends.push({ rank: i + 1, topic: topic, category: category, post_count: postCount, link: link || undefined }); }); } return { count: trends.length, trends: trends };`)\n\n  return trending\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

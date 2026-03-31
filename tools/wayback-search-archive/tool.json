@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "wayback-search-archive",
+    "slug": "wayback-search-archive",
+    "name": "wayback_search_archive",
+    "displayName": "Wayback Search Archive",
+    "description": "Search Internet Archive collections.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "wayback",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Internet Archive search\n  await browser.open(`https://archive.org/search?query=${params.query}`)\n\n  // Wait for page\n  await browser.waitForSelector('.results, .item-ia, .SRPs, [class*=\"search-results\"], .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const items = []; document.querySelectorAll('.item-ia, .result-item, [data-id], [class*=\"search-tile\"], .SRPItem, article').forEach((el, i) => { if (i < 15) { const titleEl = el.querySelector('.ttl, .title a, a[href*=\"/details/\"], .item-title, h4 a'); const typeEl = el.querySelector('.type, .mediatype, .item-mediatype'); const descEl = el.querySelector('.description, .item-description, p'); items.push({ title: titleEl?.textContent?.trim() || '', url: titleEl?.href || '', type: typeEl?.textContent?.trim() || '', description: descEl?.textContent?.trim()?.slice(0, 200) || '' }); } }); return { query: '' + params.query + '', item_count: items.length, items };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

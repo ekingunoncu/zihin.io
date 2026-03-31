@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "pinterest-search",
+    "slug": "pinterest-search",
+    "name": "pinterest_search",
+    "displayName": "Pinterest Search",
+    "description": "Search Pinterest pins by query. Navigates to Pinterest search and scrapes pin results including image URLs, titles, descriptions, and links.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "pinterest",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'home decor ideas', 'wedding dresses', 'healthy recipes')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Pinterest for pins\n  await browser.open(`https://www.pinterest.com/search/pins/?q=${params.query}`)\n\n  // Wait for pin results to load\n  await browser.waitForSelector('[data-test-id=\\'pin\\'], [data-test-id=\\'pinWrapper\\'], div[data-grid-item]', 15000)\n\n  // Let results fully render\n  await browser.wait(3000)\n\n  // Extract pin search results\n  const search_results = await browser.evaluate(`const results = []; const pins = document.querySelectorAll('[data-test-id=\"pin\"], [data-test-id=\"pinWrapper\"], div[data-grid-item]'); for (let i = 0; i < Math.min(pins.length, 20); i++) { const pin = pins[i]; const imgEl = pin.querySelector('img'); const linkEl = pin.querySelector('a[href*=\"/pin/\"]'); const titleEl = pin.querySelector('[data-test-id=\"pinTitle\"], [title]') || imgEl; const descEl = pin.querySelector('[data-test-id=\"truncated-description\"], [data-test-id=\"pin-description\"]'); results.push({ title: titleEl ? (titleEl.getAttribute('title') || titleEl.getAttribute('alt') || titleEl.textContent || '').trim().slice(0, 200) : '', image_url: imgEl ? (imgEl.getAttribute('src') || '') : '', pin_url: linkEl ? 'https://www.pinterest.com' + linkEl.getAttribute('href') : '', description: descEl ? descEl.textContent.trim().slice(0, 300) : '' }); } return { query: '' + params.query + '', result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

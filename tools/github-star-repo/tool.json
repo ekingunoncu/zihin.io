@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "github-star-repo",
+    "slug": "github-star-repo",
+    "name": "github_star_repo",
+    "displayName": "Github Star Repo",
+    "description": "Star a GitHub repository. You must be logged into GitHub.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "github"
+    ],
+    "parameters": [
+      {
+        "name": "repo_url",
+        "type": "string",
+        "description": "GitHub repository URL (e.g. 'https://github.com/owner/repo')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open repository\n  await browser.open(`${params.repo_url}`)\n\n  // Wait for repo page\n  await browser.waitForSelector('[data-testid=\\'latest-commit\\'], .BorderGrid-row, .repository-content', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Click star button\n  const result = await browser.evaluate(`const allBtns = document.querySelectorAll('button'); let starBtn = null; let alreadyStarred = false; for (const btn of allBtns) { const text = btn.textContent.trim().toLowerCase(); const label = (btn.getAttribute('aria-label') || '').toLowerCase(); if (text === 'star' || label.includes('star this repository') || label === 'star') { starBtn = btn; break; } if (text === 'starred' || text === 'unstar' || label.includes('unstar this repository') || label === 'unstar') { alreadyStarred = true; break; } } if (!starBtn && !alreadyStarred) { starBtn = document.querySelector('[data-ga-click*=\"star\"] button, form.unstarred button, form[action*=\"/star\"] button'); } if (!starBtn && !alreadyStarred) { const starred = document.querySelector('form.starred button, form[action*=\"/unstar\"] button'); if (starred) alreadyStarred = true; } if (alreadyStarred) return { success: true, message: 'Already starred', repo: window.location.pathname.substring(1) }; if (!starBtn) return { success: false, message: 'Star button not found - make sure you are logged in' }; starBtn.click(); await new Promise(r => setTimeout(r, 1500)); return { success: true, message: 'Repository starred', repo: window.location.pathname.substring(1) }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

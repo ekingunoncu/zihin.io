@@ -1,98 +1,95 @@
-# zihin.io- Agent Marketplace for izan.io
+# zihin.io - Browser Tool Marketplace for izan.io
 
-Community-driven marketplace where anyone can discover, share, and contribute AI agents for [izan.io](https://izan.io).
+Community-driven marketplace for browser automation tools used with the [izan.io](https://izan.io) Chrome extension.
 
-This repository stores agent definitions as JSON files. **GitHub is the database**- submitting an agent means opening a pull request, and merging it publishes the agent.
+This repository stores tool definitions as JSON files. **GitHub is the database** - submitting a tool means opening a pull request, and merging it publishes the tool.
 
 ## How It Works
 
-1. Browse agents at [zihin.io](https://zihin.io)
-2. Click **"Download for izan.io"** to get the agent file
-3. Import it in izan.io via **Settings → Agents → Import from File**
-4. MCP servers are auto-configured during import
+1. Browse tools at [zihin.io](https://zihin.io) or in the izan.io extension side panel (Store tab)
+2. Click **Install** to add a tool to your extension
+3. The tool is immediately available to any connected MCP client
 
-## Submit Your Agent
+## Submit a Tool
 
 1. Go to [zihin.io/submit](https://zihin.io/submit)
 2. Sign in with GitHub
-3. Fill in your agent details (name, system prompt, MCP servers, etc.)
-4. Submit- a pull request is created automatically
-5. Once reviewed and merged, your agent is live
+3. Fill in your tool details (name, description, parameters, code)
+4. Submit - a pull request is created automatically
+5. Once reviewed and merged, your tool is live
 
-Or manually: fork this repo, add your agent under `agents/your-agent-slug/agent.json`, and open a PR.
+Or manually: fork this repo, add your tool under `tools/your-tool-slug/tool.json`, and open a PR.
 
 ## Repository Structure
 
 ```
-agents/
-  index.json                 # Auto-generated summary of all agents
-  example-agent/
-    agent.json               # Full agent definition
-  your-agent/
-    agent.json
+tools/
+  index.json                 # Auto-generated summary of all tools
+  get-page-title/
+    tool.json                # Full tool definition
+  your-tool/
+    tool.json
 ```
 
-## Agent Schema
+## Tool Schema
 
-Each `agent.json` follows this structure:
+Each `tool.json` follows this structure:
 
 ```json
 {
   "schemaVersion": 1,
-  "agent": {
-    "id": "my-agent",
-    "slug": "my-agent",
-    "name": "My Agent",
-    "description": "What this agent does",
-    "icon": "🤖",
-    "basePrompt": "You are an expert at...",
-    "category": "Development",
+  "tool": {
+    "id": "my-tool",
+    "slug": "my-tool",
+    "name": "my_tool",
+    "displayName": "My Tool",
+    "description": "What this tool does",
+    "category": "Productivity",
     "author": {
       "githubUsername": "your-username",
       "displayName": "Your Name",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/your-username"
+      "avatarUrl": "https://github.com/your-username.png"
     },
     "version": "1.0.0",
     "tags": ["tag1", "tag2"],
-    "createdAt": "2026-01-01T00:00:00.000Z",
-    "updatedAt": "2026-01-01T00:00:00.000Z",
-    "examplePrompts": [
-      "Example question 1",
-      "Example question 2"
-    ],
-    "requiredMCPs": [
+    "parameters": [
       {
-        "name": "My MCP Server",
-        "url": "https://mcp.example.com/sse",
-        "description": "What this server provides"
+        "name": "url",
+        "type": "string",
+        "description": "The URL to navigate to",
+        "required": true
       }
-    ]
+    ],
+    "code": "async (params, browser) => {\n  await browser.open(params.url)\n  await browser.waitForLoad()\n  const title = await browser.evaluate('document.title')\n  await browser.close()\n  return { title }\n}",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z"
   }
 }
 ```
 
 ### Categories
 
-`Development` · `Writing` · `Marketing` · `Data` · `Design` · `Productivity` · `Education` · `Finance` · `Other`
+`Social Media` · `Productivity` · `E-Commerce` · `Finance` · `Education` · `Entertainment` · `Travel` · `Development` · `Other`
 
-### Required MCP Servers
+### Browser API (available in tool code)
 
-Agents can specify MCP (Model Context Protocol) servers they need. When a user downloads the agent and imports it into izan.io, these servers are automatically added to their configuration.
-
-```json
-"requiredMCPs": [
-  {
-    "name": "Server Name",
-    "url": "https://your-mcp-server.com/sse",
-    "description": "What tools this server provides"
-  }
-]
+```javascript
+browser.open(url)              // Open URL in new tab
+browser.navigate(url)          // Navigate current tab
+browser.click(selector)        // Click element
+browser.type(selector, text)   // Type into input
+browser.getText(selector)      // Get element text
+browser.evaluate(expression)   // Run JS in page
+browser.waitForSelector(sel)   // Wait for element
+browser.waitForLoad()          // Wait for page load
+browser.snapshot()             // Accessibility tree
+browser.close()                // Close tab
 ```
 
 ## Automation
 
-When a PR is merged to `main` that modifies any `agents/*/agent.json` file, a GitHub Action automatically regenerates `agents/index.json`.
+When a PR is merged to `main` that modifies any `tools/*/tool.json` file, a GitHub Action automatically regenerates `tools/index.json`.
 
 ## License
 
-AGPL-3.0- Same as [izan.io](https://github.com/nicepkg/izan.io)
+AGPL-3.0

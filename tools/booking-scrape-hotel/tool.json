@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "booking-scrape-hotel",
+    "slug": "booking-scrape-hotel",
+    "name": "booking_scrape_hotel",
+    "displayName": "Booking Scrape Hotel",
+    "description": "Scrape full hotel details from a Booking.com hotel page. Returns hotel name, price, rating, description, amenities, room types, address, and images.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "booking",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "hotel_url",
+        "type": "string",
+        "description": "Booking.com hotel URL (e.g. 'https://www.booking.com/hotel/fr/example-paris.html')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open hotel page\n  await browser.open(`${params.hotel_url}`)\n\n  // Wait for hotel page to load\n  await browser.waitForSelector('h2.pp-header__title, [data-testid=\\'header-title\\'], .hp__hotel-name, #hp_hotel_name', 15000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Scroll to load additional content\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(2000)\n\n  // Scroll further for amenities\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(2000)\n\n  // Extract hotel details\n  const hotel_data = await browser.evaluate(`const nameEl = document.querySelector('h2.pp-header__title, [data-testid=\"header-title\"], .hp__hotel-name, #hp_hotel_name'); const addressEl = document.querySelector('[data-testid=\"header-address\"], .hp_address_subtitle, span.hp_address_subtitle'); const ratingScoreEl = document.querySelector('[data-testid=\"review-score-component\"] div:first-child, .bui-review-score__badge, .review-score-badge'); const ratingTextEl = document.querySelector('[data-testid=\"review-score-component\"] div:nth-child(2) div:first-child, .bui-review-score__title'); const reviewCountEl = document.querySelector('[data-testid=\"review-score-component\"] div:nth-child(2) div:nth-child(2), .bui-review-score__text'); const descEl = document.querySelector('[data-testid=\"property-description\"], #property_description_content, .hp_desc_main_content'); const priceEl = document.querySelector('[data-testid=\"price-and-discounted-price\"], .bui-price-display__value, .prco-valign-middle-helper, .hprt-price-price'); const starsEl = document.querySelector('[data-testid=\"rating-stars\"], .bui-rating, [data-testid=\"header-star-rating\"]'); const starCount = starsEl ? (starsEl.querySelectorAll('span, svg').length || starsEl.getAttribute('aria-label') || '') : ''; const amenities = []; const amenityEls = document.querySelectorAll('[data-testid=\"facility-list-item\"], .hp_desc_important_facilities .important_facility, .facilitiesChecklist__row, [data-testid=\"property-most-popular-facilities-wrapper\"] li, .hotel-facilities-group__list-item'); amenityEls.forEach(function(el) { const text = el.textContent.trim(); if (text && text.length > 1 && text.length < 100) { amenities.push(text); } }); const rooms = []; const roomEls = document.querySelectorAll('.hprt-table tr, [data-testid=\"availability-row\"], .roomrow, table.hprt-table tbody tr'); roomEls.forEach(function(el, idx) { if (idx >= 10) return; const roomNameEl = el.querySelector('.hprt-roomtype-icon-link, [data-testid=\"room-type-link\"], .room_link strong, a.hprt-roomtype-link'); const roomPriceEl = el.querySelector('.hprt-price-price, [data-testid=\"price-and-discounted-price\"], .bui-price-display__value'); const roomOccupancyEl = el.querySelector('.hprt-occupancy-occupancy-info, [data-testid=\"occupancy-popup\"]'); if (roomNameEl) { rooms.push({ name: roomNameEl.textContent.trim(), price: roomPriceEl ? roomPriceEl.textContent.trim() : '', occupancy: roomOccupancyEl ? roomOccupancyEl.textContent.trim() : '' }); } }); const images = []; const imgEls = document.querySelectorAll('.bh-photo-grid img, [data-testid=\"gallery-image\"] img, .hotel_image img, a.bh-photo-grid-item img'); imgEls.forEach(function(img) { const src = img.getAttribute('src') || img.getAttribute('data-src') || ''; if (src && src.includes('bstatic.com')) { images.push(src); } }); return { name: nameEl ? nameEl.textContent.trim() : '', address: addressEl ? addressEl.textContent.trim() : '', stars: starCount, rating_score: ratingScoreEl ? ratingScoreEl.textContent.trim() : '', rating_text: ratingTextEl ? ratingTextEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', description: descEl ? descEl.textContent.trim().substring(0, 1500) : '', price: priceEl ? priceEl.textContent.trim() : '', amenities: amenities.slice(0, 20), rooms: rooms, images: images.slice(0, 6), url: window.location.href }`)\n\n  return hotel_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

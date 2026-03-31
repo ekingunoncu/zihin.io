@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "calendar-bulk-create-events",
+    "slug": "calendar-bulk-create-events",
+    "name": "calendar_bulk_create_events",
+    "displayName": "Calendar Bulk Create Events",
+    "description": "Create multiple Google Calendar events in parallel using concurrent browser tabs. Pass a JSON array of event objects, each with title, date (YYYY-MM-DD), and optional time (HH:MM) and duration in minutes. Use this instead of calling calendar_create_event multiple times.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-calendar",
+      "bulk",
+      "create"
+    ],
+    "parameters": [
+      {
+        "name": "events_json",
+        "type": "string",
+        "description": "JSON array of event objects, e.g. '[{\"title\":\"Meeting\",\"date\":\"2026-03-01\",\"time\":\"10:00\"},{\"title\":\"Lunch\",\"date\":\"2026-03-01\",\"time\":\"12:30\",\"duration\":\"90\"}]'",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Parse events JSON and build eventedit URLs\n  const items = await browser.evaluate(`const events = JSON.parse(params.events_json); return events.map(e => { const title = e.title || 'Untitled Event'; const date = (e.date || '').replace(/-/g, ''); const dur = parseInt(e.duration) || 60; let dates = ''; if (e.time && date) { const [h, m] = e.time.split(':'); const startMin = parseInt(h) * 60 + (parseInt(m) || 0); const endMin = startMin + dur; const endH = String(Math.floor(endMin / 60) % 24).padStart(2, '0'); const endM = String(endMin % 60).padStart(2, '0'); dates = date + 'T' + String(h).padStart(2, '0') + String(m || '00').padStart(2, '0') + '00/' + date + 'T' + endH + endM + '00'; } else if (date) { const d = new Date(parseInt(date.slice(0,4)), parseInt(date.slice(4,6))-1, parseInt(date.slice(6,8))+1); const next = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0'); dates = date + '/' + next; } const p = new URLSearchParams(); p.set('text', title); if (dates) p.set('dates', dates); if (e.description) p.set('details', e.description); return { url: 'https://calendar.google.com/calendar/r/eventedit?' + p.toString(), title: title, date: e.date || '', time: e.time || '' }; })`)\n\n  // Create each event in a parallel tab\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

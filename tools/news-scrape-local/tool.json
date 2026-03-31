@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "news-scrape-local",
+    "slug": "news-scrape-local",
+    "name": "news_scrape_local",
+    "displayName": "News Scrape Local",
+    "description": "Scrape local news from Google News by searching for a specific location. Returns up to 15 local news articles with title, source, time, snippet, and URL.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-news",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "location",
+        "type": "string",
+        "description": "Location for local news (e.g. 'San Francisco', 'New York City', 'London')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search local news on Google News\n  await browser.open('https://news.google.com/search')\n\n  // Wait for local news results\n  await browser.waitForSelector('article, c-wiz article, [data-n-tid]', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract local news articles\n  const local_data = await browser.evaluate(`const articles = []; const items = document.querySelectorAll('article, c-wiz article'); for (let i = 0; i < Math.min(items.length, 15); i++) { const item = items[i]; const linkEl = item.querySelector('a[href*=\"./articles/\"], a[href*=\"./read/\"], a[href^=\"https\"]'); const titleEl = linkEl ? linkEl.querySelector('h3, h4, .JtKRv') || linkEl : null; const sourceEl = item.querySelector('.vr1PYe, [data-n-tid], .wsn2rd, div > div > a[data-n-tid]'); const timeEl = item.querySelector('time, .hvbAAd, datetime'); const snippetEl = item.querySelector('.GI74Re, .xBbh9, .Y8wuc'); let url = ''; if (linkEl) { const href = linkEl.getAttribute('href') || ''; if (href.startsWith('./')) { url = 'https://news.google.com/' + href.slice(2); } else if (href.startsWith('http')) { url = href; } else { url = 'https://news.google.com/' + href; } } articles.push({ title: titleEl ? titleEl.textContent.trim() : '', source: sourceEl ? sourceEl.textContent.trim() : '', time: timeEl ? (timeEl.getAttribute('datetime') || timeEl.textContent.trim()) : '', snippet: snippetEl ? snippetEl.textContent.trim().slice(0, 300) : '', url: url }); } const urlParams = new URLSearchParams(window.location.search); const loc = urlParams.get('q') || ''; return { location: loc.replace(/ local news$/i, ''), source: 'Google News - Local', article_count: articles.length, articles: articles }`)\n\n  return local_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "glassdoor-scrape-salaries",
+    "slug": "glassdoor-scrape-salaries",
+    "name": "glassdoor_scrape_salaries",
+    "displayName": "Glassdoor Scrape Salaries",
+    "description": "Scrape salary data from Glassdoor for a company or job title. Returns up to 15 salary entries with job title, average salary, salary range, and number of reports.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "glassdoor",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "salaries_url",
+        "type": "string",
+        "description": "Glassdoor salary page URL (e.g. 'https://www.glassdoor.com/Salary/Google-Salaries-E9079.htm')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Glassdoor salary page\n  await browser.open(`${params.salaries_url}`)\n\n  // Wait for salary data to load\n  await browser.waitForSelector('[data-test=\"salary-row\"], .salaryRow, [class*=\"SalaryRowStyle__row\"], .salary-list-row, table tbody tr, [class*=\"SalariesList\"] > div', 15000)\n\n  // Let salary data render\n  await browser.wait(2500)\n\n  // Scroll to load more salaries\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract salary information\n  const salary_data = await browser.evaluate(`const salaries = []; const rows = document.querySelectorAll('[data-test=\"salary-row\"], .salaryRow, [class*=\"SalaryRowStyle__row\"], .salary-list-row, table tbody tr, [class*=\"SalariesList\"] > div'); for (let i = 0; i < Math.min(rows.length, 15); i++) { const row = rows[i]; const titleEl = row.querySelector('[data-test=\"salary-job-title\"], [class*=\"salaryRow__JobInfoStyle__jobTitle\"], a[href*=\"/Salaries/\"], h3, .job-title, strong'); const avgSalaryEl = row.querySelector('[data-test=\"salary-average\"], .salary-avg, [class*=\"SalaryRowStyle__payAmount\"], .salary-amount, .mean'); const rangeEl = row.querySelector('[data-test=\"salary-range\"], .salary-range, [class*=\"SalaryRowStyle__payRange\"], .range'); const countEl = row.querySelector('[data-test=\"salary-count\"], .salary-count, [class*=\"SalaryRowStyle__payCount\"], .num-salaries'); const linkEl = row.querySelector('a[href*=\"/Salary/\"], a[href*=\"/Salaries/\"]'); let url = ''; if (linkEl) { const href = linkEl.getAttribute('href') || ''; url = href.startsWith('http') ? href : 'https://www.glassdoor.com' + href; } salaries.push({ job_title: titleEl ? titleEl.textContent.trim() : '', average_salary: avgSalaryEl ? avgSalaryEl.textContent.trim() : '', salary_range: rangeEl ? rangeEl.textContent.trim() : '', report_count: countEl ? countEl.textContent.trim() : '', url: url }); } const companyEl = document.querySelector('[data-test=\"employer-name\"], .employer-name, h1'); return { company: companyEl ? companyEl.textContent.trim() : '', salary_count: salaries.length, salaries: salaries, salaries_url: window.location.href }`)\n\n  return salary_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

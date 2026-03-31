@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "yahoo-finance-search",
+    "slug": "yahoo-finance-search",
+    "name": "yahoo_finance_search",
+    "displayName": "Yahoo Finance Search",
+    "description": "Search for stocks, ETFs, mutual funds, and other financial instruments on Yahoo Finance. Returns up to 15 results with symbol, name, price, change, market cap, and exchange.",
+    "category": "Finance",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "yahoo-finance",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'AAPL', 'Tesla', 'tech ETF', 'S&P 500')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Yahoo Finance\n  await browser.open(`https://finance.yahoo.com/lookup?s=${params.query}`)\n\n  // Wait for search results\n  await browser.waitForSelector('table tbody tr, [class*=\\'lookup\\'] table, [data-testid=\\'table-container\\']', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const rows = document.querySelectorAll('table tbody tr, [data-testid=\"table-container\"] tbody tr'); for (let i = 0; i < Math.min(rows.length, 15); i++) { const row = rows[i]; const cells = row.querySelectorAll('td'); if (cells.length >= 2) { const symbolEl = cells[0] ? cells[0].querySelector('a') || cells[0] : null; const nameEl = cells[1]; const priceEl = cells.length > 2 ? cells[2] : null; const changeEl = cells.length > 3 ? cells[3] : null; const typeEl = cells.length > 4 ? cells[4] : null; const exchangeEl = cells.length > 5 ? cells[5] : null; results.push({ symbol: symbolEl ? symbolEl.textContent.trim() : '', name: nameEl ? nameEl.textContent.trim() : '', last_price: priceEl ? priceEl.textContent.trim() : '', change: changeEl ? changeEl.textContent.trim() : '', type: typeEl ? typeEl.textContent.trim() : '', exchange: exchangeEl ? exchangeEl.textContent.trim() : '', url: symbolEl && symbolEl.href ? symbolEl.href : '' }); } } return { query: params.query, result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

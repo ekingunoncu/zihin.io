@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "sheets-read-range",
+    "slug": "sheets-read-range",
+    "name": "sheets_read_range",
+    "displayName": "Sheets Read Range",
+    "description": "Read cell values from a specified range in a Google Spreadsheet. Returns the data as a 2D array of strings. The range should be in A1 notation (e.g. 'A1:C10', 'Sheet1!B2:D5').",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-sheets"
+    ],
+    "parameters": [
+      {
+        "name": "spreadsheet_url",
+        "type": "string",
+        "description": "Full Google Sheets URL (e.g. https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit)",
+        "required": true
+      },
+      {
+        "name": "range",
+        "type": "string",
+        "description": "Cell range in A1 notation (e.g. 'A1:C10', 'B2:D5')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open spreadsheet\n  await browser.open(`${params.spreadsheet_url}`)\n\n  // Wait for spreadsheet grid to load\n  await browser.waitForSelector('table.waffle, .waffle', 20000)\n\n  // Let cell content render\n  await browser.wait(3000)\n\n  // Navigate to range and read cell values\n  const range_data = await browser.evaluate(`function colToIndex(col) { let idx = 0; for (let i = 0; i < col.length; i++) { idx = idx * 26 + (col.charCodeAt(i) - 64); } return idx - 1; } function parseRange(range) { const clean = range.includes('!') ? range.split('!')[1] : range; const match = clean.match(/^([A-Z]+)(\\d+):([A-Z]+)(\\d+)$/i); if (!match) return null; return { startCol: colToIndex(match[1].toUpperCase()), startRow: parseInt(match[2]) - 1, endCol: colToIndex(match[3].toUpperCase()), endRow: parseInt(match[4]) - 1 }; } const r = parseRange(params.range); if (!r) return { error: 'Invalid range format. Use A1 notation like A1:C10' }; const nameBox = document.querySelector('#t-name-box input, input[aria-label=\"Name Box\"], input.jfk-textinput'); if (nameBox) { nameBox.focus(); nameBox.click(); await new Promise(resolve => setTimeout(resolve, 300)); nameBox.select(); document.execCommand('insertText', false, params.range); await new Promise(resolve => setTimeout(resolve, 300)); nameBox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true })); } await new Promise(resolve => setTimeout(resolve, 1500)); const waffle = document.querySelector('table.waffle'); if (!waffle) return { error: 'Could not find spreadsheet grid' }; const rows = waffle.querySelectorAll('tbody tr, tr'); const data = []; for (let ri = r.startRow; ri <= r.endRow && ri < rows.length; ri++) { const row = rows[ri]; const cells = row.querySelectorAll('td, th'); const rowData = []; for (let ci = r.startCol; ci <= r.endCol && ci < cells.length; ci++) { const cell = cells[ci]; rowData.push(cell ? cell.textContent.trim() : ''); } data.push(rowData); } return { range: params.range, row_count: data.length, column_count: data.length > 0 ? data[0].length : 0, data: data }`)\n\n  return range_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "gmail-send-email",
+    "slug": "gmail-send-email",
+    "name": "gmail_send_email",
+    "displayName": "Gmail Send Email",
+    "description": "Compose and send an email via Gmail. Opens Gmail, clicks the compose button, fills in the recipient, subject, and body fields, and clicks send. You must be logged in to Gmail.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "gmail",
+      "messaging"
+    ],
+    "parameters": [
+      {
+        "name": "to",
+        "type": "string",
+        "description": "Recipient email address",
+        "required": true
+      },
+      {
+        "name": "subject",
+        "type": "string",
+        "description": "Email subject line",
+        "required": true
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "description": "Email body text",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Gmail\n  await browser.open('https://mail.google.com/mail/u/0/#inbox')\n\n  // Wait for Gmail to load\n  await browser.waitForSelector('[gh=\\'cm\\'], .T-I.T-I-KE[role=\\'button\\']', 15000)\n\n  // Let Gmail fully initialize\n  await browser.wait(2000)\n\n  // Click compose button\n  const open_compose = await browser.evaluate(`const composeBtn = document.querySelector('[gh=\"cm\"]') || document.querySelector('.T-I.T-I-KE[role=\"button\"]'); if (composeBtn) { composeBtn.click(); } else { throw new Error('Compose button not found'); } return { clicked: true }`)\n\n  // Wait for compose window to open\n  await browser.wait(2000)\n\n  // Wait for compose form\n  await browser.waitForSelector('[aria-label=\\'To recipients\\'], input[name=\\'to\\']', 10000)\n\n  // Fill in recipient\n  const fill_to = await browser.evaluate(`const toInput = document.querySelector('[aria-label=\"To recipients\"]') || document.querySelector('input[name=\"to\"]') || document.querySelector('textarea[name=\"to\"]'); if (toInput) { toInput.focus(); await new Promise(r => setTimeout(r, 300)); document.execCommand('insertText', false, params.to); toInput.dispatchEvent(new Event('input', { bubbles: true })); await new Promise(r => setTimeout(r, 500)); toInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', keyCode: 9, which: 9, bubbles: true })); } return { to_filled: true }`)\n\n  await browser.wait(500)\n\n  // Fill in subject\n  const fill_subject = await browser.evaluate(`const subjectInput = document.querySelector('input[name=\"subjectbox\"]'); if (subjectInput) { subjectInput.focus(); await new Promise(r => setTimeout(r, 300)); document.execCommand('insertText', false, params.subject); subjectInput.dispatchEvent(new Event('input', { bubbles: true })); } return { subject_filled: true }`)\n\n  await browser.wait(500)\n\n  // Fill in message body\n  const fill_body = await browser.evaluate(`const bodyDiv = document.querySelector('div[aria-label=\"Message Body\"]') || document.querySelector('.Am.Al.editable'); if (bodyDiv) { bodyDiv.focus(); await new Promise(r => setTimeout(r, 300)); document.execCommand('insertText', false, params.body); bodyDiv.dispatchEvent(new Event('input', { bubbles: true })); } return { body_filled: true }`)\n\n  // Wait before sending\n  await browser.wait(1000)\n\n  // Click send\n  const result = await browser.evaluate(`const composeBox = document.querySelector('.M9, .AD'); const sendBtn = (composeBox && composeBox.querySelector('[aria-label*=\"Send\"]')) || document.querySelector('.T-I.aoO') || document.querySelector('.dC .T-I[aria-label*=\"Send\"]'); if (sendBtn) { sendBtn.click(); } else { throw new Error('Send button not found'); } return { success: true, message: 'Email sent', to: params.to, subject: params.subject }`)\n\n  // Wait for email to be sent\n  await browser.wait(2000)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

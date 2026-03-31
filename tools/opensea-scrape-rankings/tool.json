@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "opensea-scrape-rankings",
+    "slug": "opensea-scrape-rankings",
+    "name": "opensea_scrape_rankings",
+    "displayName": "Opensea Scrape Rankings",
+    "description": "Browse top NFT collection rankings on OpenSea. Returns up to 25 collections with rank, name, volume, floor price, and percentage change.",
+    "category": "Finance",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "opensea",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open OpenSea rankings\n  await browser.open('https://opensea.io/rankings')\n\n  // Wait for rankings to load\n  await browser.waitForSelector('table, [class*=\\'ranking\\'], a[href*=\\'/collection/\\']', 15000)\n\n  // Let rankings render\n  await browser.wait(3000)\n\n  // Scroll to load more rankings\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Scroll further for more collections\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Extract ranking data\n  const result = await browser.evaluate(`const collections = []; const rows = document.querySelectorAll('table tbody tr, [class*=\"ranking-row\"], [class*=\"RankingRow\"]'); if (rows.length > 0) { rows.forEach((el, i) => { if (i >= 25) return; const cells = el.querySelectorAll('td'); const nameEl = el.querySelector('a[href*=\"/collection/\"], [class*=\"name\"]'); const link = el.querySelector('a[href*=\"/collection/\"]'); let volume = ''; let floor = ''; let change = ''; if (cells.length >= 3) { volume = cells[2]?.textContent?.trim() || ''; floor = cells[3]?.textContent?.trim() || ''; change = cells[4]?.textContent?.trim() || ''; } else { const spans = el.querySelectorAll('span, div'); const texts = Array.from(spans).map(s => s.textContent.trim()).filter(Boolean); if (texts.length >= 3) { volume = texts[1] || ''; floor = texts[2] || ''; change = texts[3] || ''; } } collections.push({ rank: i + 1, name: nameEl?.textContent?.trim() || '', volume: volume, floor_price: floor, change: change, url: link?.href || '' }); }); } else { const links = document.querySelectorAll('a[href*=\"/collection/\"]'); const seen = new Set(); links.forEach((el, i) => { if (collections.length >= 25) return; const href = el.href; if (seen.has(href)) return; seen.add(href); const name = el.textContent?.trim() || ''; if (!name || name.length > 100) return; const parent = el.closest('div, li, tr'); const priceEl = parent?.querySelector('[class*=\"price\"], [class*=\"floor\"], [class*=\"volume\"]'); collections.push({ rank: collections.length + 1, name: name, volume: '', floor_price: priceEl?.textContent?.trim() || '', change: '', url: href }); }); } return { collection_count: collections.length, collections: collections }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

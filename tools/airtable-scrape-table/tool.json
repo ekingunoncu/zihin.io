@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "airtable-scrape-table",
+    "slug": "airtable-scrape-table",
+    "name": "airtable_scrape_table",
+    "displayName": "Airtable Scrape Table",
+    "description": "Scrape table data from an Airtable view. Returns column headers and row data from the visible grid.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "airtable",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "table_url",
+        "type": "string",
+        "description": "Airtable table URL (e.g. 'https://airtable.com/appXXX/tblXXX/viwXXX')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Airtable table\n  await browser.open(`${params.table_url}`)\n\n  // Wait for grid to load\n  await browser.waitForSelector('.dataRow, [data-rowindex], .cell, .headerRow', 15000)\n\n  // Let grid fully render\n  await browser.wait(3000)\n\n  // Extract column headers and row data\n  const result = await browser.evaluate(`const headers = []; const headerEls = document.querySelectorAll('.headerRow .header, .columnHeader, [data-columnid] .header, [role=\"columnheader\"]'); headerEls.forEach(h => { const text = h.textContent?.trim(); if (text && text.length > 0) headers.push(text); }); const rows = []; const rowEls = document.querySelectorAll('.dataRow, [data-rowindex], [role=\"row\"]:not(.headerRow)'); for (let i = 0; i < Math.min(rowEls.length, 100); i++) { const row = rowEls[i]; const cells = row.querySelectorAll('.cell, [data-columnid], [role=\"gridcell\"]'); const rowData = {}; cells.forEach((cell, idx) => { const key = headers[idx] || 'col_' + idx; const text = cell.textContent?.trim()?.substring(0, 300) || ''; if (text) rowData[key] = text; }); if (Object.keys(rowData).length > 0) rows.push(rowData); } return { headers: headers, row_count: rows.length, rows: rows }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

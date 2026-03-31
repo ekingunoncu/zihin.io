@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "transfermarkt-search",
+    "slug": "transfermarkt-search",
+    "name": "transfermarkt_search",
+    "displayName": "Transfermarkt Search",
+    "description": "Search Transfermarkt. Returns matching results with details.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "transfermarkt",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Transfermarkt search\n  await browser.open(`https://www.transfermarkt.com/schnellsuche/ergebnis/schnellsuche?query=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('.responsive-table, .box, .content', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const results = []; const boxes = document.querySelectorAll('.box'); let playersBox = null; for (const box of boxes) { const h2 = box.querySelector('h2'); if (h2 && /player/i.test(h2.textContent)) { playersBox = box; break; } } const container = playersBox || document; container.querySelectorAll('tbody tr.odd, tbody tr.even').forEach((el, i) => { if (i < 15) { const nameEl = el.querySelector('td.hauptlink a'); const posEl = el.querySelector('td.zentriert'); const clubEl = el.querySelector('img.tiny_wappen'); const valueEl = el.querySelector('td.rechts.hauptlink'); results.push({ name: nameEl?.getAttribute('title') || nameEl?.textContent?.trim() || '', url: nameEl?.href ? 'https://www.transfermarkt.com' + nameEl.getAttribute('href') : '', position: posEl?.textContent?.trim() || '', club: clubEl?.getAttribute('title') || '', market_value: valueEl?.textContent?.trim() || '' }); } }); return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

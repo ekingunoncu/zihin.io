@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "discord-search-messages",
+    "slug": "discord-search-messages",
+    "name": "discord_search_messages",
+    "displayName": "Discord Search Messages",
+    "description": "Search for messages in a Discord server. Uses Discord's built-in search to find messages by content, author, or other filters.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "discord",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "server_url",
+        "type": "string",
+        "description": "Any channel URL in the Discord server (e.g. 'https://discord.com/channels/123/456')",
+        "required": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (supports Discord search syntax: from:user, has:link, before:date, etc.)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Discord server\n  await browser.open(`${params.server_url}`)\n\n  // Wait for Discord to load\n  await browser.waitForSelector('div[role=\\'textbox\\']', 15000)\n\n  await browser.wait(1500)\n\n  // Open search\n  const open_search = await browser.evaluate(`const searchBtn = document.querySelector('button[aria-label=\"Search\"]'); if (searchBtn) { searchBtn.click(); } else { const toolbar = document.querySelector('[class*=\"toolbar\"]'); if (toolbar) { const btns = toolbar.querySelectorAll('button'); for (const b of btns) { if (b.querySelector('svg') && b.getAttribute('aria-label')?.toLowerCase().includes('search')) { b.click(); break; } } } } return { clicked: true }`)\n\n  await browser.wait(1000)\n\n  // Type search query\n  const type_search = await browser.evaluate(`const query = params.query; const searchInput = document.querySelector('input[aria-label=\"Search\"], input[placeholder=\"Search\"]'); if (searchInput) { searchInput.focus(); const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; nativeSetter.call(searchInput, query); searchInput.dispatchEvent(new Event('input', {bubbles: true})); searchInput.dispatchEvent(new Event('change', {bubbles: true})); await new Promise(r => setTimeout(r, 500)); searchInput.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true})); } return { searched: true }`)\n\n  // Wait for search results\n  await browser.wait(3000)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const searchPanel = document.querySelector('[aria-label=\"Search Results\"]') || document.querySelector('[class*=\"searchResult\"]')?.closest('[role=\"list\"]') || document.body; const msgEls = searchPanel.querySelectorAll('li[id^=\"search-result-\"], div[id^=\"search-result-\"]'); if (msgEls.length > 0) { for (let i = 0; i < Math.min(msgEls.length, 10); i++) { const el = msgEls[i]; const authorEl = el.querySelector('span[id^=\"message-username-\"]') || el.querySelector('h3 span'); const contentEl = el.querySelector('div[id^=\"message-content-\"]'); const timeEl = el.querySelector('time'); results.push({ author: authorEl ? authorEl.textContent.trim() : '', content: contentEl ? contentEl.textContent.trim() : '', timestamp: timeEl ? timeEl.getAttribute('datetime') || '' : '' }); } } else { const allMsgContent = document.querySelectorAll('div[id^=\"message-content-\"]'); for (let i = 0; i < Math.min(allMsgContent.length, 10); i++) { const contentEl = allMsgContent[i]; const container = contentEl.closest('li') || contentEl.closest('div[role=\"listitem\"]'); const authorEl = container ? container.querySelector('span[id^=\"message-username-\"]') || container.querySelector('h3 span') : null; const timeEl = container ? container.querySelector('time') : null; results.push({ author: authorEl ? authorEl.textContent.trim() : '', content: contentEl.textContent.trim(), timestamp: timeEl ? timeEl.getAttribute('datetime') || '' : '' }); } } return { result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

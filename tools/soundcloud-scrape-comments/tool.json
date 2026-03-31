@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "soundcloud-scrape-comments",
+    "slug": "soundcloud-scrape-comments",
+    "name": "soundcloud_scrape_comments",
+    "displayName": "Soundcloud Scrape Comments",
+    "description": "Scrape comments from a SoundCloud track. Returns comments with author, content, timestamp position, and date.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "soundcloud",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "track_url",
+        "type": "string",
+        "description": "SoundCloud track URL (e.g. 'https://soundcloud.com/artist/track-name')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open track page\n  await browser.open(`${params.track_url}`)\n\n  // Wait for track to load\n  await browser.waitForSelector('.soundTitle__title, h1, [class*=\\'listenDetails\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to comments section\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(2000)\n\n  // Scroll to load more comments\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(1500)\n\n  // Extract comments\n  const comments_data = await browser.evaluate(`const comments = []; const commentEls = document.querySelectorAll('.commentItem, [class*=\"commentItem\"], [class*=\"comment-item\"]'); for (let i = 0; i < Math.min(commentEls.length, 20); i++) { const el = commentEls[i]; const authorEl = el.querySelector('.commentItem__username a, [class*=\"username\"] a, [class*=\"author\"] a'); const contentEl = el.querySelector('.commentItem__body, [class*=\"body\"], [class*=\"text\"]'); const dateEl = el.querySelector('time, [class*=\"timestamp\"], [class*=\"time\"]'); const positionEl = el.querySelector('[class*=\"atTime\"], [class*=\"position\"]'); if (contentEl && contentEl.textContent.trim().length > 0) { comments.push({ author: authorEl ? authorEl.textContent.trim() : 'Anonymous', content: contentEl ? contentEl.textContent.trim().substring(0, 300) : '', date: dateEl ? (dateEl.getAttribute('datetime') || dateEl.textContent.trim()) : '', timestamp_position: positionEl ? positionEl.textContent.trim() : '' }); } } const totalEl = document.querySelector('[class*=\"commentCount\"], [class*=\"comment\"] span'); return { total_comments: totalEl ? totalEl.textContent.trim() : '', scraped_count: comments.length, comments: comments, url: window.location.href }`)\n\n  return comments_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

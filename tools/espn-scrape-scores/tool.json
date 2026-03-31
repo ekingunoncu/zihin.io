@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "espn-scrape-scores",
+    "slug": "espn-scrape-scores",
+    "name": "espn_scrape_scores",
+    "displayName": "ESPN Scrape Scores",
+    "description": "Scrape live and recent scores for a sport on ESPN. Returns up to 15 games with team names, scores, and game status.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "espn",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "sport",
+        "type": "string",
+        "description": "Sport slug (e.g. 'nfl', 'nba', 'mlb', 'nhl', 'soccer', 'college-football')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open ESPN scoreboard\n  await browser.open(`https://www.espn.com/${params.sport}/scoreboard`)\n\n  // Wait for scoreboard\n  await browser.waitForSelector('[class*=\\'Scoreboard\\'], [class*=\\'scoreboard\\'], section, .content', 15000)\n\n  // Let scores render\n  await browser.wait(3000)\n\n  // Scroll to load more games\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract scores\n  const result = await browser.evaluate(`const games = []; document.querySelectorAll('[class*=\"Scoreboard\"], [class*=\"scoreboard\"], section[class*=\"ScoreboardPage\"] > div, [class*=\"ScoreboardScoreCell\"]').forEach((el, i) => { if (i < 15) { const teams = []; el.querySelectorAll('[class*=\"TeamName\"], .team-name, [class*=\"truncate\"], [class*=\"ScoreCell__TeamName\"]').forEach(t => teams.push(t.textContent?.trim())); const scores = []; el.querySelectorAll('[class*=\"ScoreCell__Score\"], [class*=\"Score\"], .score').forEach(s => { const text = s.textContent?.trim(); if (text && /^\\d+$/.test(text)) scores.push(text); }); const statusEl = el.querySelector('[class*=\"ScoreboardScoreCell__Time\"], [class*=\"Status\"], .game-status, [class*=\"ScoreCell__Time\"]'); const linkEl = el.querySelector('a[href*=\"/game/\"], a[href*=\"/gamecast/\"], a[href*=\"/boxscore\"]'); games.push({ teams: teams, scores: scores, status: statusEl?.textContent?.trim() || '', url: linkEl?.href || '' }); } }); return { sport: params.sport, game_count: games.length, games: games };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

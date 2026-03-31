@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-like-tweet",
+    "slug": "like-tweet",
+    "name": "like_tweet",
+    "displayName": "Like Tweet",
+    "description": "Like a specific tweet by navigating to its URL and clicking the like button.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation"
+    ],
+    "parameters": [
+      {
+        "name": "tweet_url",
+        "type": "string",
+        "description": "Full URL of the tweet to like (e.g. https://x.com/user/status/123456)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open the tweet\n  await browser.open(`${params.tweet_url}`)\n\n  // Wait for page content\n  await browser.waitForSelector('article[data-testid=\\'tweet\\']', 15000)\n\n  // Let page settle\n  await browser.wait(1000)\n\n  // Wait for like button\n  await browser.waitForSelector('[data-testid$=\\'like\\']', 10000)\n\n  // Like the tweet (skip if already liked)\n  const result = await browser.evaluate(`const likeBtn = document.querySelector('[data-testid$=\"like\"]'); const unlikeBtn = document.querySelector('[data-testid$=\"unlike\"]'); if (unlikeBtn) return { already_liked: true, message: 'Tweet is already liked' }; if (likeBtn) { likeBtn.click(); return { success: true, message: 'Tweet liked' }; } return { success: false, message: 'Like button not found' }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

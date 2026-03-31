@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "gmail-read-email",
+    "slug": "gmail-read-email",
+    "name": "gmail_read_email",
+    "displayName": "Gmail Read Email",
+    "description": "Read a specific email in Gmail by searching for it by subject. Opens Gmail, searches for the email, clicks on it, and scrapes the full content including from, to, subject, date, and body text. You must be logged in to Gmail.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "gmail"
+    ],
+    "parameters": [
+      {
+        "name": "subject",
+        "type": "string",
+        "description": "Subject line (or partial subject) of the email to find and read",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Gmail\n  await browser.open('https://mail.google.com/mail/u/0/#inbox')\n\n  // Wait for Gmail to load\n  await browser.waitForSelector('input[aria-label=\\'Search mail\\']', 15000)\n\n  // Let Gmail fully initialize\n  await browser.wait(2000)\n\n  // Search for the email by subject\n  const search_email = await browser.evaluate(`const searchInput = document.querySelector('input[aria-label=\"Search mail\"]'); if (searchInput) { searchInput.focus(); searchInput.click(); await new Promise(r => setTimeout(r, 300)); searchInput.select(); document.execCommand('insertText', false, \\`subject:' + params.subject + '\\`); await new Promise(r => setTimeout(r, 300)); searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true })); } return { searched: true }`)\n\n  // Wait for search results\n  await browser.wait(3000)\n\n  // Click on the matching email\n  const click_email = await browser.evaluate(`const rows = document.querySelectorAll('tr.zA'); if (rows.length === 0) return { error: 'No emails found matching the subject' }; const target = params.subject.toLowerCase(); let bestMatch = rows[0]; for (const row of rows) { const subjectEl = row.querySelector('.bog span, .y6 span'); if (subjectEl && subjectEl.textContent.trim().toLowerCase().includes(target)) { bestMatch = row; break; } } bestMatch.click(); return { clicked: true }`)\n\n  // Wait for email to open\n  await browser.wait(2000)\n\n  // Wait for email body to render\n  await browser.waitForSelector('.a3s, .ii.gt, [data-message-id] .a3s', 10000)\n\n  // Extract full email content\n  const email_content = await browser.evaluate(`const subjectEl = document.querySelector('h2.hP, .ha h2'); const fromEl = document.querySelector('.gD[email], .go .gD'); const toEl = document.querySelector('.g2 span[email], .g2 .gD'); const dateEl = document.querySelector('.g3, .gK span[title], .gK span'); const bodyEl = document.querySelector('.a3s.aiL, .a3s, .ii.gt'); return { from: fromEl ? (fromEl.getAttribute('email') || fromEl.textContent.trim()) : '', to: toEl ? (toEl.getAttribute('email') || toEl.textContent.trim()) : '', subject: subjectEl ? subjectEl.textContent.trim() : '', date: dateEl ? (dateEl.getAttribute('title') || dateEl.textContent.trim()) : '', body: bodyEl ? bodyEl.innerText.trim().substring(0, 5000) : '' }`)\n\n  return email_content\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

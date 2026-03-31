@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "aliexpress-scrape-reviews",
+    "slug": "aliexpress-scrape-reviews",
+    "name": "aliexpress_scrape_reviews",
+    "displayName": "Aliexpress Scrape Reviews",
+    "description": "Scrape reviews from an AliExpress product page. Returns reviews with author, rating, content, date, country, and photos.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "aliexpress",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "product_url",
+        "type": "string",
+        "description": "AliExpress product URL",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open product page\n  await browser.open(`${params.product_url}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1, [class*=\\'product-title\\']', 15000)\n\n  await browser.wait(2000)\n\n  // Scroll to reviews\n  await browser.scroll({ direction: 'down', amount: 4000 })\n\n  await browser.wait(2000)\n\n  // Scroll through reviews\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(1500)\n\n  // Extract reviews\n  const reviews_data = await browser.evaluate(`const reviews = []; const reviewEls = document.querySelectorAll('[class*=\"feedback-item\"], [class*=\"review-item\"], [class*=\"ReviewItem\"]'); for (let i = 0; i < Math.min(reviewEls.length, 20); i++) { const el = reviewEls[i]; const authorEl = el.querySelector('[class*=\"user-name\"], [class*=\"name\"]'); const ratingEl = el.querySelector('[class*=\"star\"], [class*=\"rating\"]'); const contentEl = el.querySelector('[class*=\"buyer-feedback\"], [class*=\"review-content\"], [class*=\"content\"]'); const dateEl = el.querySelector('[class*=\"date\"], time'); const countryEl = el.querySelector('[class*=\"country\"], [class*=\"flag\"]'); const hasPhoto = !!el.querySelector('[class*=\"photo\"] img, [class*=\"image\"] img'); reviews.push({ author: authorEl ? authorEl.textContent.trim() : '', rating: ratingEl ? ratingEl.textContent.trim() : '', content: contentEl ? contentEl.textContent.trim().substring(0, 800) : '', date: dateEl ? dateEl.textContent.trim() : '', country: countryEl ? countryEl.textContent.trim() : '', has_photo: hasPhoto }); } const overallRatingEl = document.querySelector('[class*=\"overview-rating\"], [class*=\"score\"]'); return { overall_rating: overallRatingEl ? overallRatingEl.textContent.trim() : '', review_count: reviews.length, reviews: reviews, url: window.location.href }`)\n\n  return reviews_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

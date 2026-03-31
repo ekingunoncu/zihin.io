@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "medium-scrape-tag",
+    "slug": "medium-scrape-tag",
+    "name": "medium_scrape_tag",
+    "displayName": "Medium Scrape Tag",
+    "description": "Scrape a Medium tag page. Returns trending and recent articles for a given tag, along with related tags and writer recommendations.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "medium",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "tag",
+        "type": "string",
+        "description": "Tag name (e.g. 'javascript', 'artificial-intelligence', 'productivity')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open tag page\n  await browser.open(`https://medium.com/tag/${params.tag}`)\n\n  // Wait for tag page to load\n  await browser.waitForSelector('article, [data-testid=\\'postPreview\\'], h1, h2', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(1500)\n\n  // Scroll further down\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(1500)\n\n  // Extract tag content\n  const tag_data = await browser.evaluate(`const headingEl = document.querySelector('h1, h2[class*=\"tag\"]'); const articles = []; const articleEls = document.querySelectorAll('article, [data-testid=\"postPreview\"], div[class*=\"postArticle\"]'); for (let i = 0; i < Math.min(articleEls.length, 15); i++) { const el = articleEls[i]; const titleEl = el.querySelector('h2, h3, [class*=\"title\"]'); const authorEl = el.querySelector('a[data-testid=\"authorName\"], a[rel=\"author\"], [class*=\"author\"] a'); const clapsEl = el.querySelector('[class*=\"clap\"] span, button[data-testid=\"clap\"] span'); const dateEl = el.querySelector('time, span[class*=\"date\"]'); const readTimeEl = el.querySelector('[class*=\"readingTime\"], span[class*=\"read-time\"]'); const linkEl = el.querySelector('a[href*=\"/p/\"], h2 a, h3 a'); const imgEl = el.querySelector('img[src*=\"miro.medium\"], img[loading]'); articles.push({ title: titleEl ? titleEl.textContent.trim() : '', author: authorEl ? authorEl.textContent.trim() : '', claps: clapsEl ? clapsEl.textContent.trim() : '', date: dateEl ? (dateEl.getAttribute('datetime') || dateEl.textContent.trim()) : '', read_time: readTimeEl ? readTimeEl.textContent.trim() : '', url: linkEl ? linkEl.href : '', image: imgEl ? imgEl.getAttribute('src') : '' }); } const relatedTagEls = document.querySelectorAll('[class*=\"relatedTag\"] a, [class*=\"related\"] a[href*=\"/tag/\"]'); const relatedTags = []; relatedTagEls.forEach(function(el) { const t = el.textContent.trim(); if (t && t.length < 50 && !relatedTags.includes(t)) relatedTags.push(t); }); return { tag: params.tag, heading: headingEl ? headingEl.textContent.trim() : '', article_count: articles.length, articles: articles, related_tags: relatedTags.slice(0, 10), url: window.location.href }`)\n\n  return tag_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

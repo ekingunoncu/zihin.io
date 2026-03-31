@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "strava-scrape-segment",
+    "slug": "strava-scrape-segment",
+    "name": "strava_scrape_segment",
+    "displayName": "Strava Scrape Segment",
+    "description": "Scrape a Strava segment. Returns name, distance, elevation, leaderboard entries.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "strava",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "segment_id",
+        "type": "string",
+        "description": "Strava segment ID",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open(`https://www.strava.com/segments/${params.segment_id}`)\n\n  // Wait for content\n  await browser.waitForSelector('h1, [class*=\"Segment\"], .segment-heading', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const name = document.querySelector('h1, [class*=\"SegmentName\"]')?.textContent?.trim()||''; const stats = {}; document.querySelectorAll('[class*=\"Stat\"], .stat-row, .segment-stats span').forEach(el => { const text = el.textContent.trim(); if(text.length<60) { const parts = text.split(':').map(s=>s.trim()); if(parts.length===2) stats[parts[0].toLowerCase()]=parts[1]; } }); const lb = Array.from(document.querySelectorAll('table tbody tr, [class*=\"leaderboard\"] li')).slice(0,20).map((row,i) => { const cells = Array.from(row.querySelectorAll('td')).map(c=>c.textContent.trim()); const link = row.querySelector('a'); return { rank: i+1, athlete: link?link.textContent.trim():'', data: cells.slice(0,5) }; }); return { segment_id: '' + params.segment_id + '', name, stats, leaderboard: lb, url: window.location.href }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

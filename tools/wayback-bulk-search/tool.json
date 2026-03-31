@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "wayback-bulk-search",
+    "slug": "wayback-bulk-search",
+    "name": "wayback_bulk_search",
+    "displayName": "Wayback Bulk Search",
+    "description": "Look up multiple URLs on the Wayback Machine calendar view in parallel using concurrent browser tabs. Pass all URLs as a single comma-separated string.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "wayback",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated URLs to look up (e.g. 'example.com,github.com,wikipedia.org')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://web.archive.org/web/*/' + encodeURIComponent(q.trim()), query: q.trim() }))`)\n\n  // Search in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "facebook-bulk-search",
+    "slug": "facebook-bulk-search",
+    "name": "facebook_bulk_search",
+    "displayName": "Facebook Bulk Search",
+    "description": "Search multiple queries on Facebook in parallel using concurrent browser tabs. Use this instead of calling facebook_search multiple times - it is faster and more efficient. Pass all queries as a single comma-separated string. Example: 'AI startups,web development,machine learning'.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "facebook",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'tech news,gaming community,cooking recipes')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://www.facebook.com/search/top/?q=' + encodeURIComponent(q.trim()), query: q.trim() }))`)\n\n  // Search each query in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

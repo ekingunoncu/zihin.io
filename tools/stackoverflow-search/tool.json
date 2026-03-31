@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "stackoverflow-search",
+    "slug": "stackoverflow-search",
+    "name": "stackoverflow_search",
+    "displayName": "Stackoverflow Search",
+    "description": "Search for questions on Stack Overflow. Returns up to 15 results with title, vote count, answer count, view count, tags, author, date, and URL.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "stackoverflow",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'react hooks useEffect', 'python async await', 'docker compose networking')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Stack Overflow\n  await browser.open(`https://stackoverflow.com/search?q=${params.query}`)\n\n  // Wait for search results\n  await browser.waitForSelector('.s-post-summary, .question-summary, [id*=\\'question-summary\\']', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract question results\n  const search_results = await browser.evaluate(`const results = []; const items = document.querySelectorAll('.s-post-summary, .question-summary, [id*=\"question-summary\"]'); for (let i = 0; i < Math.min(items.length, 15); i++) { const el = items[i]; const titleEl = el.querySelector('h3 a, .s-post-summary--content-title a, .result-link a'); const votesEl = el.querySelector('.s-post-summary--stats-item__emphasized .s-post-summary--stats-item-number, .vote-count-post strong, .votes span'); const answersEl = el.querySelector('.s-post-summary--stats-item:nth-child(2) .s-post-summary--stats-item-number, .status strong, .answered span'); const viewsEl = el.querySelector('.s-post-summary--stats-item:nth-child(3) .s-post-summary--stats-item-number, .views span'); const tagEls = el.querySelectorAll('.s-tag, .post-tag, a[class*=\"tag\"]'); const tags = []; tagEls.forEach(function(t) { tags.push(t.textContent.trim()); }); const authorEl = el.querySelector('.s-user-card--link a, .user-details a'); const dateEl = el.querySelector('.relativetime, time, [class*=\"date\"]'); const excerptEl = el.querySelector('.s-post-summary--content-excerpt, .excerpt'); const hasAccepted = !!el.querySelector('.has-accepted-answer, .answered-accepted'); results.push({ title: titleEl ? titleEl.textContent.trim() : '', votes: votesEl ? votesEl.textContent.trim() : '0', answers: answersEl ? answersEl.textContent.trim() : '0', views: viewsEl ? viewsEl.textContent.trim() : '', tags: tags.slice(0, 5), has_accepted_answer: hasAccepted, author: authorEl ? authorEl.textContent.trim() : '', date: dateEl ? (dateEl.getAttribute('title') || dateEl.textContent.trim()) : '', excerpt: excerptEl ? excerptEl.textContent.trim().substring(0, 200) : '', url: titleEl ? 'https://stackoverflow.com' + titleEl.getAttribute('href') : '' }); } return { query: params.query, result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

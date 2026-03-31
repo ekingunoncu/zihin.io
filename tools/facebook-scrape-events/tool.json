@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "facebook-scrape-events",
+    "slug": "facebook-scrape-events",
+    "name": "facebook_scrape_events",
+    "displayName": "Facebook Scrape Events",
+    "description": "Search and scrape Facebook events. Returns up to 15 events with title, date, location, description snippet, and URL.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "facebook",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query for events (e.g. 'music festival', 'tech meetup', 'yoga class')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Facebook events\n  await browser.open(`https://www.facebook.com/events/search/?q=${params.query}`)\n\n  // Wait for event results\n  await browser.waitForSelector('[role=\\'main\\'], a[href*=\\'/events/\\']', 15000)\n\n  // Let events render\n  await browser.wait(3000)\n\n  // Scroll to load more events\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Scroll further down\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract event listings\n  const events_results = await browser.evaluate(`const results = []; const eventLinks = document.querySelectorAll('a[href*=\"/events/\"]'); const seen = new Set(); for (let i = 0; i < eventLinks.length && results.length < 15; i++) { const link = eventLinks[i]; const href = link.getAttribute('href') || ''; const eventMatch = href.match(/\\/events\\/(\\d+)/); if (!eventMatch) continue; if (seen.has(eventMatch[1])) continue; seen.add(eventMatch[1]); const container = link.closest('div[class]') || link.parentElement || link; const spans = container.querySelectorAll('span, div[dir=\"auto\"]'); let title = ''; let date = ''; let location = ''; let description = ''; for (const span of spans) { const text = span.textContent.trim(); if (!title && text.length > 5 && text.length < 200) { title = text; } else if (!date && (text.match(/\\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|AM|PM|\\d{1,2}:\\d{2})\\b/i) || text.match(/\\b\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{2,4}\\b/))) { date = text; } else if (!location && text.length > 3 && text.length < 150 && text !== title && !text.match(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/)) { location = text; } else if (!description && text.length > 20 && text.length < 500 && text !== title) { description = text.substring(0, 300); } } const imgEl = container.querySelector('img'); const image = imgEl ? imgEl.getAttribute('src') || '' : ''; const fullUrl = href.startsWith('http') ? href : 'https://www.facebook.com' + href; if (title) { results.push({ title: title, date: date, location: location, description: description, image: image, url: fullUrl }); } } return { query: params.query, result_count: results.length, results: results }`)\n\n  return events_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

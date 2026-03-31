@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "scholar-bulk-search",
+    "slug": "scholar-bulk-search",
+    "name": "scholar_bulk_search",
+    "displayName": "Scholar Bulk Search",
+    "description": "Search multiple academic queries on Google Scholar in parallel using concurrent browser tabs. Use this instead of calling scholar_search multiple times - it is faster and more efficient. Pass all queries as a single comma-separated string. Example: 'transformer attention mechanism,CRISPR gene editing,quantum computing'.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-scholar",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'deep learning,natural language processing,computer vision')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://scholar.google.com/scholar?q=' + encodeURIComponent(q.trim()), query: q.trim() }))`)\n\n  // Search each query in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

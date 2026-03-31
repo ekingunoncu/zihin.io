@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tinder-scrape-matches",
+    "slug": "tinder-scrape-matches",
+    "name": "tinder_scrape_matches",
+    "displayName": "Tinder Scrape Matches",
+    "description": "Scrape match list on Tinder. Returns match names and last messages. Requires login.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tinder",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open matches\n  await browser.open('https://tinder.com/app/matches')\n\n  // Wait for matches\n  await browser.waitForSelector('[class*=\"matchList\"], [class*=\"matches\"], .content', 15000)\n\n  // Let matches render\n  await browser.wait(2500)\n\n  // Extract matches\n  const result = await browser.evaluate(`const matches = []; const seen = new Set(); document.querySelectorAll('a[href*=\"/app/messages/\"], [class*=\"matchList\"] a, [class*=\"messageListItem\"] a, [class*=\"match\"] a').forEach((el) => { const href = el.href || ''; if (seen.has(href) || matches.length >= 20) return; seen.add(href); const nameEl = el.querySelector('[class*=\"name\"], span'); const msgEl = el.querySelector('[class*=\"message\"], [class*=\"preview\"], [class*=\"msg\"]'); matches.push({ name: nameEl?.textContent?.trim() || '', last_message: msgEl?.textContent?.trim() || '', url: href }); }); return { match_count: matches.length, matches };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

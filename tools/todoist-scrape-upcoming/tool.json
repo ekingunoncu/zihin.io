@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "todoist-scrape-upcoming",
+    "slug": "todoist-scrape-upcoming",
+    "name": "todoist_scrape_upcoming",
+    "displayName": "Todoist Scrape Upcoming",
+    "description": "Scrape upcoming tasks in Todoist.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "todoist",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Todoist\n  await browser.open('https://app.todoist.com/app/upcoming')\n\n  // Wait for page\n  await browser.waitForSelector('.task_list, [class*=\"task\"], .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const tasks = []; document.querySelectorAll('.task_list_item, [class*=\"task_item\"]').forEach((el, i) => { if (i < 30) { const nameEl = el.querySelector('.task_content, [class*=\"content\"]'); const dueEl = el.querySelector('.due_date, time'); tasks.push({ name: nameEl?.textContent?.trim() || '', due: dueEl?.textContent?.trim() || '' }); } }); return { task_count: tasks.length, tasks };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

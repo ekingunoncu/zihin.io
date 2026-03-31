@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "craigslist-scrape-gallery",
+    "slug": "craigslist-scrape-gallery",
+    "name": "craigslist_scrape_gallery",
+    "displayName": "Craigslist Scrape Gallery",
+    "description": "Scrape the gallery/thumbnail view of Craigslist search results with images.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "craigslist",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "search_url",
+        "type": "string",
+        "description": "Craigslist search URL",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open(`${params.search_url}`)\n\n  // Wait for content\n  await browser.waitForSelector('.cl-search-result, .result-row, .cl-static-search-result, body', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const results = []; document.querySelectorAll('.cl-search-result, .result-row, .cl-static-search-result').forEach((el,i) => { if(i>=20) return; const titleEl = el.querySelector('a.posting-title, a.result-title, a.cl-app-anchor'); const priceEl = el.querySelector('.priceinfo, .result-price'); const imgEl = el.querySelector('img'); results.push({ title: titleEl?titleEl.textContent.trim():'', url: titleEl?titleEl.href:'', price: priceEl?priceEl.textContent.trim():'', thumbnail: imgEl?imgEl.src:'' }); }); return { result_count: results.length, results, url: window.location.href }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

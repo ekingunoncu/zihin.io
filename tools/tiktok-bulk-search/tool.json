@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tiktok-bulk-search",
+    "slug": "tiktok-bulk-search",
+    "name": "tiktok_bulk_search",
+    "displayName": "Tiktok Bulk Search",
+    "description": "Search multiple queries on TikTok in parallel using concurrent browser tabs. Use this instead of calling tiktok_search multiple times - it is faster and more efficient. Pass all queries as a single comma-separated string. Example: 'cooking tips,dance challenge,funny cats'.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tiktok",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'recipe ideas,workout routine,travel vlog')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://www.tiktok.com/search?q=' + encodeURIComponent(q.trim()), query: q.trim() }))`)\n\n  // Search each query in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

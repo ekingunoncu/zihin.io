@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-post-tweet",
+    "slug": "post-tweet",
+    "name": "post_tweet",
+    "displayName": "Post Tweet",
+    "description": "Post a new tweet to your X/Twitter timeline. You must be logged in to x.com.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.1",
+    "tags": [
+      "x-automation"
+    ],
+    "parameters": [
+      {
+        "name": "text",
+        "type": "string",
+        "description": "The tweet text to post (max 280 characters)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open tweet composer\n  await browser.open('https://x.com/compose/post')\n\n  // Wait for compose box\n  await browser.waitForSelector('[data-testid^=\\'tweetTextarea\\']', 15000)\n\n  // Let page settle\n  await browser.wait(1000)\n\n  // Focus compose box\n  await browser.click('[data-testid^=\\'tweetTextarea\\']')\n\n  // Wait for focus\n  await browser.wait(300)\n\n  // Type tweet text\n  const type_text = await browser.evaluate(`const txt = params.text; if (txt.length > 280) throw new Error('Tweet exceeds 280 characters (' + txt.length + ' chars). Please shorten it.'); const el = document.querySelector('[data-testid^=\"tweetTextarea\"] [contenteditable=\"true\"], [data-testid^=\"tweetTextarea\"][contenteditable=\"true\"], [data-testid^=\"tweetTextarea\"]'); if (!el) throw new Error('Tweet textarea not found'); el.focus(); document.execCommand('insertText', false, txt); el.dispatchEvent(new Event('input', {bubbles: true})); return { typed: true, characters: txt.length }`)\n\n  // Brief pause before posting\n  await browser.wait(500)\n\n  // Click Post button\n  await browser.click('[data-testid^=\\'tweetButton\\'], [data-testid=\\'tweetButton\\']')\n\n  // Wait for tweet to post\n  await browser.wait(3000)\n\n  // Confirm post\n  const result = await browser.evaluate(`return { success: true, message: 'Tweet posted successfully' }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

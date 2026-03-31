@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "wikipedia-scrape-categories",
+    "slug": "wikipedia-scrape-categories",
+    "name": "wikipedia_scrape_categories",
+    "displayName": "Wikipedia Scrape Categories",
+    "description": "Scrape categories from a Wikipedia article or browse a Wikipedia category page. Returns the list of categories an article belongs to, or subcategories and pages within a category.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "wikipedia",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "article_url",
+        "type": "string",
+        "description": "Wikipedia article or category URL (e.g. 'https://en.wikipedia.org/wiki/Python_(programming_language)' or 'https://en.wikipedia.org/wiki/Category:Programming_languages')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Wikipedia page\n  await browser.open(`${params.article_url}`)\n\n  // Wait for page to load\n  await browser.waitForSelector('#firstHeading, h1, #catlinks, #mw-subcategories, #mw-pages', 15000)\n\n  // Let page render\n  await browser.wait(1500)\n\n  // Scroll to categories\n  await browser.scroll({ direction: 'down', amount: 3000 })\n\n  await browser.wait(1500)\n\n  // Extract categories\n  const categories_data = await browser.evaluate(`const titleEl = document.querySelector('#firstHeading, h1'); const categories = []; const catLinks = document.querySelectorAll('#catlinks li a, #mw-normal-catlinks li a'); catLinks.forEach(function(a) { categories.push({ name: a.textContent.trim(), url: a.href }); }); const subcategories = []; const subcatEls = document.querySelectorAll('#mw-subcategories li a, .CategoryTreeItem a'); subcatEls.forEach(function(a) { subcategories.push({ name: a.textContent.trim(), url: a.href }); }); const pages = []; const pageEls = document.querySelectorAll('#mw-pages li a'); pageEls.forEach(function(a) { pages.push({ title: a.textContent.trim(), url: a.href }); }); const pagesCountEl = document.querySelector('#mw-pages p, #mw-pages h2 + p'); return { title: titleEl ? titleEl.textContent.trim() : '', category_count: categories.length, categories: categories.slice(0, 30), subcategory_count: subcategories.length, subcategories: subcategories.slice(0, 30), pages_in_category: pages.slice(0, 30), pages_info: pagesCountEl ? pagesCountEl.textContent.trim() : '', url: window.location.href }`)\n\n  return categories_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

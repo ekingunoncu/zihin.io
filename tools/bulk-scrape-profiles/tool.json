@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-bulk-scrape-profiles",
+    "slug": "bulk-scrape-profiles",
+    "name": "bulk_scrape_profiles",
+    "displayName": "Bulk Scrape Profiles",
+    "description": "Scrape multiple X/Twitter profiles in parallel. Returns bio, follower/following counts, location, website for each user.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation",
+      "scrape",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "usernames",
+        "type": "string",
+        "description": "Comma-separated usernames to scrape (without @, e.g. 'elonmusk,openai,anthropic')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build profile URL list\n  const items = await browser.evaluate(`return params.usernames.split(',').map(u => ({ url: 'https://x.com/' + u.trim(), username: u.trim() }))`)\n\n  // Scrape each profile in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

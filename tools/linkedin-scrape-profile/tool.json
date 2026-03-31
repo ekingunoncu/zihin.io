@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "linkedin-scrape-profile",
+    "slug": "linkedin-scrape-profile",
+    "name": "linkedin_scrape_profile",
+    "displayName": "Linkedin Scrape Profile",
+    "description": "Scrape a LinkedIn profile's public info: name, headline, about, experience, education, location, and connection count.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "linkedin",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "profile_url",
+        "type": "string",
+        "description": "LinkedIn profile URL (e.g. 'https://www.linkedin.com/in/username')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open LinkedIn profile\n  await browser.open(`${params.profile_url}`)\n\n  // Wait for profile to load\n  await browser.waitForSelector('.text-heading-xlarge, .pv-text-details__left-panel h1', 15000)\n\n  // Let page settle\n  await browser.wait(2000)\n\n  // Scroll to load more sections\n  await browser.scroll({ direction: 'down', amount: 600 })\n\n  await browser.wait(1500)\n\n  // Extract profile data\n  const profile = await browser.evaluate(`const nameEl = document.querySelector('.text-heading-xlarge, .pv-text-details__left-panel h1'); const headlineEl = document.querySelector('.text-body-medium.break-words, .pv-text-details__left-panel .text-body-medium'); const locationEl = document.querySelector('.text-body-small.inline.t-black--light.break-words, span.text-body-small[class*=\"t-black--light\"]'); const aboutSection = document.querySelector('#about ~ div .inline-show-more-text, .pv-shared-text-with-see-more span[aria-hidden=\"true\"]'); const connectionsEl = document.querySelector('.t-bold:not(.text-heading-xlarge), span.t-bold[class*=\"pv-top-card\"]'); const experienceItems = []; const expSection = document.querySelectorAll('#experience ~ div .pvs-list__paged-list-item, section[id=\"experience\"] li.artdeco-list__item'); expSection.forEach((item, i) => { if (i >= 3) return; const title = item.querySelector('.t-bold span[aria-hidden=\"true\"], .display-flex .t-bold span'); const company = item.querySelector('.t-normal span[aria-hidden=\"true\"], .t-14.t-normal span'); const duration = item.querySelector('.t-normal.t-black--light span[aria-hidden=\"true\"]'); experienceItems.push({ title: title ? title.textContent.trim() : '', company: company ? company.textContent.trim() : '', duration: duration ? duration.textContent.trim() : '' }); }); return { name: nameEl ? nameEl.textContent.trim() : 'Unknown', headline: headlineEl ? headlineEl.textContent.trim() : '', location: locationEl ? locationEl.textContent.trim() : '', about: aboutSection ? aboutSection.textContent.trim().slice(0, 500) : '', connections: connectionsEl ? connectionsEl.textContent.trim() : '', experience: experienceItems, profile_url: window.location.href }`)\n\n  return profile\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

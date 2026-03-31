@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "flights-scrape-cheapest-dates",
+    "slug": "flights-scrape-cheapest-dates",
+    "name": "flights_scrape_cheapest_dates",
+    "displayName": "Flights Scrape Cheapest Dates",
+    "description": "Find the cheapest dates to fly a specific route using the Google Flights date grid. Returns prices for different departure and return date combinations.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-flights",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "from",
+        "type": "string",
+        "description": "Origin city or airport code (e.g. 'Chicago', 'ORD')",
+        "required": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "description": "Destination city or airport code (e.g. 'Miami', 'MIA')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Google Flights\n  await browser.open(`https://www.google.com/travel/flights?q=${params.from}+to+${params.to}`)\n\n  // Wait for flight results\n  await browser.waitForSelector('li.pIav2d', 20000)\n\n  // Let page render\n  await browser.wait(3000)\n\n  // Open date grid view\n  const open_date_grid = await browser.evaluate(`const dateGridBtn = document.querySelector('button[aria-label*=\"Date grid\"], button[aria-label*=\"date grid\"], div[data-flt-ve=\"date_grid\"] button, button[jsaction*=\"date_grid\"]'); if (dateGridBtn) { dateGridBtn.click(); return { clicked: true, type: 'date_grid' }; } const priceGraphBtn = document.querySelector('button[aria-label*=\"Price graph\"], button[aria-label*=\"price graph\"]'); if (priceGraphBtn) { priceGraphBtn.click(); return { clicked: true, type: 'price_graph' }; } return { clicked: false }`)\n\n  // Wait for date grid to load\n  await browser.wait(4000)\n\n  // Scroll to see date grid\n  await browser.scroll({ direction: 'down', amount: 600 })\n\n  await browser.wait(2000)\n\n  // Extract cheapest date combinations\n  const cheapest_dates = await browser.evaluate(`const dateEntries = []; const gridCells = document.querySelectorAll('td[data-value], div[class*=\"date-grid\"] td, div[class*=\"price-grid\"] td, table td[role=\"button\"], div.JRwjBf td'); gridCells.forEach((cell, i) => { if (i >= 90) return; const label = cell.getAttribute('aria-label') || ''; const value = cell.getAttribute('data-value') || ''; const priceEl = cell.querySelector('div, span'); const text = cell.textContent.trim(); if (text && text.match(/\\d/)) { dateEntries.push({ date: value || label.split(',')[0] || '', price: priceEl ? priceEl.textContent.trim() : text, aria_label: label, is_cheapest: cell.classList.contains('cheapest') || cell.querySelector('[class*=\"cheapest\"], [class*=\"lowest\"]') !== null }); } }); const calendarBtns = document.querySelectorAll('button[aria-label*=\"$\"], button[aria-label*=\"EUR\"], button[aria-label*=\"GBP\"], div[class*=\"calendar\"] button[data-iso]'); calendarBtns.forEach((btn, i) => { if (i >= 60) return; const label = btn.getAttribute('aria-label') || ''; const iso = btn.getAttribute('data-iso') || ''; if (label) { dateEntries.push({ date: iso || label, price: label, is_cheapest: false }); } }); const cheapestEl = document.querySelector('div[class*=\"cheapest\"], div[class*=\"lowest-price\"], div.CQYfx'); const tipEl = document.querySelector('div[class*=\"tip\"], div[class*=\"advice\"], div[class*=\"insight\"]'); dateEntries.sort((a, b) => { const pa = parseInt((a.price || '').replace(/[^0-9]/g, '')) || 99999; const pb = parseInt((b.price || '').replace(/[^0-9]/g, '')) || 99999; return pa - pb; }); return { from: params.from, to: params.to, date_count: dateEntries.length, cheapest_dates: dateEntries.slice(0, 20), cheapest_highlight: cheapestEl ? cheapestEl.textContent.trim() : '', travel_tip: tipEl ? tipEl.textContent.trim() : '', url: window.location.href }`)\n\n  return cheapest_dates\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

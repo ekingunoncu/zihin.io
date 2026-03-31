@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "notion-export-database",
+    "slug": "notion-export-database",
+    "name": "notion_export_database",
+    "displayName": "Notion Export Database",
+    "description": "Export a Notion database as structured data. Scrolls to collect all visible rows and returns as JSON with headers and values.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "notion"
+    ],
+    "parameters": [
+      {
+        "name": "database_url",
+        "type": "string",
+        "description": "Notion database URL",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Notion database\n  await browser.open(`${params.database_url}`)\n\n  // Wait for database view\n  await browser.waitForSelector('.notion-table-view, .notion-board-view, .notion-list-view, .notion-collection_view-block', 15000)\n\n  // Let database render\n  await browser.wait(3000)\n\n  // Export database rows\n  const result = await browser.evaluate(`const scroller = document.querySelector('.notion-scroller, .notion-frame'); if (scroller) { for (let s = 0; s < 5; s++) { scroller.scrollTop = scroller.scrollHeight; await new Promise(r => setTimeout(r, 1000)); } scroller.scrollTop = 0; await new Promise(r => setTimeout(r, 500)); } const headers = []; document.querySelectorAll('.notion-table-view-header-cell, .notion-collection-column-header').forEach(h => { headers.push(h.textContent?.trim() || ''); }); const rows = []; const rowEls = document.querySelectorAll('.notion-table-view .notion-collection-item, .notion-table-row, .notion-list-item'); for (let i = 0; i < Math.min(rowEls.length, 100); i++) { const row = rowEls[i]; const cells = row.querySelectorAll('.notion-table-view-cell, .notion-collection-property-value, td'); const rowData = {}; cells.forEach((cell, idx) => { const key = headers[idx] || 'col_' + idx; rowData[key] = cell.textContent?.trim()?.substring(0, 200) || ''; }); if (Object.values(rowData).some(v => v)) rows.push(rowData); } return { format: 'json', headers: headers, row_count: rows.length, rows: rows }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

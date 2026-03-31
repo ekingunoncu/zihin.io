@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "bluesky-search",
+    "slug": "bluesky-search",
+    "name": "bluesky_search",
+    "displayName": "Bluesky Search",
+    "description": "Search for posts on Bluesky. Returns up to 15 results with author, content, likes, reposts, replies, and URL.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "bluesky",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'AI news', 'web development', '#tech')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Bluesky\n  await browser.open(`https://bsky.app/search?q=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('[data-testid=\\'postText\\'], article, div[tabindex=\\'0\\']', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const posts = document.querySelectorAll('[data-testid^=\"feedItem-by-\"], div[tabindex=\"0\"][role=\"link\"]'); for (let i = 0; i < Math.min(posts.length, 15); i++) { const el = posts[i]; const authorEl = el.querySelector('[data-testid=\"profileHeaderDisplayName\"], a[href*=\"/profile/\"] span, div[style*=\"font-weight\"] span'); const handleEl = el.querySelector('a[href*=\"/profile/\"]'); const contentEl = el.querySelector('[data-testid=\"postText\"]'); const timeEl = el.querySelector('time'); const linkEl = el.querySelector('a[href*=\"/post/\"]'); const imgEl = el.querySelector('img[src*=\"feed_\"], img[src*=\"cdn\"]'); const likeBtn = el.querySelector('[data-testid=\"likeBtn\"]'); const replyBtn = el.querySelector('[data-testid=\"replyBtn\"]'); const likesText = likeBtn ? likeBtn.getAttribute('aria-label') || '' : ''; const repliesText = replyBtn ? replyBtn.getAttribute('aria-label') || '' : ''; let handle = ''; if (handleEl) { const href = handleEl.getAttribute('href') || ''; const match = href.match(/\\/profile\\/([^/]+)/); if (match) handle = match[1]; } results.push({ author: authorEl ? authorEl.textContent.trim() : '', handle: handle, content: contentEl ? contentEl.textContent.trim().substring(0, 500) : '', likes: likesText, replies: repliesText, time: timeEl ? (timeEl.getAttribute('datetime') || timeEl.textContent.trim()) : '', url: linkEl ? linkEl.href : '', has_image: !!imgEl }); } return { query: params.query, result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

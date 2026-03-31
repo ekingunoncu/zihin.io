@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "instagram-scrape-feed",
+    "slug": "instagram-scrape-feed",
+    "name": "instagram_scrape_feed",
+    "displayName": "Instagram Scrape Feed",
+    "description": "Scrape the Instagram home feed. Returns up to 10 posts with author, caption preview, likes, comments count, image alt text, and timestamp. You must be logged in to Instagram.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "instagram",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Instagram home feed\n  await browser.open('https://www.instagram.com/')\n\n  // Wait for feed to load\n  await browser.waitForSelector('article, article[role=\\'presentation\\'], main[role=\\'main\\'] article', 15000)\n\n  // Let initial posts render\n  await browser.wait(2500)\n\n  // Scroll to load more posts\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  // Wait for additional posts to load\n  await browser.wait(2000)\n\n  // Scroll further to load more posts\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  // Wait for posts to render\n  await browser.wait(2000)\n\n  // Extract feed posts\n  const feed_posts = await browser.evaluate(`const posts = []; const articles = document.querySelectorAll('article, article[role=\"presentation\"]'); for (let i = 0; i < Math.min(articles.length, 10); i++) { const article = articles[i]; const authorEl = article.querySelector('header a span, header a[role=\"link\"] span, a[class*=\"notranslate\"], header span[dir=\"auto\"] a'); const author = authorEl ? authorEl.textContent.trim() : ''; const authorLink = article.querySelector('header a[href^=\"/\"]'); const authorUrl = authorLink ? 'https://www.instagram.com' + authorLink.getAttribute('href') : ''; const captionContainer = article.querySelector('div[class*=\"caption\"] span, ul li span[dir=\"auto\"], div > span[dir=\"auto\"]'); let caption = ''; if (captionContainer) { caption = captionContainer.textContent.trim().substring(0, 200); } const imgEl = article.querySelector('img[class*=\"x5yr21d\"], img[style*=\"object-fit\"], div[role=\"presentation\"] img, div[role=\"button\"] img'); const imageAlt = imgEl ? (imgEl.alt || '') : ''; const likesEl = article.querySelector('section span[class*=\"like\"] span, a[href*=\"liked_by\"] span, section button span, section a span'); const likes = likesEl ? likesEl.textContent.trim() : ''; const commentsEl = article.querySelector('a[href*=\"/comments/\"] span, a[href*=\"/p/\"][href*=\"/comments\"] span'); const comments = commentsEl ? commentsEl.textContent.trim() : ''; const timeEl = article.querySelector('time[datetime], a time'); const timestamp = timeEl ? (timeEl.getAttribute('datetime') || timeEl.textContent.trim()) : ''; const postLink = article.querySelector('a[href*=\"/p/\"], a[href*=\"/reel/\"]'); const postUrl = postLink ? 'https://www.instagram.com' + postLink.getAttribute('href') : ''; posts.push({ author: author, author_url: authorUrl, caption_preview: caption, likes: likes, comments_count: comments, image_alt: imageAlt, timestamp: timestamp, post_url: postUrl }); } return { post_count: posts.length, posts: posts }`)\n\n  return feed_posts\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "transfermarkt-scrape-transfers",
+    "slug": "transfermarkt-scrape-transfers",
+    "name": "transfermarkt_scrape_transfers",
+    "displayName": "Transfermarkt Scrape Transfers",
+    "description": "Browse latest football transfers.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "transfermarkt",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Transfermarkt\n  await browser.open('https://www.transfermarkt.com/statistik/neuestetransfers')\n\n  // Wait for page\n  await browser.waitForSelector('.responsive-table, table.items, .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const transfers = []; document.querySelectorAll('table.items tbody tr.odd, table.items tbody tr.even').forEach((el, i) => { if (i < 20) { const playerEl = el.querySelector('td.hauptlink a'); const clubImgs = el.querySelectorAll('img.tiny_wappen, img[class*=\"wappen\"]'); const fromClub = clubImgs[0]?.getAttribute('title') || ''; const toClub = clubImgs[1]?.getAttribute('title') || ''; const feeEl = el.querySelector('td.rechts a, td.rechts'); const ageEl = el.querySelector('td.zentriert'); transfers.push({ player: playerEl?.getAttribute('title') || playerEl?.textContent?.trim() || '', player_url: playerEl?.href ? 'https://www.transfermarkt.com' + playerEl.getAttribute('href') : '', from: fromClub, to: toClub, fee: feeEl?.textContent?.trim() || '', age: ageEl?.textContent?.trim() || '' }); } }); return { transfer_count: transfers.length, transfers };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

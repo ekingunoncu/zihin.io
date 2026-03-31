@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "hn-search",
+    "slug": "hn-search",
+    "name": "hn_search",
+    "displayName": "HN Search",
+    "description": "Search Hacker News stories via Algolia HN Search. Returns matching stories with title, URL, points, author, comment count, and date.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "hackernews",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'rust programming', 'OpenAI GPT')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search HN via Algolia\n  await browser.open('https://hn.algolia.com/')\n\n  // Wait for search results\n  await browser.waitForSelector('.Story', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const queryFromUrl = new URL(window.location.href).searchParams.get('q') || ''; const results = []; const stories = document.querySelectorAll('.Story'); for (let i = 0; i < Math.min(stories.length, 20); i++) { const story = stories[i]; const titleEl = story.querySelector('.Story_title a:first-child'); const metaEl = story.querySelector('.Story_meta'); const pointsEl = metaEl ? metaEl.querySelector('span:first-child') : null; const metaLinks = metaEl ? metaEl.querySelectorAll('a') : []; let author = ''; let date = ''; let commentCount = '0'; let hnLink = ''; for (const link of metaLinks) { const text = link.textContent.trim(); const href = link.getAttribute('href') || ''; if (href.includes('user?id=')) { author = text; } else if (href.includes('item?id=')) { if (text.includes('comment')) { commentCount = text.split(' ')[0]; } else { hnLink = 'https://news.ycombinator.com/' + href; } } } const timeEl = metaEl ? metaEl.querySelector('span[title]') : null; if (timeEl) { date = timeEl.getAttribute('title') || timeEl.textContent.trim(); } else if (metaEl) { const spans = metaEl.querySelectorAll('span'); for (const s of spans) { if (s.textContent.includes('ago') || s.getAttribute('title')) { date = s.getAttribute('title') || s.textContent.trim(); break; } } } results.push({ title: titleEl ? titleEl.textContent.trim() : '', url: titleEl ? titleEl.href : '', points: pointsEl ? pointsEl.textContent.trim() : '', author: author, comment_count: commentCount, date: date, hn_url: hnLink }); } return { query: queryFromUrl, result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "airtable-update-record",
+    "slug": "airtable-update-record",
+    "name": "airtable_update_record",
+    "displayName": "Airtable Update Record",
+    "description": "Update an existing record in an Airtable table by row index. Clicks on the specified row and updates field values.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "airtable"
+    ],
+    "parameters": [
+      {
+        "name": "table_url",
+        "type": "string",
+        "description": "Airtable table URL (e.g. 'https://airtable.com/appXXX/tblXXX/viwXXX')",
+        "required": true
+      },
+      {
+        "name": "row_index",
+        "type": "string",
+        "description": "Zero-based row index of the record to update (e.g. '0' for first row, '5' for sixth row)",
+        "required": true
+      },
+      {
+        "name": "field_values",
+        "type": "string",
+        "description": "JSON string of field:value pairs to update (e.g. '{\"Status\":\"Done\",\"Notes\":\"Updated by agent\"}')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Airtable table\n  await browser.open(`${params.table_url}`)\n\n  // Wait for grid to load\n  await browser.waitForSelector('.dataRow, [data-rowindex], .headerRow', 15000)\n\n  // Let grid fully render\n  await browser.wait(2000)\n\n  // Update field values for specified row\n  const result = await browser.evaluate(`const rowIndex = parseInt(params.row_index, 10); const fields = JSON.parse(params.field_values); const headers = []; document.querySelectorAll('.headerRow .header, .columnHeader, [data-columnid] .header, [role=\"columnheader\"]').forEach(h => { headers.push(h.textContent?.trim() || ''); }); const allRows = document.querySelectorAll('.dataRow, [data-rowindex], [role=\"row\"]:not(.headerRow)'); if (rowIndex < 0 || rowIndex >= allRows.length) throw new Error('Row index ' + rowIndex + ' out of range. Total rows: ' + allRows.length); const targetRow = allRows[rowIndex]; const updatedFields = []; for (const [fieldName, value] of Object.entries(fields)) { const colIndex = headers.findIndex(h => h.toLowerCase() === fieldName.toLowerCase()); if (colIndex === -1) { updatedFields.push({ field: fieldName, status: 'column_not_found' }); continue; } const cells = targetRow.querySelectorAll('.cell, [data-columnid], [role=\"gridcell\"]'); const targetCell = cells[colIndex]; if (!targetCell) { updatedFields.push({ field: fieldName, status: 'cell_not_found' }); continue; } targetCell.click(); await new Promise(r => setTimeout(r, 500)); targetCell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); await new Promise(r => setTimeout(r, 500)); const input = targetCell.querySelector('.cellInput, [contenteditable=\"true\"], input, textarea') || document.activeElement; if (input) { if (input.contentEditable === 'true') { input.textContent = ''; input.textContent = String(value); input.dispatchEvent(new Event('input', { bubbles: true })); } else { const nativeSet = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set || Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; nativeSet.call(input, ''); input.dispatchEvent(new Event('input', { bubbles: true })); nativeSet.call(input, String(value)); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); } const oldValue = targetCell.textContent?.trim()?.substring(0, 100) || ''; updatedFields.push({ field: fieldName, status: 'updated', old_value: oldValue, new_value: String(value) }); } else { updatedFields.push({ field: fieldName, status: 'no_input_found' }); } await new Promise(r => setTimeout(r, 300)); } document.activeElement?.blur(); return { success: true, row_index: rowIndex, fields_processed: updatedFields.length, fields: updatedFields }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "expedia-compare-prices",
+    "slug": "expedia-compare-prices",
+    "name": "expedia_compare_prices",
+    "displayName": "Expedia Compare Prices",
+    "description": "Compare hotel prices on Expedia for a destination. Searches and extracts pricing details from multiple hotels sorted by price for easy comparison, including nightly rate, total cost, and guest rating.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "expedia"
+    ],
+    "parameters": [
+      {
+        "name": "destination",
+        "type": "string",
+        "description": "Destination city (e.g. 'New York', 'Paris', 'Tokyo')",
+        "required": true
+      },
+      {
+        "name": "checkin",
+        "type": "string",
+        "description": "Check-in date in YYYY-MM-DD format",
+        "required": true
+      },
+      {
+        "name": "checkout",
+        "type": "string",
+        "description": "Check-out date in YYYY-MM-DD format",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search hotels sorted by price\n  await browser.open(`https://www.expedia.com/Hotel-Search?destination=${params.destination}&startDate=${params.checkin}&endDate=${params.checkout}&adults=2&sort=PRICE_LOW_TO_HIGH`)\n\n  // Wait for results\n  await browser.waitForSelector('[data-stid=\\'lodging-card-responsive\\'], [data-stid=\\'property-listing\\']', 20000)\n\n  // Let results render\n  await browser.wait(3000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(1500)\n\n  // Extract and compare prices\n  const comparison_data = await browser.evaluate(`const items = []; const hotelEls = document.querySelectorAll('[data-stid=\"lodging-card-responsive\"], [data-stid=\"property-listing\"]'); for (let i = 0; i < Math.min(hotelEls.length, 20); i++) { const el = hotelEls[i]; const nameEl = el.querySelector('h3, h2'); const priceEl = el.querySelector('[data-test-id=\"price-summary-message-line\"] span, [data-stid=\"price-lockup\"] span'); const ratingEl = el.querySelector('span.is-visually-hidden, [aria-label*=\"rating\"]'); const reviewCountEl = el.querySelector('[data-stid=\"reviews\"] span, [aria-label*=\"reviews\"]'); const neighborhoodEl = el.querySelector('[data-stid=\"content-hotel-neighborhood\"], [class*=\"neighborhood\"]'); const linkEl = el.querySelector('a[data-stid=\"open-hotel-information\"], a[href*=\"Hotel-Information\"], a[href*=\".h\"]'); const originalPriceEl = el.querySelector('[data-stid*=\"strikethrough\"], s, del'); const discountEl = el.querySelector('[data-stid*=\"savings\"], [aria-label*=\"savings\"]'); const name = nameEl ? nameEl.textContent.trim() : ''; const url = linkEl ? (linkEl.href.startsWith('http') ? linkEl.href : 'https://www.expedia.com' + linkEl.getAttribute('href')) : ''; if (name) { items.push({ name: name, price: priceEl ? priceEl.textContent.trim() : '', original_price: originalPriceEl ? originalPriceEl.textContent.trim() : '', discount: discountEl ? discountEl.textContent.trim() : '', guest_rating: ratingEl ? ratingEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', neighborhood: neighborhoodEl ? neighborhoodEl.textContent.trim() : '', url: url }); } } const prices = items.map(function(item) { return parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0; }).filter(function(p) { return p > 0; }); const avgPrice = prices.length > 0 ? (prices.reduce(function(a, b) { return a + b; }, 0) / prices.length).toFixed(2) : '0'; const minPrice = prices.length > 0 ? Math.min.apply(null, prices).toFixed(2) : '0'; const maxPrice = prices.length > 0 ? Math.max.apply(null, prices).toFixed(2) : '0'; return { destination: params.destination, checkin: params.checkin, checkout: params.checkout, hotel_count: items.length, price_summary: { average: avgPrice, lowest: minPrice, highest: maxPrice }, hotels: items }`)\n\n  return comparison_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

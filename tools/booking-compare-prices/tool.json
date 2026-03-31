@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "booking-compare-prices",
+    "slug": "booking-compare-prices",
+    "name": "booking_compare_prices",
+    "displayName": "Booking Compare Prices",
+    "description": "Compare room prices for a Booking.com hotel across different dates. Navigates to the hotel page with specified check-in and check-out dates and scrapes all available room options with prices, room types, meal plans, and cancellation policies.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "booking"
+    ],
+    "parameters": [
+      {
+        "name": "hotel_url",
+        "type": "string",
+        "description": "Booking.com hotel URL (e.g. 'https://www.booking.com/hotel/fr/example-paris.html')",
+        "required": true
+      },
+      {
+        "name": "checkin",
+        "type": "string",
+        "description": "Check-in date in YYYY-MM-DD format (e.g. '2025-06-15')",
+        "required": true
+      },
+      {
+        "name": "checkout",
+        "type": "string",
+        "description": "Check-out date in YYYY-MM-DD format (e.g. '2025-06-18')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open hotel page with dates\n  await browser.open(`${params.hotel_url}?checkin=${params.checkin}&checkout=${params.checkout}`)\n\n  // Wait for hotel page to load\n  await browser.waitForSelector('h2.pp-header__title, [data-testid=\\'header-title\\'], .hp__hotel-name, #hp_hotel_name', 15000)\n\n  // Let page and prices render\n  await browser.wait(3000)\n\n  // Scroll to room availability section\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Scroll further for all rooms\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract room prices for dates\n  const price_comparison = await browser.evaluate(`const nameEl = document.querySelector('h2.pp-header__title, [data-testid=\"header-title\"], .hp__hotel-name, #hp_hotel_name'); const hotelName = nameEl ? nameEl.textContent.trim() : ''; const rooms = []; const roomBlocks = document.querySelectorAll('.hprt-table tr, [data-testid=\"availability-row\"], table.hprt-table tbody tr, .js-rt-block-row'); roomBlocks.forEach(function(el, idx) { if (idx >= 20) return; const roomNameEl = el.querySelector('.hprt-roomtype-icon-link, [data-testid=\"room-type-link\"], a.hprt-roomtype-link, .room_link strong'); const priceEl = el.querySelector('.hprt-price-price, [data-testid=\"price-and-discounted-price\"], .bui-price-display__value, .prco-valign-middle-helper'); const originalPriceEl = el.querySelector('.hprt-price-price-original, .bui-price-display__original, .prco-text-nowrap-helper del'); const occupancyEl = el.querySelector('.hprt-occupancy-occupancy-info, [data-testid=\"occupancy-popup\"], .hprt-occupancy-occupancy-info .invisible_spoken'); const mealEl = el.querySelector('.hprt-mealplan, [data-testid=\"meal-plan\"], .hprt-board-type'); const cancellationEl = el.querySelector('.hprt-conditions, [data-testid=\"cancellation-policy\"], .room-info__cancellation'); const bedEl = el.querySelector('.hprt-roomtype-bed, .hprt-bedcell, [data-testid=\"bed-type\"]'); if (roomNameEl || priceEl) { rooms.push({ room_type: roomNameEl ? roomNameEl.textContent.trim() : '', price: priceEl ? priceEl.textContent.trim() : '', original_price: originalPriceEl ? originalPriceEl.textContent.trim() : '', bed_type: bedEl ? bedEl.textContent.trim() : '', occupancy: occupancyEl ? occupancyEl.textContent.trim() : '', meal_plan: mealEl ? mealEl.textContent.trim() : '', cancellation: cancellationEl ? cancellationEl.textContent.trim().substring(0, 200) : '' }); } }); const taxInfoEl = document.querySelector('.hprt-price-tax-rate, [data-testid=\"taxes-and-charges\"], .prd-taxes-and-fees-under-price'); return { hotel_name: hotelName, checkin: params.checkin, checkout: params.checkout, tax_info: taxInfoEl ? taxInfoEl.textContent.trim() : '', room_count: rooms.length, rooms: rooms, url: window.location.href }`)\n\n  return price_comparison\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "spotify-play-track",
+    "slug": "spotify-play-track",
+    "name": "spotify_play_track",
+    "displayName": "Spotify Play Track",
+    "description": "Play a track on Spotify Web Player. Navigates to the track page and clicks the play button. You must be logged in with an active Spotify session.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "spotify"
+    ],
+    "parameters": [
+      {
+        "name": "track_url",
+        "type": "string",
+        "description": "Spotify track URL (e.g. 'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Spotify track page\n  await browser.open(`${params.track_url}`)\n\n  // Wait for play button to appear\n  await browser.waitForSelector('[data-testid=\"play-button\"], button[aria-label=\"Play\"], [data-testid=\"action-bar-row\"] button', 15000)\n\n  // Let track page fully load\n  await browser.wait(2000)\n\n  // Click play button\n  await browser.click('[data-testid=\"play-button\"], button[aria-label=\"Play\"]')\n\n  // Wait for playback to start\n  await browser.wait(1500)\n\n  // Confirm playback started\n  const play_result = await browser.evaluate(`const titleEl = document.querySelector('[data-testid=\"entityTitle\"] h1, [data-testid=\"entityTitle\"], h1'); const artistEl = document.querySelector('[data-testid=\"creator-link\"], a[href^=\"/artist\"]'); const nowPlaying = document.querySelector('[data-testid=\"now-playing-widget\"], [data-testid=\"CoverSlotExpanded__container\"]'); return { success: true, track_name: titleEl ? titleEl.textContent.trim() : '', artist: artistEl ? artistEl.textContent.trim() : '', is_playing: !!nowPlaying, url: window.location.href }`)\n\n  return play_result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

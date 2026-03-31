@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "spotify-create-playlist",
+    "slug": "spotify-create-playlist",
+    "name": "spotify_create_playlist",
+    "displayName": "Spotify Create Playlist",
+    "description": "Create a new playlist on Spotify. Uses Spotify's internal Web API with your active session cookies. You must be logged in to Spotify Web Player.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "spotify",
+      "create"
+    ],
+    "parameters": [
+      {
+        "name": "name",
+        "type": "string",
+        "description": "Name for the new playlist",
+        "required": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "description": "Optional description for the playlist",
+        "required": false
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Spotify Web Player\n  await browser.open('https://open.spotify.com/')\n\n  // Wait for Spotify to load\n  await browser.waitForSelector('[data-testid=\"rootlist-item\"], [data-testid=\"create-playlist-button\"], nav', 15000)\n\n  // Let Spotify fully initialize\n  await browser.wait(2000)\n\n  // Create playlist via Spotify API\n  const create_result = await browser.evaluate(`let accessToken = ''; try { const tokenEl = document.querySelector('script#session, script[id*=\"session\"]'); if (tokenEl) { const data = JSON.parse(tokenEl.textContent); accessToken = data.accessToken || ''; } } catch(e) {} if (!accessToken) { try { const cookies = document.cookie.split(';'); for (const c of cookies) { if (c.trim().startsWith('sp_t=') || c.trim().startsWith('sp_dc=')) { accessToken = c.trim().split('=')[1]; } } } catch(e) {} } if (!accessToken) { try { const tokenResp = await fetch('https://open.spotify.com/get_access_token?reason=transport&productType=web_player', { credentials: 'include' }); const tokenData = await tokenResp.json(); accessToken = tokenData.accessToken || ''; } catch(e) {} } if (!accessToken) { return { success: false, message: 'Could not retrieve Spotify access token. Please ensure you are logged in to Spotify Web Player.' }; } let userId = ''; try { const meResp = await fetch('https://api.spotify.com/v1/me', { headers: { 'Authorization': 'Bearer ' + accessToken } }); const meData = await meResp.json(); userId = meData.id || ''; } catch(e) { return { success: false, message: 'Could not fetch user profile. Token may be expired.' }; } const playlistDesc = '' + params.description + '' || ''; try { const resp = await fetch('https://api.spotify.com/v1/users/' + userId + '/playlists', { method: 'POST', headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '' + params.name + '', description: playlistDesc, public: false }) }); const data = await resp.json(); if (data.id) { return { success: true, playlist_id: data.id, playlist_name: data.name, playlist_url: data.external_urls ? data.external_urls.spotify : 'https://open.spotify.com/playlist/' + data.id, owner: userId }; } else { return { success: false, message: 'Failed to create playlist', error: JSON.stringify(data) }; } } catch(e) { return { success: false, message: e.message }; }`)\n\n  return create_result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

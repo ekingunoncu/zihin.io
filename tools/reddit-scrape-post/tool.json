@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "reddit-scrape-post",
+    "slug": "reddit-scrape-post",
+    "name": "reddit_scrape_post",
+    "displayName": "Reddit Scrape Post",
+    "description": "Scrape a Reddit post and its top comments. Returns post title, content, score, and top-level comments.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "reddit",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "post_url",
+        "type": "string",
+        "description": "Reddit post URL (old.reddit.com or regular reddit.com URL)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Convert to old.reddit.com URL\n  const converted_url = await browser.evaluate(`const url = params.post_url; const oldUrl = url.replace('www.reddit.com', 'old.reddit.com').replace('new.reddit.com', 'old.reddit.com'); return { url: oldUrl.includes('old.reddit.com') ? oldUrl : url.replace('reddit.com', 'old.reddit.com') }`)\n\n  // Open Reddit post\n  await browser.open(`${params.post_url}`)\n\n  // Wait for post to load\n  await browser.waitForSelector('.thing.link, .top-matter', 15000)\n\n  // Let comments load\n  await browser.wait(2000)\n\n  // Extract post and comments\n  const post_data = await browser.evaluate(`const titleEl = document.querySelector('a.title, .top-matter a.title'); const postBody = document.querySelector('.thing.link .usertext-body .md, .expando .md'); const authorEl = document.querySelector('.thing.link a.author, .top-matter a.author'); const scoreEl = document.querySelector('.thing.link .score.unvoted'); const subredditEl = document.querySelector('a.subreddit'); const timeEl = document.querySelector('.thing.link time, .top-matter time'); const comments = []; const commentEls = document.querySelectorAll('.comment.thing'); for (let i = 0; i < Math.min(commentEls.length, 15); i++) { const c = commentEls[i]; const cAuthor = c.querySelector('a.author'); const cBody = c.querySelector('.usertext-body .md'); const cScore = c.querySelector('.score.unvoted'); const cTime = c.querySelector('time'); const depth = parseInt(c.getAttribute('data-depth') || '0', 10); if (depth > 1) continue; comments.push({ author: cAuthor ? cAuthor.textContent.trim() : '[deleted]', text: cBody ? cBody.textContent.trim().slice(0, 500) : '[deleted]', score: cScore ? cScore.textContent.trim() : '', time: cTime ? cTime.getAttribute('datetime') || '' : '' }); } return { title: titleEl ? titleEl.textContent.trim() : '', author: authorEl ? authorEl.textContent.trim() : '[deleted]', subreddit: subredditEl ? subredditEl.textContent.trim() : '', score: scoreEl ? scoreEl.textContent.trim() : '', body: postBody ? postBody.textContent.trim().slice(0, 2000) : '', time: timeEl ? timeEl.getAttribute('datetime') || '' : '', comment_count: comments.length, comments: comments, url: window.location.href }`)\n\n  return post_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

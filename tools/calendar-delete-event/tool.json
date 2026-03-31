@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "calendar-delete-event",
+    "slug": "calendar-delete-event",
+    "name": "calendar_delete_event",
+    "displayName": "Calendar Delete Event",
+    "description": "Delete an event from Google Calendar. Searches for the event by title, opens it, and deletes it with confirmation.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-calendar"
+    ],
+    "parameters": [
+      {
+        "name": "event_title",
+        "type": "string",
+        "description": "Title of the event to find and delete",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Google Calendar\n  await browser.open('https://calendar.google.com/calendar/r')\n\n  // Wait for calendar to load\n  await browser.waitForSelector('[role=\\'main\\'], [data-eventid], .FAxxKc', 20000)\n\n  // Let calendar fully render\n  await browser.wait(2000)\n\n  // Open search\n  const open_search = await browser.evaluate(`const searchBtn = document.querySelector('[aria-label=\"Search\"], #sb_cb50, button[data-tooltip=\"Search\"]'); if (searchBtn) { searchBtn.click(); await new Promise(r => setTimeout(r, 1500)); } return { search_opened: !!searchBtn }`)\n\n  // Search for the event by title\n  const search_event = await browser.evaluate(`const searchInput = document.querySelector('input[aria-label=\"Search\"], input[aria-label=\"Search for people, events\"], input#sb_cb50, input[type=\"search\"]'); if (!searchInput) return { error: 'Could not find search input' }; searchInput.focus(); const nativeSet = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; nativeSet.call(searchInput, params.event_title); searchInput.dispatchEvent(new Event('input', { bubbles: true })); searchInput.dispatchEvent(new Event('change', { bubbles: true })); await new Promise(r => setTimeout(r, 500)); searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, code: 'Enter', bubbles: true })); await new Promise(r => setTimeout(r, 3000)); return { searched: true }`)\n\n  // Wait for search results\n  await browser.wait(3000)\n\n  // Click on the matching event\n  const click_event = await browser.evaluate(`const query = params.event_title.toLowerCase(); const eventElements = document.querySelectorAll('[data-eventid], [data-eventchip], .FAxxKc, [data-searchresultid]'); let target = null; eventElements.forEach(el => { if (target) return; const text = (el.getAttribute('aria-label') || el.textContent || '').toLowerCase(); if (text.includes(query)) target = el; }); if (!target) return { error: 'Event not found: ' + params.event_title + '' }; target.click(); await new Promise(r => setTimeout(r, 2000)); return { event_clicked: true }`)\n\n  // Wait for event detail popup\n  await browser.wait(1500)\n\n  // Click delete and confirm deletion\n  const delete_result = await browser.evaluate(`const deleteBtn = document.querySelector('[aria-label=\"Delete event\"], [data-tooltip=\"Delete event\"], button[aria-label*=\"Delete\"], [aria-label=\"Remove event\"], [jsname=\"ViaHrd\"][aria-label*=\"elete\"]'); if (deleteBtn) { deleteBtn.click(); await new Promise(r => setTimeout(r, 2000)); const confirmBtns = document.querySelectorAll('button, [role=\"button\"]'); let confirmed = false; confirmBtns.forEach(btn => { const text = (btn.textContent || '').trim().toLowerCase(); if (text === 'delete' || text === 'ok' || text === 'confirm' || text === 'delete event') { btn.click(); confirmed = true; } }); await new Promise(r => setTimeout(r, 2000)); return { success: true, deleted: params.event_title, confirmed: confirmed }; } const trashIcon = document.querySelector('[data-tooltip*=\"Delete\"], [aria-label*=\"Trash\"], [aria-label*=\"delete\" i]'); if (trashIcon) { trashIcon.click(); await new Promise(r => setTimeout(r, 2000)); const confirmBtns = document.querySelectorAll('button, [role=\"button\"]'); confirmBtns.forEach(btn => { const text = (btn.textContent || '').trim().toLowerCase(); if (text === 'delete' || text === 'ok') btn.click(); }); await new Promise(r => setTimeout(r, 2000)); return { success: true, deleted: params.event_title }; } return { error: 'Could not find delete button' }`)\n\n  return delete_result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

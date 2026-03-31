@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "jira-get-issue",
+    "slug": "jira-get-issue",
+    "name": "jira_get_issue",
+    "displayName": "Jira Get Issue",
+    "description": "Get detailed information about a specific Jira issue including summary, description, status, assignee, priority, labels, and comments.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "jira"
+    ],
+    "parameters": [
+      {
+        "name": "jira_url",
+        "type": "string",
+        "description": "Base URL of Jira instance (e.g. 'https://company.atlassian.net')",
+        "required": true
+      },
+      {
+        "name": "issue_key",
+        "type": "string",
+        "description": "Jira issue key (e.g. 'PROJ-123')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Jira issue\n  await browser.open(`${params.jira_url}/browse/${params.issue_key}`)\n\n  // Let page load\n  await browser.wait(2000)\n\n  // Fetch issue details via REST API\n  const result = await browser.evaluate(`const baseUrl = params.jira_url.replace(/\\/$/, ''); const resp = await fetch(baseUrl + '/rest/api/3/issue/' + params.issue_key + '?fields=summary,description,status,assignee,reporter,priority,issuetype,labels,created,updated,comment', { credentials: 'same-origin' }); if (!resp.ok) throw new Error('Jira API error: ' + resp.status); const i = await resp.json(); const comments = (i.fields.comment?.comments || []).slice(-5).map(c => ({ author: c.author?.displayName || '', body: c.body?.content?.map(b => b.content?.map(t => t.text).join('')).join('\\n') || '', created: c.created })); return { key: i.key, summary: i.fields.summary, description: i.fields.description?.content?.map(b => b.content?.map(t => t.text).join('')).join('\\n') || '', status: i.fields.status?.name || '', assignee: i.fields.assignee?.displayName || 'Unassigned', reporter: i.fields.reporter?.displayName || '', priority: i.fields.priority?.name || '', type: i.fields.issuetype?.name || '', labels: i.fields.labels || [], created: i.fields.created, updated: i.fields.updated, recent_comments: comments }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

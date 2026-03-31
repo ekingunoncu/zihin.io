@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "kaggle-scrape-competition",
+    "slug": "kaggle-scrape-competition",
+    "name": "kaggle_scrape_competition",
+    "displayName": "Kaggle Scrape Competition",
+    "description": "Scrape a Kaggle competition overview page. Returns title, description, prize, deadline, team count, evaluation metric, and tags.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "kaggle",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "competition_slug",
+        "type": "string",
+        "description": "Competition slug (e.g. 'titanic', 'spaceship-titanic')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open competition page\n  await browser.open(`https://www.kaggle.com/competitions/${params.competition_slug}`)\n\n  // Wait for competition page\n  await browser.waitForSelector('h1, [role=\\'main\\']', 15000)\n\n  // Let page render\n  await browser.wait(3000)\n\n  // Scroll for more content\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract competition data\n  const page_data = await browser.evaluate(`const title = document.querySelector('h1')?.textContent?.trim() || document.title.split('|')[0]?.trim() || ''; const paragraphs = Array.from(document.querySelectorAll('p, [class*=\"description\"], [class*=\"markdown\"]')).map(e => e.textContent.trim()).filter(t => t.length > 50); const desc = paragraphs.slice(0, 3).join(' ').substring(0, 1500); const allText = document.body.innerText; const prizeMatch = allText.match(/\\$[\\d,]+/); const teamMatch = allText.match(/(\\d[\\d,]*)\\s*teams?/i); const deadlineMatch = allText.match(/(?:deadline|closes?|ends?)\\s*:?\\s*([A-Za-z]+\\s+\\d{1,2},?\\s+\\d{4})/i); const timeEl = document.querySelector('time'); const tags = []; const seen = new Set(); document.querySelectorAll('a[href*=\"/tags/\"], a[href*=\"/competitions?\"]').forEach(a => { const text = a.textContent.trim(); if (text && text.length < 50 && !seen.has(text)) { seen.add(text); tags.push(text); } }); return { title, description: desc, prize: prizeMatch ? prizeMatch[0] : '', teams: teamMatch ? teamMatch[1] : '', deadline: deadlineMatch ? deadlineMatch[1] : (timeEl ? timeEl.textContent.trim() : ''), tags: tags.slice(0, 10), url: window.location.href };`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

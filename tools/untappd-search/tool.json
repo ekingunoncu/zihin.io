@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "untappd-search",
+    "slug": "untappd-search",
+    "name": "untappd_search",
+    "displayName": "Untappd Search",
+    "description": "Search for beers on Untappd. Returns matching results with name, brewery, rating, and style.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "untappd",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Untappd search\n  await browser.open(`https://untappd.com/search?q=${params.query}&type=beer`)\n\n  // Wait for results\n  await browser.waitForSelector('.results-container, .beer-item, .content', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const results = []; document.querySelectorAll('.beer-item, .results-container .beer, [class*=\"beer-result\"]').forEach((el, i) => { if (i < 15) { const nameEl = el.querySelector('.name a, .beer-name a, h3 a'); const breweryEl = el.querySelector('.brewery a, .beer-brewery a'); const ratingEl = el.querySelector('.rating, .num, [class*=\"rating\"]'); const styleEl = el.querySelector('.style, .beer-style'); results.push({ name: nameEl?.textContent?.trim() || '', url: nameEl?.href || '', brewery: breweryEl?.textContent?.trim() || '', rating: ratingEl?.textContent?.trim() || '', style: styleEl?.textContent?.trim() || '' }); } }); return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

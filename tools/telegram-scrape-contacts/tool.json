@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "telegram-scrape-contacts",
+    "slug": "telegram-scrape-contacts",
+    "name": "telegram_scrape_contacts",
+    "displayName": "Telegram Scrape Contacts",
+    "description": "Scrape the contacts list from Telegram. Opens the contacts/people section and returns contact names and last seen status.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "telegram",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Telegram Web\n  await browser.open('https://web.telegram.org/k/')\n\n  // Wait for Telegram to load\n  await browser.waitForSelector('.input-search input, .chatlist-chat, .chat-list', 15000)\n\n  // Let app fully initialize\n  await browser.wait(2000)\n\n  // Open sidebar menu\n  const open_menu = await browser.evaluate(`const hamburgerBtn = document.querySelector('.btn-menu-toggle, .sidebar-header .btn-icon, .menu-hamburger'); if (hamburgerBtn) { hamburgerBtn.click(); } return { opened_menu: true }`)\n\n  await browser.wait(1000)\n\n  // Click Contacts menu item\n  const click_contacts = await browser.evaluate(`const menuItems = document.querySelectorAll('.btn-menu-item, .menu-item, [class*=\"MenuItem\"]'); let clicked = false; for (const item of menuItems) { const text = item.textContent.trim().toLowerCase(); if (text.includes('contact') || text.includes('people')) { item.click(); clicked = true; break; } } return { clicked_contacts: clicked }`)\n\n  // Wait for contacts to load\n  await browser.wait(2500)\n\n  // Extract contacts list\n  const contacts_list = await browser.evaluate(`const contacts = []; const contactEls = document.querySelectorAll('.contacts-container .row, .chatlist-chat, .search-group .chatlist-chat, .sidebar-slider .chatlist-chat'); for (let i = 0; i < Math.min(contactEls.length, 50); i++) { const el = contactEls[i]; const nameEl = el.querySelector('.peer-title, .user-title, .dialog-title'); const statusEl = el.querySelector('.user-last-message, .dialog-subtitle, .status, .last-seen'); contacts.push({ name: nameEl ? nameEl.textContent.trim() : '', last_seen: statusEl ? statusEl.textContent.trim() : '' }); } return { contact_count: contacts.length, contacts: contacts }`)\n\n  return contacts_list\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

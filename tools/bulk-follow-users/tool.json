@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-bulk-follow-users",
+    "slug": "bulk-follow-users",
+    "name": "bulk_follow_users",
+    "displayName": "Bulk Follow Users",
+    "description": "Follow multiple X/Twitter users in parallel. Skips users you already follow.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "usernames",
+        "type": "string",
+        "description": "Comma-separated usernames to follow (without @, e.g. 'openai,anthropic,google')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build profile URL list\n  const items = await browser.evaluate(`return params.usernames.split(',').map(u => ({ url: 'https://x.com/' + u.trim(), username: u.trim() }))`)\n\n  // Follow each user in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

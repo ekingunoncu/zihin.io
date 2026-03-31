@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "figma-scrape-file",
+    "slug": "figma-scrape-file",
+    "name": "figma_scrape_file",
+    "displayName": "Figma Scrape File",
+    "description": "Scrape detailed info about a Figma file including file name, page names, frame counts, and component counts from the layers panel. You must be logged into Figma and have access to the file.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "figma",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "file_url",
+        "type": "string",
+        "description": "Figma file URL (e.g. 'https://www.figma.com/design/FILEID/FileName')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Figma file\n  await browser.open(`${params.file_url}`)\n\n  // Wait for editor to load\n  await browser.waitForSelector('[class*=\"layers_panel\"], .layers-panel, [class*=\"toolbar\"], [data-testid=\"canvas\"]', 20000)\n\n  // Let canvas and panels render\n  await browser.wait(4000)\n\n  // Extract file details and layer info\n  const result = await browser.evaluate(`const fileName = document.querySelector('[class*=\"filename\"], [data-testid=\"filename\"], [class*=\"file_name\"], .toolbar-title input, [class*=\"toolbar\"] [class*=\"name\"]')?.textContent?.trim() || document.title.replace(' - Figma', '').trim() || ''; const pages = []; const pageItems = document.querySelectorAll('.page_item, [class*=\"page_row\"], [class*=\"pages_panel\"] [class*=\"page_name\"], [data-testid=\"page-name\"]'); pageItems.forEach(p => { pages.push(p.textContent.trim()); }); const layerItems = document.querySelectorAll('[class*=\"layers_panel\"] [class*=\"layer_row\"], [class*=\"object_row\"], [class*=\"layers-panel\"] [class*=\"item\"]'); let frameCount = 0; let componentCount = 0; layerItems.forEach(item => { const iconEl = item.querySelector('[class*=\"icon\"], svg'); const text = iconEl ? iconEl.getAttribute('class') || '' : ''; if (text.includes('frame') || text.includes('Frame')) frameCount++; if (text.includes('component') || text.includes('Component')) componentCount++; }); const totalLayers = layerItems.length; return { file_name: fileName, url: window.location.href, page_count: pages.length, pages: pages, total_layers_visible: totalLayers, frame_count: frameCount, component_count: componentCount }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

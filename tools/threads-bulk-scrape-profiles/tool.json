@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "threads-bulk-scrape-profiles",
+    "slug": "threads-bulk-scrape-profiles",
+    "name": "threads_bulk_scrape_profiles",
+    "displayName": "Threads Bulk Scrape Profiles",
+    "description": "Scrape multiple Threads user profiles in parallel using concurrent browser tabs. Pass all usernames as a single comma-separated string. Returns profile data for each user including display name, bio, followers, and recent posts. You must be logged in to Threads.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "threads",
+      "scrape",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "usernames",
+        "type": "string",
+        "description": "Comma-separated Threads usernames without @ (e.g. 'zuck,mosseri,nasa')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build username list\n  const items = await browser.evaluate(`return params.usernames.split(',').map(u => ({ username: u.trim(), url: 'https://www.threads.net/@' + u.trim() }))`)\n\n  // Scrape each profile in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

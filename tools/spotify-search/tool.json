@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "spotify-search",
+    "slug": "spotify-search",
+    "name": "spotify_search",
+    "displayName": "Spotify Search",
+    "description": "Search for songs, albums, and artists on Spotify. Returns matching tracks, artists, and albums with names and metadata.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "spotify",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (song name, artist, album, or any combination)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Spotify search\n  await browser.open(`https://open.spotify.com/search/${params.query}`)\n\n  // Wait for search results to load\n  await browser.waitForSelector('[data-testid=\"search-tracks-result\"], [data-testid=\"tracklist-row\"], .SearchResultsContainer, [data-testid=\"search-category-card\"]', 15000)\n\n  // Let all result sections render\n  await browser.wait(2500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const tracks = []; const trackRows = document.querySelectorAll('[data-testid=\"tracklist-row\"], [data-testid=\"search-tracks-result\"] [data-testid=\"tracklist-row\"]'); for (let i = 0; i < Math.min(trackRows.length, 10); i++) { const row = trackRows[i]; const nameEl = row.querySelector('[data-testid=\"internal-track-link\"], .encore-text a, a[href^=\"/track\"]'); const artistEl = row.querySelector('a[href^=\"/artist\"]'); const imgEl = row.querySelector('img'); tracks.push({ name: nameEl ? nameEl.textContent.trim() : '', artist: artistEl ? artistEl.textContent.trim() : '', image: imgEl ? imgEl.src : '', link: nameEl ? nameEl.href || '' : '' }); } const artists = []; const artistCards = document.querySelectorAll('[data-testid=\"search-category-card\"] a[href^=\"/artist\"], section a[href^=\"/artist\"]'); const seenArtists = new Set(); for (let i = 0; i < Math.min(artistCards.length, 5); i++) { const card = artistCards[i]; const name = card.textContent.trim(); if (name && !seenArtists.has(name)) { seenArtists.add(name); artists.push({ name: name, link: card.href || '' }); } } const albums = []; const albumCards = document.querySelectorAll('section a[href^=\"/album\"]'); const seenAlbums = new Set(); for (let i = 0; i < Math.min(albumCards.length, 5); i++) { const card = albumCards[i]; const name = card.textContent.trim(); if (name && !seenAlbums.has(name)) { seenAlbums.add(name); albums.push({ name: name, link: card.href || '' }); } } return { query: '' + params.query + '', track_count: tracks.length, artist_count: artists.length, album_count: albums.length, tracks: tracks, artists: artists, albums: albums }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

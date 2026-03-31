@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "hn-scrape-user",
+    "slug": "hn-scrape-user",
+    "name": "hn_scrape_user",
+    "displayName": "HN Scrape User",
+    "description": "Scrape a Hacker News user profile. Returns username, karma, about text, account creation date, and their recent submissions.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "hackernews",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "username",
+        "type": "string",
+        "description": "Hacker News username (e.g. 'dang', 'pg')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open user profile\n  await browser.open(`https://news.ycombinator.com/user?id=${params.username}`)\n\n  // Wait for profile to load\n  await browser.waitForSelector('table', 15000)\n\n  // Let page settle\n  await browser.wait(1500)\n\n  // Extract user profile\n  const user_profile = await browser.evaluate(`const usernameFromUrl = new URL(window.location.href).searchParams.get('id') || ''; const rows = document.querySelectorAll('table table tr'); let username = ''; let karma = ''; let about = ''; let created = ''; for (const row of rows) { const label = row.querySelector('td:first-child'); const value = row.querySelector('td:nth-child(2)'); if (!label || !value) continue; const labelText = label.textContent.trim().toLowerCase(); if (labelText.includes('user')) username = value.textContent.trim(); else if (labelText.includes('karma')) karma = value.textContent.trim(); else if (labelText.includes('about')) about = value.textContent.trim().slice(0, 1000); else if (labelText.includes('created')) created = value.textContent.trim(); } return { username: username || usernameFromUrl, karma: karma, about: about, created: created, profile_url: window.location.href }`)\n\n  // Open user submissions\n  await browser.open(`https://news.ycombinator.com/submitted?id=${params.username}`)\n\n  // Wait for submissions\n  await browser.waitForSelector('.athing', 15000)\n\n  // Let submissions load\n  await browser.wait(1500)\n\n  // Extract recent submissions\n  const user_submissions = await browser.evaluate(`const usernameFromUrl = new URL(window.location.href).searchParams.get('id') || ''; const submissions = []; const storyRows = document.querySelectorAll('.athing'); for (let i = 0; i < Math.min(storyRows.length, 15); i++) { const row = storyRows[i]; const subtext = row.nextElementSibling; const titleEl = row.querySelector('.titleline > a'); const scoreEl = subtext ? subtext.querySelector('.score') : null; const ageEl = subtext ? subtext.querySelector('.age a') : null; let commentCount = '0'; if (subtext) { const links = subtext.querySelectorAll('a'); for (const link of links) { const text = link.textContent.trim(); if (text.includes('comment')) { commentCount = text.split('\\u00a0')[0] || text.split(' ')[0]; break; } } } submissions.push({ title: titleEl ? titleEl.textContent.trim() : '', url: titleEl ? titleEl.href : '', score: scoreEl ? scoreEl.textContent.trim() : '0 points', comment_count: commentCount, age: ageEl ? ageEl.textContent.trim() : '' }); } return { username: usernameFromUrl, submission_count: submissions.length, submissions: submissions }`)\n\n  return user_submissions\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

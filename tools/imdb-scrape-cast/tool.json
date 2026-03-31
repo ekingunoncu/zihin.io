@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "imdb-scrape-cast",
+    "slug": "imdb-scrape-cast",
+    "name": "imdb_scrape_cast",
+    "displayName": "IMDb Scrape Cast",
+    "description": "Scrape the full cast and crew from an IMDb title. Returns actors with character names, plus directors, writers, and other crew members.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "imdb",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "title_id",
+        "type": "string",
+        "description": "IMDb title ID (e.g. 'tt0468569')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open full credits page\n  await browser.open(`https://www.imdb.com/title/${params.title_id}/fullcredits/`)\n\n  // Wait for credits page\n  await browser.waitForSelector('table.cast_list, [class*=\\'fullcredits\\'], [class*=\\'Credits\\'], .ipc-metadata-list', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll through credits\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Extract cast and crew\n  const cast_data = await browser.evaluate(`const cast = []; const castRows = document.querySelectorAll('table.cast_list tr, [data-testid=\"title-cast-item\"]'); castRows.forEach(function(row) { const nameEl = row.querySelector('td:nth-child(2) a, [data-testid=\"title-cast-item__actor\"], a[href*=\"/name/\"]'); const charEl = row.querySelector('td.character, [data-testid=\"cast-item-characters-link\"], [class*=\"character\"]'); const imgEl = row.querySelector('img'); if (nameEl) { cast.push({ name: nameEl.textContent.trim(), character: charEl ? charEl.textContent.trim().replace(/\\s+/g, ' ') : '', image: imgEl ? imgEl.getAttribute('src') : '', url: nameEl.href || '' }); } }); const crew = {}; const headers = document.querySelectorAll('#fullcredits_content > h4, [class*=\"Credits\"] h4, .ipc-title__text'); headers.forEach(function(h) { const role = h.textContent.trim().replace(/\\s+/g, ' '); const table = h.nextElementSibling; if (table && table.tagName === 'TABLE') { const names = []; table.querySelectorAll('tr').forEach(function(row) { const nameEl = row.querySelector('a[href*=\"/name/\"]'); if (nameEl) names.push(nameEl.textContent.trim()); }); if (names.length > 0) crew[role] = names.slice(0, 10); } }); const titleEl = document.querySelector('h3 a, [class*=\"parent\"] a, [data-testid=\"hero-title-block__title\"]'); const titleIdMatch = window.location.pathname.match(/\\/title\\/(tt\\d+)/); return { title_id: titleIdMatch ? titleIdMatch[1] : '', title: titleEl ? titleEl.textContent.trim() : '', cast_count: cast.length, cast: cast.slice(0, 30), crew: crew, url: window.location.href }`)\n\n  return cast_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

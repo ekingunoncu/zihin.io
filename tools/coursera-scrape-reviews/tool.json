@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "coursera-scrape-reviews",
+    "slug": "coursera-scrape-reviews",
+    "name": "coursera_scrape_reviews",
+    "displayName": "Coursera Scrape Reviews",
+    "description": "Scrape reviews from a Coursera course page. Returns learner reviews with rating, content, author, date, and helpfulness count.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "coursera",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "course_url",
+        "type": "string",
+        "description": "Coursera course URL (e.g. 'https://www.coursera.org/learn/machine-learning')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open course page\n  await browser.open(`${params.course_url}`)\n\n  // Wait for page to load\n  await browser.waitForSelector('h1', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll toward reviews section\n  await browser.scroll({ direction: 'down', amount: 3000 })\n\n  await browser.wait(2000)\n\n  // Scroll further to reviews\n  await browser.scroll({ direction: 'down', amount: 3000 })\n\n  await browser.wait(2000)\n\n  // Scroll to load more reviews\n  await browser.scroll({ direction: 'down', amount: 3000 })\n\n  await browser.wait(2000)\n\n  // Extract reviews\n  const reviews_data = await browser.evaluate(`const reviews = []; const allDivs = document.querySelectorAll('div'); const reviewContainers = []; allDivs.forEach(function(div) { const stars = div.querySelector('[role=\"meter\"], [aria-label*=\"star\"], [class*=\"cds-RatingStar\"]'); const text = div.querySelector('p, [class*=\"reviewText\"], [class*=\"review-body\"]'); if (stars && text && text.textContent.trim().length > 20) { const isNested = reviewContainers.some(function(c) { return c.contains(div); }); if (!isNested) reviewContainers.push(div); } }); for (let i = 0; i < Math.min(reviewContainers.length, 20); i++) { const el = reviewContainers[i]; const ratingEl = el.querySelector('[role=\"meter\"], [aria-label*=\"star\"], [class*=\"cds-RatingStar\"]'); const textEls = el.querySelectorAll('p'); let content = ''; textEls.forEach(function(p) { const t = p.textContent.trim(); if (t.length > 20 && t.length > content.length) content = t; }); const nameEls = el.querySelectorAll('strong, b, [class*=\"name\"], [class*=\"reviewer\"]'); let author = ''; nameEls.forEach(function(n) { const t = n.textContent.trim(); if (t && t.length < 60 && t.length > 1 && !author) author = t; }); const dateEl = el.querySelector('time, [class*=\"date\"], [class*=\"timestamp\"]'); const helpfulEl = el.querySelector('[class*=\"helpful\"] span, [class*=\"votes\"]'); if (content) { reviews.push({ rating: ratingEl ? (ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim()) : '', content: content.substring(0, 500), author: author || 'Anonymous', date: dateEl ? (dateEl.getAttribute('datetime') || dateEl.textContent.trim()) : '', helpful: helpfulEl ? helpfulEl.textContent.trim() : '' }); } } const overallEl = document.querySelector('[role=\"meter\"], [aria-label*=\"stars\"]'); const allText = document.body.innerText; const totalMatch = allText.match(/(\\d[\\d,]+)\\s*reviews?/i); return { overall_rating: overallEl ? (overallEl.getAttribute('aria-label') || overallEl.textContent.trim()) : '', total_reviews: totalMatch ? totalMatch[1] : '', scraped_count: reviews.length, reviews: reviews, url: window.location.href }`)\n\n  return reviews_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

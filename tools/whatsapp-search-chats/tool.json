@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "whatsapp-search-chats",
+    "slug": "whatsapp-search-chats",
+    "name": "whatsapp_search_chats",
+    "displayName": "Whatsapp Search Chats",
+    "description": "Search conversations in WhatsApp Web. Returns matching chats with contact names and last message preview.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "whatsapp",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query text",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open WhatsApp Web\n  await browser.open('https://web.whatsapp.com')\n\n  // Wait for WhatsApp to load\n  await browser.waitForSelector('div[contenteditable=\\'true\\'][data-tab=\\'3\\'], div#side', 30000)\n\n  // Let app fully render\n  await browser.wait(3000)\n\n  // Search and extract results\n  const result = await browser.evaluate(`const searchBox = document.querySelector('div[contenteditable=\"true\"][data-tab=\"3\"]'); if (!searchBox) throw new Error('Search box not found'); searchBox.focus(); searchBox.textContent = ''; document.execCommand('insertText', false, params.query); searchBox.dispatchEvent(new Event('input', { bubbles: true })); await new Promise(r => setTimeout(r, 2500)); const results = []; const chatItems = document.querySelectorAll('#pane-side [data-testid=\"list-item\"], #pane-side [data-testid=\"cell-frame-container\"], div[data-testid=\"chatlist\"] div[tabindex]'); for (let i = 0; i < Math.min(chatItems.length, 15); i++) { const item = chatItems[i]; const nameEl = item.querySelector('span[title], [data-testid=\"cell-frame-title\"] span'); const msgEl = item.querySelector('span[data-testid=\"last-msg-status\"], .matched-text, span.selectable-text'); const timeEl = item.querySelector('div._amk6, [data-testid=\"cell-frame-secondary\"]'); results.push({ name: nameEl?.getAttribute('title') || nameEl?.textContent?.trim() || '', last_message: msgEl?.textContent?.trim()?.substring(0, 150) || '', time: timeEl?.textContent?.trim() || '' }); } return { query: params.query, result_count: results.length, results: results }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

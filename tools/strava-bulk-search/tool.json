@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "strava-bulk-search",
+    "slug": "strava-bulk-search",
+    "name": "strava_bulk_search",
+    "displayName": "Strava Bulk Search",
+    "description": "Search multiple queries on Strava in parallel.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "strava",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://www.strava.com/athletes/search?utf8=%E2%9C%93&text=' + encodeURIComponent(q.trim()) + '', query: q.trim() }))`)\n\n  // Search in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

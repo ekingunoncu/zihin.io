@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tinder-send-message",
+    "slug": "tinder-send-message",
+    "name": "tinder_send_message",
+    "displayName": "Tinder Send Message",
+    "description": "Send a message to a Tinder match. Requires login.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tinder",
+      "messaging"
+    ],
+    "parameters": [
+      {
+        "name": "match_name",
+        "type": "string",
+        "description": "Name of the match to message",
+        "required": true
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "description": "Message text to send",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open matches\n  await browser.open('https://tinder.com/app/matches')\n\n  // Wait for matches\n  await browser.waitForSelector('[class*=\"matchList\"], a[href*=\"/messages/\"]', 15000)\n\n  // Let matches load\n  await browser.wait(2000)\n\n  // Find match\n  const find_match = await browser.evaluate(`const links = document.querySelectorAll('a[href*=\"/app/messages/\"], [class*=\"matchList\"] a, [class*=\"messageListItem\"] a, a[href*=\"/messages/\"]'); for (const link of links) { if (link.textContent?.toLowerCase()?.includes('' + params.match_name + ''.toLowerCase())) { link.click(); return { found: true }; } } return { found: false, message: 'Match not found' };`)\n\n  // Wait for chat\n  await browser.wait(2000)\n\n  // Type message\n  const type_msg = await browser.evaluate(`const input = document.querySelector('textarea, [class*=\"sendMessageForm__input\"], [contenteditable=\"true\"], input[type=\"text\"]'); if (!input) return { success: false, message: 'Message input not found' }; input.focus(); document.execCommand('insertText', false, '' + params.message + ''); input.dispatchEvent(new Event('input', { bubbles: true })); return { typed: true };`)\n\n  await browser.wait(500)\n\n  // Send message\n  const result = await browser.evaluate(`const sendBtn = document.querySelector('button[type=\"submit\"], [class*=\"send\"], [aria-label*=\"Send\"]'); if (sendBtn) { sendBtn.click(); return { success: true }; } return { success: false, message: 'Send button not found' };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

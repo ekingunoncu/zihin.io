@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "trello-search",
+    "slug": "trello-search",
+    "name": "trello_search",
+    "displayName": "Trello Search",
+    "description": "Search for cards, boards, or members in Trello. Returns matching items with names, descriptions, and URLs.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "trello",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query text",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Trello\n  await browser.open('https://trello.com')\n\n  // Let Trello load\n  await browser.wait(2000)\n\n  // Search via Trello API\n  const result = await browser.evaluate(`const resp = await fetch('/1/search?query=' + encodeURIComponent(params.query) + '&cards_limit=15&boards_limit=5&modelTypes=cards,boards', { credentials: 'same-origin' }); if (!resp.ok) throw new Error('Search failed: ' + resp.status); const data = await resp.json(); const cards = (data.cards || []).map(c => ({ type: 'card', name: c.name, description: c.desc?.substring(0, 150) || '', board: c.board?.name || '', list: c.list?.name || '', labels: (c.labels || []).map(l => l.name || l.color), due: c.due || '', url: c.shortUrl || c.url })); const boards = (data.boards || []).map(b => ({ type: 'board', name: b.name, description: b.desc?.substring(0, 150) || '', url: b.url || b.shortUrl })); return { query: params.query, cards_found: cards.length, boards_found: boards.length, cards: cards, boards: boards }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

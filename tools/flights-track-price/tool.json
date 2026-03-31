@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "flights-track-price",
+    "slug": "flights-track-price",
+    "name": "flights_track_price",
+    "displayName": "Flights Track Price",
+    "description": "Enable price tracking for a specific flight route on Google Flights. Activates the 'Track prices' toggle so Google will send email notifications when prices change.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-flights"
+    ],
+    "parameters": [
+      {
+        "name": "from",
+        "type": "string",
+        "description": "Origin city or airport code (e.g. 'Boston', 'BOS')",
+        "required": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "description": "Destination city or airport code (e.g. 'Paris', 'CDG')",
+        "required": true
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "description": "Departure date in YYYY-MM-DD format (optional)",
+        "required": false
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Google Flights\n  await browser.open(`https://www.google.com/travel/flights?q=${params.from}+to+${params.to}`)\n\n  // Wait for flight results\n  await browser.waitForSelector('li.pIav2d', 20000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Scroll down to find price tracking toggle\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Enable price tracking\n  const track_result = await browser.evaluate(`const trackToggle = document.querySelector('button[aria-label*=\"Track prices\"], button[aria-label*=\"track prices\"], div[data-flt-ve=\"track_prices\"] button, button[jsaction*=\"track\"], div[class*=\"track\"] button[role=\"switch\"], input[aria-label*=\"Track\"]'); if (trackToggle) { const isAlreadyOn = trackToggle.getAttribute('aria-checked') === 'true' || trackToggle.getAttribute('aria-pressed') === 'true' || trackToggle.classList.contains('enabled'); if (!isAlreadyOn) { trackToggle.click(); return { action: 'enabled', message: 'Price tracking has been enabled for this route' }; } else { return { action: 'already_enabled', message: 'Price tracking was already enabled for this route' }; } } const allButtons = document.querySelectorAll('button, div[role=\"button\"]'); for (const btn of allButtons) { const text = (btn.textContent || '').toLowerCase(); const label = (btn.getAttribute('aria-label') || '').toLowerCase(); if (text.includes('track') || label.includes('track')) { btn.click(); return { action: 'clicked_track_button', message: 'Clicked a tracking-related button' }; } } return { action: 'not_found', message: 'Could not find price tracking toggle. You may need to be signed into Google.' }`)\n\n  // Wait for tracking to be confirmed\n  await browser.wait(2000)\n\n  // Check tracking confirmation\n  const tracking_status = await browser.evaluate(`const confirmation = document.querySelector('div[class*=\"snackbar\"], div[class*=\"toast\"], div[role=\"alert\"], div[class*=\"confirmation\"]'); const priceInsight = document.querySelector('div.CQYfx, div[class*=\"price-insight\"], div[class*=\"tip\"]'); return { from: params.from, to: params.to, confirmation: confirmation ? confirmation.textContent.trim() : '', price_insight: priceInsight ? priceInsight.textContent.trim() : '', url: window.location.href }`)\n\n  return tracking_status\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

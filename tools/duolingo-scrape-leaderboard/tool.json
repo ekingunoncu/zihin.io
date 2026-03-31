@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "duolingo-scrape-leaderboard",
+    "slug": "duolingo-scrape-leaderboard",
+    "name": "duolingo_scrape_leaderboard",
+    "displayName": "Duolingo Scrape Leaderboard",
+    "description": "Scrape the Duolingo leaderboard. Requires login.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "duolingo",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Duolingo learn page (leaderboard is in sidebar)\n  await browser.open('https://www.duolingo.com/learn')\n\n  // Wait for page\n  await browser.waitForSelector('[class*=\"leaderboard\"], [class*=\"Leaderboard\"], .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const entries = []; document.querySelectorAll('[class*=\"leaderboard\"] li, [class*=\"Leaderboard\"] tr, [class*=\"row\"]').forEach((el, i) => { if (i < 20) { const nameEl = el.querySelector('[class*=\"name\"], a, span'); const xpEl = el.querySelector('[class*=\"xp\"], [class*=\"score\"]'); entries.push({ rank: i + 1, name: nameEl?.textContent?.trim() || '', xp: xpEl?.textContent?.trim() || '' }); } }); return { entry_count: entries.length, entries };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

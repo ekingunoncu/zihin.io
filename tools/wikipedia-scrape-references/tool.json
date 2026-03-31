@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "wikipedia-scrape-references",
+    "slug": "wikipedia-scrape-references",
+    "name": "wikipedia_scrape_references",
+    "displayName": "Wikipedia Scrape References",
+    "description": "Scrape references and citations from a Wikipedia article. Returns reference list with citation text, URLs, authors, and publication details.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "wikipedia",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "article_url",
+        "type": "string",
+        "description": "Wikipedia article URL (e.g. 'https://en.wikipedia.org/wiki/Machine_learning')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open article page\n  await browser.open(`${params.article_url}`)\n\n  // Wait for article to load\n  await browser.waitForSelector('#firstHeading, h1', 15000)\n\n  // Let page render\n  await browser.wait(1500)\n\n  // Scroll to references section\n  await browser.scroll({ direction: 'down', amount: 5000 })\n\n  await browser.wait(2000)\n\n  // Scroll further through references\n  await browser.scroll({ direction: 'down', amount: 3000 })\n\n  await browser.wait(1500)\n\n  // Extract references\n  const references_data = await browser.evaluate(`const titleEl = document.querySelector('#firstHeading, h1'); const references = []; const refEls = document.querySelectorAll('.references li, .reflist li, ol.references > li'); for (let i = 0; i < Math.min(refEls.length, 30); i++) { const el = refEls[i]; const text = el.textContent.trim(); const linkEl = el.querySelector('a.external, a[href^=\"http\"]'); const citeEl = el.querySelector('.citation, cite'); references.push({ index: i + 1, text: text.substring(0, 500), url: linkEl ? linkEl.href : '', citation: citeEl ? citeEl.textContent.trim().substring(0, 300) : '' }); } const furtherReadingEls = []; const frSection = document.querySelector('#Further_reading, #Bibliography'); if (frSection) { let sibling = frSection.closest('h2') ? frSection.closest('h2').nextElementSibling : null; while (sibling && !sibling.matches('h2')) { if (sibling.matches('ul, ol')) { const items = sibling.querySelectorAll('li'); items.forEach(function(item) { furtherReadingEls.push(item.textContent.trim().substring(0, 300)); }); } sibling = sibling.nextElementSibling; } } return { title: titleEl ? titleEl.textContent.trim() : '', reference_count: references.length, references: references, further_reading: furtherReadingEls.slice(0, 10), url: window.location.href }`)\n\n  return references_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

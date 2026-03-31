@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "github-list-pull-requests",
+    "slug": "github-list-pull-requests",
+    "name": "github_list_pull_requests",
+    "displayName": "Github List Pull Requests",
+    "description": "List pull requests for a GitHub repository. Returns PR titles, numbers, authors, labels, and state.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "github"
+    ],
+    "parameters": [
+      {
+        "name": "repo",
+        "type": "string",
+        "description": "Repository in 'owner/repo' format (e.g. 'facebook/react')",
+        "required": true
+      },
+      {
+        "name": "state",
+        "type": "string",
+        "description": "PR state: 'open', 'closed' (default: open)",
+        "required": false,
+        "default": "open"
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open pull requests page\n  await browser.open(`https://github.com/${params.repo}/pulls`)\n\n  // Wait for PR list\n  await browser.waitForSelector('.js-issue-row, .Box-row, [data-testid=\\'pull-request-row\\'], [aria-label=\\'Pull Requests\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Extract PRs from DOM\n  const result = await browser.evaluate(`const prs = []; const rows = document.querySelectorAll('.js-issue-row, .Box-row, [data-testid=\"pull-request-row\"]'); for (let i = 0; i < Math.min(rows.length, 20); i++) { const row = rows[i]; const titleEl = row.querySelector('a[data-hovercard-type=\"pull_request\"], a.Link--primary, a[id^=\"issue_\"]'); const labels = Array.from(row.querySelectorAll('a.IssueLabel, a[data-name], .lh-default .label')).map(l => l.textContent.trim()); const authorEl = row.querySelector('a[data-hovercard-type=\"user\"], .opened-by a'); const timeEl = row.querySelector('relative-time'); const href = titleEl ? (titleEl.getAttribute('href') || '') : ''; const numberMatch = href.match(/\\/(\\d+)$/); prs.push({ title: titleEl ? titleEl.textContent.trim() : '', number: numberMatch ? numberMatch[1] : '', labels: labels, author: authorEl ? authorEl.textContent.trim() : '', time: timeEl ? timeEl.getAttribute('datetime') || timeEl.textContent.trim() : '', url: titleEl ? (titleEl.href || ('https://github.com' + href)) : '' }); } const repoPath = window.location.pathname.replace(/\\/pulls.*/, '').substring(1); return { repo: repoPath, result_count: prs.length, pull_requests: prs }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

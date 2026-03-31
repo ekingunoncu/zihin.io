@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "arxiv-scrape-paper",
+    "slug": "arxiv-scrape-paper",
+    "name": "arxiv_scrape_paper",
+    "displayName": "Arxiv Scrape Paper",
+    "description": "Scrape a specific arXiv paper. Returns title, authors, full abstract, categories, and PDF link.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "arxiv",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "paper_id",
+        "type": "string",
+        "description": "arXiv paper ID (e.g. \"2301.07041\")",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open paper page\n  await browser.open(`https://arxiv.org/abs/${params.paper_id}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1.title, .title.mathjax', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Extract paper info\n  const paper_data = await browser.evaluate(`const title = document.querySelector('h1.title')?.textContent?.replace('Title:', '')?.trim() || ''; const authors = []; document.querySelectorAll('.authors a').forEach(a => authors.push(a.textContent?.trim())); const abstract = document.querySelector('blockquote.abstract')?.textContent?.replace('Abstract:', '')?.trim() || ''; const cats = document.querySelector('.tablecell.subjects')?.textContent?.trim() || ''; const dateEl = document.querySelector('.dateline')?.textContent?.trim() || ''; const pdfLink = 'https://arxiv.org/pdf/' + params.paper_id + ''; return { paper_id: '' + params.paper_id + '', title, authors, abstract, categories: cats, date: dateEl, pdf_link: pdfLink, url: window.location.href };`)\n\n  return paper_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

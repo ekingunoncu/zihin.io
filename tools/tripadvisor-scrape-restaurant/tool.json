@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tripadvisor-scrape-restaurant",
+    "slug": "tripadvisor-scrape-restaurant",
+    "name": "tripadvisor_scrape_restaurant",
+    "displayName": "Tripadvisor Scrape Restaurant",
+    "description": "Scrape restaurant details from TripAdvisor. Returns restaurant name, rating, review count, cuisine type, price range, address, hours, and description.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tripadvisor",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "restaurant_url",
+        "type": "string",
+        "description": "Full TripAdvisor restaurant URL (e.g. 'https://www.tripadvisor.com/Restaurant_Review-g187147-d...')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open restaurant page\n  await browser.open(`${params.restaurant_url}`)\n\n  // Wait for restaurant page to load\n  await browser.waitForSelector('h1#HEADING, [data-test-target=\\'restaurant-detail-info\\'], [class*=\\'RestaurantHeader\\']', 15000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Scroll to load more content\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Extract restaurant details\n  const result = await browser.evaluate(`const nameEl = document.querySelector('h1#HEADING, h1[data-test-target=\"top-info-header\"], h1[class*=\"restaurant\"]'); const name = nameEl ? nameEl.textContent.trim() : ''; const ratingEl = document.querySelector('svg[aria-label*=\"bubble\"], .ui_bubble_rating, [class*=\"ratingValue\"]'); const rating = ratingEl ? (ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim() || '') : ''; const reviewCountEl = document.querySelector('a[href*=\"#REVIEWS\"] span, [class*=\"reviewCount\"], [data-test-target=\"review-count\"]'); const reviewCount = reviewCountEl ? reviewCountEl.textContent.trim() : ''; const priceEl = document.querySelector('[class*=\"priceRange\"], [class*=\"price\"], .priceRange, [data-test-target=\"restaurant-detail-info\"] [class*=\"price\"]'); const priceRange = priceEl ? priceEl.textContent.trim() : ''; const rankEl = document.querySelector('[class*=\"ranking\"], [data-test-target=\"restaurant-ranking\"], .popRanking'); const ranking = rankEl ? rankEl.textContent.trim() : ''; const addressEl = document.querySelector('[class*=\"address\"], [data-test-target=\"restaurant-address\"], span[class*=\"street\"], .address'); const address = addressEl ? addressEl.textContent.trim() : ''; const cuisines = []; const cuisineEls = document.querySelectorAll('[data-test-target=\"restaurant-detail-info\"] a[href*=\"Cuisine\"], [class*=\"cuisine\"] a, [class*=\"tag\"] a, .header_links a'); for (const el of cuisineEls) { const text = el.textContent.trim(); if (text && text.length < 50 && !cuisines.includes(text)) cuisines.push(text); } const hoursEl = document.querySelector('[class*=\"hours\"], [data-test-target=\"restaurant-hours\"], .operatingHours, [class*=\"operatingHours\"]'); const hours = hoursEl ? hoursEl.textContent.trim().substring(0, 200) : ''; const descEl = document.querySelector('[class*=\"description\"], [data-test-target=\"about-description\"], .restaurantDescription, [class*=\"aboutText\"]'); const description = descEl ? descEl.textContent.trim().substring(0, 500) : ''; const dietaryEls = document.querySelectorAll('[class*=\"dietary\"] span, [class*=\"diet\"] a, [class*=\"DietaryRestriction\"]'); const dietary = []; for (const el of dietaryEls) { const text = el.textContent.trim(); if (text && !dietary.includes(text)) dietary.push(text); } const imgEl = document.querySelector('img[class*=\"photo\"], [class*=\"heroPhoto\"] img, .restaurants-detail-hero img'); const image = imgEl ? imgEl.src : ''; return { name: name, rating: rating, review_count: reviewCount, price_range: priceRange, ranking: ranking, cuisines: cuisines, dietary_options: dietary, address: address, hours: hours, description: description, image: image, url: window.location.href }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

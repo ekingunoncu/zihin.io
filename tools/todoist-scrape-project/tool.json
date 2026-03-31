@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "todoist-scrape-project",
+    "slug": "todoist-scrape-project",
+    "name": "todoist_scrape_project",
+    "displayName": "Todoist Scrape Project",
+    "description": "Scrape a Todoist project by its numeric ID. Returns tasks with titles, due dates, priorities, and labels. Find the project ID from the URL when viewing a project (e.g. app.todoist.com/app/project/2349078265). Requires login.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "todoist",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "project_id",
+        "type": "string",
+        "description": "Numeric project ID from the Todoist URL (e.g. '2349078265')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open project page\n  await browser.open(`https://app.todoist.com/app/project/${params.project_id}`)\n\n  // Wait for content\n  await browser.waitForSelector('.task_list_item, [data-testid=\"task\"], [class*=\"task_list\"]', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const projectName = document.querySelector('h1, [class*=\"project_name\"], [data-testid=\"project-name\"], header [class*=\"title\"]')?.textContent?.trim() || ''; const tasks = Array.from(document.querySelectorAll('.task_list_item, [data-testid=\"task\"]')).slice(0,50).map(el => { const title = el.querySelector('.task_content, [data-testid=\"task-name\"]')?.textContent?.trim()||''; const due = el.querySelector('.date, time, [class*=\"due\"]')?.textContent?.trim()||''; const priority = el.querySelector('[class*=\"priority\"]')?.className?.match(/priority_(\\d)/)?.[1]||''; const labels = Array.from(el.querySelectorAll('[class*=\"label\"], .tag')).map(l=>l.textContent.trim()); return { title, due_date: due, priority, labels }; }).filter(t=>t.title); return { project_id: '' + params.project_id + '', project_name: projectName, tasks }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

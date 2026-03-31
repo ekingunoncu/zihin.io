@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "todoist-bulk-scrape-projects",
+    "slug": "todoist-bulk-scrape-projects",
+    "name": "todoist_bulk_scrape_projects",
+    "displayName": "Todoist Bulk Scrape Projects",
+    "description": "Scrape multiple Todoist projects in parallel by their numeric IDs. Use this instead of calling todoist_scrape_project multiple times. Find project IDs from Todoist URLs (e.g. app.todoist.com/app/project/2349078265).",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "todoist",
+      "scrape",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "project_ids",
+        "type": "string",
+        "description": "Comma-separated numeric project IDs (e.g. '2349078265,2349078300,2349078412')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build project URL list\n  const items = await browser.evaluate(`return params.project_ids.split(',').map(id => ({ url: 'https://app.todoist.com/app/project/' + id.trim(), project_id: id.trim() }))`)\n\n  // Open each project in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

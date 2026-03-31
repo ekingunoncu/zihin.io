@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "bandcamp-search",
+    "slug": "bandcamp-search",
+    "name": "bandcamp_search",
+    "displayName": "Bandcamp Search",
+    "description": "Search Bandcamp for artists, albums, tracks, fans, and labels. Returns matching results with type, name, URL, image, genre, and tags.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "bandcamp",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'aphex twin', 'lo-fi hip hop', 'indie label')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Bandcamp search\n  await browser.open(`https://bandcamp.com/search?q=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('.result-items li.searchresult, .result-items', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const results = []; document.querySelectorAll('.result-items li.searchresult').forEach((el, i) => { if (i < 15) { const info = el.querySelector('.result-info'); const titleEl = info?.querySelector('.heading a'); const typeEl = info?.querySelector('.itemtype'); const urlEl = info?.querySelector('.itemurl a'); const subheadEl = info?.querySelector('.subhead'); const genreEl = info?.querySelector('.genre'); const tagsEl = info?.querySelector('.tags'); const releasedEl = info?.querySelector('.released'); const artEl = el.querySelector('.art img'); results.push({ name: titleEl?.textContent?.trim() || '', url: urlEl?.textContent?.trim() || titleEl?.href || '', type: typeEl?.textContent?.trim() || '', subhead: subheadEl?.textContent?.trim() || '', genre: genreEl?.textContent?.trim().replace(/^genre:\\s*/i, '') || '', tags: tagsEl?.textContent?.trim().replace(/^tags:\\s*/i, '') || '', released: releasedEl?.textContent?.trim().replace(/^released\\s*/i, '') || '', image: artEl?.src || '' }); } }); return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

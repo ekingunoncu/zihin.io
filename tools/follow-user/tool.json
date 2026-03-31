@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-follow-user",
+    "slug": "follow-user",
+    "name": "follow_user",
+    "displayName": "Follow User",
+    "description": "Follow a user on X/Twitter by navigating to their profile.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation"
+    ],
+    "parameters": [
+      {
+        "name": "username",
+        "type": "string",
+        "description": "Username to follow (without @, e.g. 'elonmusk')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open user profile\n  await browser.open(`https://x.com/${params.username}`)\n\n  // Wait for page content\n  await browser.waitForSelector('[data-testid=\\'UserName\\']', 15000)\n\n  // Let page settle\n  await browser.wait(1000)\n\n  // Follow user (skip if already following)\n  const result = await browser.evaluate(`const followBtn = document.querySelector('[data-testid$=\"-follow\"]'); const unfollowBtn = document.querySelector('[data-testid$=\"-unfollow\"]'); if (unfollowBtn) return { already_following: true, message: 'Already following this user' }; if (followBtn) { followBtn.click(); return { success: true, message: 'Followed user' }; } return { success: false, message: 'Follow button not found' }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

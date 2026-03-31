@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-bulk-search-tweets",
+    "slug": "bulk-search-tweets",
+    "name": "bulk_search_tweets",
+    "displayName": "Bulk Search Tweets",
+    "description": "Search multiple queries on X/Twitter in parallel and extract results for each (up to 10 tweets per query).",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'open source AI,machine learning,LLM agents')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://x.com/search?q=' + encodeURIComponent(q.trim()) + '&src=typed_query&f=live', query: q.trim() }))`)\n\n  // Search each query in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

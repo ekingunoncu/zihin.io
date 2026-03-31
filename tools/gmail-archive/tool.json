@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "gmail-archive",
+    "slug": "gmail-archive",
+    "name": "gmail_archive",
+    "displayName": "Gmail Archive",
+    "description": "Archive an email in Gmail by searching for it by subject, selecting it, and clicking the archive button. The email is removed from the inbox but remains accessible via the All Mail label. You must be logged in to Gmail.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "gmail"
+    ],
+    "parameters": [
+      {
+        "name": "subject",
+        "type": "string",
+        "description": "Subject line (or partial subject) of the email to archive",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Gmail\n  await browser.open('https://mail.google.com/mail/u/0/#inbox')\n\n  // Wait for Gmail to load\n  await browser.waitForSelector('input[aria-label=\\'Search mail\\']', 15000)\n\n  // Let Gmail fully initialize\n  await browser.wait(2000)\n\n  // Search for the email by subject\n  const search_email = await browser.evaluate(`const searchInput = document.querySelector('input[aria-label=\"Search mail\"]'); if (searchInput) { searchInput.focus(); searchInput.click(); await new Promise(r => setTimeout(r, 300)); searchInput.select(); document.execCommand('insertText', false, \\`subject:' + params.subject + '\\`); await new Promise(r => setTimeout(r, 300)); searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true })); } return { searched: true }`)\n\n  // Wait for search results\n  await browser.wait(3000)\n\n  // Select the matching email checkbox\n  const select_email = await browser.evaluate(`const rows = document.querySelectorAll('tr.zA'); if (rows.length === 0) return { error: 'No emails found matching the subject' }; const target = params.subject.toLowerCase(); let bestMatch = rows[0]; for (const row of rows) { const subjectEl = row.querySelector('.bog span, .y6 span'); if (subjectEl && subjectEl.textContent.trim().toLowerCase().includes(target)) { bestMatch = row; break; } } const checkbox = bestMatch.querySelector('.oZ-jc [role=\"checkbox\"], .xY .oZ-jc'); if (checkbox) { checkbox.click(); } else { const checkArea = bestMatch.querySelector('.oZ-jc'); if (checkArea) checkArea.click(); } return { selected: true }`)\n\n  // Wait for selection to register\n  await browser.wait(1000)\n\n  // Click archive button\n  const result = await browser.evaluate(`const archiveBtn = document.querySelector('[aria-label=\"Archive\"]') || document.querySelector('.ar9') || document.querySelector('[act=\"7\"]'); if (archiveBtn) { archiveBtn.click(); return { success: true, message: 'Email archived', subject: params.subject }; } else { throw new Error('Archive button not found'); }`)\n\n  // Wait for archive to complete\n  await browser.wait(1500)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

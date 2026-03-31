@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "jira-bulk-update-issues",
+    "slug": "jira-bulk-update-issues",
+    "name": "jira_bulk_update_issues",
+    "displayName": "Jira Bulk Update Issues",
+    "description": "Update multiple Jira issues in parallel using concurrent browser tabs. Use this instead of calling jira_update_issue multiple times. Pass issue keys as a comma-separated string.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "jira",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "jira_url",
+        "type": "string",
+        "description": "Base URL of Jira instance (e.g. 'https://company.atlassian.net')",
+        "required": true
+      },
+      {
+        "name": "issue_keys",
+        "type": "string",
+        "description": "Comma-separated Jira issue keys (e.g. 'PROJ-1,PROJ-2,PROJ-3')",
+        "required": true
+      },
+      {
+        "name": "priority",
+        "type": "string",
+        "description": "New priority for all issues: 'Highest', 'High', 'Medium', 'Low', 'Lowest' (leave empty to skip)",
+        "required": false,
+        "default": ""
+      },
+      {
+        "name": "summary_prefix",
+        "type": "string",
+        "description": "Prefix to add to each issue's summary (leave empty to skip)",
+        "required": false,
+        "default": ""
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build issue URL list\n  const items = await browser.evaluate(`const baseUrl = params.jira_url.replace(/\\/$/, ''); return params.issue_keys.split(',').map(k => ({ url: baseUrl + '/browse/' + k.trim(), key: k.trim() }))`)\n\n  // Update each issue in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

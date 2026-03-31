@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "amazon-scrape-deals",
+    "slug": "amazon-scrape-deals",
+    "name": "amazon_scrape_deals",
+    "displayName": "Amazon Scrape Deals",
+    "description": "Browse and scrape today's deals from Amazon. Returns current deals with product name, original price, deal price, discount percentage, and time remaining.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "amazon",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Amazon deals page\n  await browser.open('https://www.amazon.com/gp/goldbox')\n\n  // Wait for deals to load\n  await browser.waitForSelector('[data-testid=\\'deal-card\\'], .DealCard-module, .a-section.octopus-dlp-asin-section, .dealContainer, [class*=\\'DealCard\\']', 15000)\n\n  // Let deals page fully render\n  await browser.wait(3000)\n\n  // Scroll to load more deals\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll for even more deals\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Extract current deals\n  const deals_data = await browser.evaluate(`const deals = []; const dealCards = document.querySelectorAll('[data-testid=\"deal-card\"], [class*=\"DealCard\"], .a-section.octopus-dlp-asin-section, .dealContainer, [data-deal-id]'); dealCards.forEach(function(el, idx) { if (idx >= 20) return; const titleEl = el.querySelector('[class*=\"DealCard\"] a, .a-link-normal .a-text-normal, [data-testid=\"deal-card\"] a span, .dealTitle, a.a-link-normal span'); const dealPriceEl = el.querySelector('.a-price .a-offscreen, [class*=\"price\"] .a-offscreen, .a-color-price'); const originalPriceEl = el.querySelector('.a-text-price .a-offscreen, [class*=\"ListPrice\"], .a-text-strike .a-offscreen'); const discountEl = el.querySelector('[class*=\"savingsPercentage\"], .a-badge-label-inner, [data-a-badge-color] .a-badge-text, [class*=\"Savings\"]'); const imgEl = el.querySelector('img[src*=\"images\"]'); const linkEl = el.querySelector('a[href*=\"/dp/\"], a[href*=\"/deal/\"], a.a-link-normal'); const claimedEl = el.querySelector('[class*=\"claimed\"], .a-meter, [class*=\"ProgressBar\"]'); const timeEl = el.querySelector('[class*=\"timer\"], [class*=\"TimeRemaining\"], [class*=\"endDate\"]'); const url = linkEl ? (linkEl.href.startsWith('http') ? linkEl.href : 'https://www.amazon.com' + linkEl.getAttribute('href')) : ''; const title = titleEl ? titleEl.textContent.trim() : ''; if (title) { deals.push({ title: title.substring(0, 200), deal_price: dealPriceEl ? dealPriceEl.textContent.trim() : '', original_price: originalPriceEl ? originalPriceEl.textContent.trim() : '', discount: discountEl ? discountEl.textContent.trim() : '', image: imgEl ? imgEl.getAttribute('src') : '', time_remaining: timeEl ? timeEl.textContent.trim() : '', claimed: claimedEl ? claimedEl.textContent.trim() : '', url: url }); } }); return { deal_count: deals.length, deals: deals, scraped_at: new Date().toISOString() }`)\n\n  return deals_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

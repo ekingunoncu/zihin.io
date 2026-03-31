@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "notion-search",
+    "slug": "notion-search",
+    "name": "notion_search",
+    "displayName": "Notion Search",
+    "description": "Search pages and databases in your Notion workspace. Returns matching pages with titles, types, and last edited times.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "notion",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query text",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Notion\n  await browser.open('https://www.notion.so')\n\n  // Let Notion load\n  await browser.wait(3000)\n\n  // Search via Notion internal API\n  const result = await browser.evaluate(`const resp = await fetch('/api/v3/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ query: params.query, type: 'BlocksInSpace', limit: 20, filters: { isDeletedOnly: false, navigableBlockContentOnly: true } }) }); if (!resp.ok) throw new Error('Notion search failed: ' + resp.status); const data = await resp.json(); const results = (data.results || []).map(r => { const block = data.recordMap?.block?.[r.id]?.value; return { id: r.id, title: block?.properties?.title?.flat()?.join('') || r.highlight?.text || '', type: block?.type || '', last_edited: block?.last_edited_time ? new Date(block.last_edited_time).toISOString() : '', url: 'https://www.notion.so/' + r.id.replace(/-/g, '') }; }); return { result_count: results.length, total: data.total || results.length, results: results }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

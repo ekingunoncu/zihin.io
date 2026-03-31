@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "glassdoor-compare-companies",
+    "slug": "glassdoor-compare-companies",
+    "name": "glassdoor_compare_companies",
+    "displayName": "Glassdoor Compare Companies",
+    "description": "Compare two companies on Glassdoor side by side. Provide both company overview URLs and get ratings, reviews summary, salary data, and key metrics for comparison.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "glassdoor"
+    ],
+    "parameters": [
+      {
+        "name": "company1_url",
+        "type": "string",
+        "description": "Glassdoor overview URL of the first company (e.g. 'https://www.glassdoor.com/Overview/Working-at-Google-EI_IE9079.htm')",
+        "required": true
+      },
+      {
+        "name": "company2_url",
+        "type": "string",
+        "description": "Glassdoor overview URL of the second company (e.g. 'https://www.glassdoor.com/Overview/Working-at-Microsoft-EI_IE1651.htm')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build company URL list\n  const items = await browser.evaluate(`return [{ url: params.company1_url, label: 'company1' }, { url: params.company2_url, label: 'company2' }]`)\n\n  // Scrape both companies in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

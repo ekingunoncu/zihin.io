@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "jira-create-issue",
+    "slug": "jira-create-issue",
+    "name": "jira_create_issue",
+    "displayName": "Jira Create Issue",
+    "description": "Create a new Jira issue. Requires project key, summary, and issue type. Optionally set description, priority, and assignee.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "jira",
+      "create"
+    ],
+    "parameters": [
+      {
+        "name": "jira_url",
+        "type": "string",
+        "description": "Base URL of Jira instance (e.g. 'https://company.atlassian.net')",
+        "required": true
+      },
+      {
+        "name": "project_key",
+        "type": "string",
+        "description": "Project key (e.g. 'PROJ')",
+        "required": true
+      },
+      {
+        "name": "summary",
+        "type": "string",
+        "description": "Issue summary/title",
+        "required": true
+      },
+      {
+        "name": "issue_type",
+        "type": "string",
+        "description": "Issue type: 'Task', 'Bug', 'Story', 'Epic' (default: Task)",
+        "required": false,
+        "default": "Task"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "description": "Issue description text",
+        "required": false,
+        "default": ""
+      },
+      {
+        "name": "priority",
+        "type": "string",
+        "description": "Priority: 'Highest', 'High', 'Medium', 'Low', 'Lowest' (default: Medium)",
+        "required": false,
+        "default": "Medium"
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Jira\n  await browser.open(`${params.jira_url}/browse`)\n\n  // Let Jira load\n  await browser.wait(2000)\n\n  // Create issue via REST API\n  const result = await browser.evaluate(`const baseUrl = params.jira_url.replace(/\\/$/, ''); const desc = params.description; const body = { fields: { project: { key: params.project_key }, summary: params.summary, issuetype: { name: params.issue_type || 'Task' } } }; if (desc) { body.fields.description = { type: 'doc', version: 1, content: [{ type: 'paragraph', content: [{ type: 'text', text: desc }] }] }; } const priority = params.priority; if (priority) { body.fields.priority = { name: priority }; } const resp = await fetch(baseUrl + '/rest/api/3/issue', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(body) }); if (!resp.ok) { const err = await resp.text(); throw new Error('Create failed: ' + resp.status + ' ' + err); } const result = await resp.json(); return { success: true, key: result.key, id: result.id, url: baseUrl + '/browse/' + result.key }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

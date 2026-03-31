@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "discogs-scrape-release",
+    "slug": "discogs-scrape-release",
+    "name": "discogs_scrape_release",
+    "displayName": "Discogs Scrape Release",
+    "description": "Scrape a Discogs release. Returns tracklist, label, format, ratings, and marketplace prices.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "discogs",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "release_id",
+        "type": "string",
+        "description": "Release ID",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Discogs\n  await browser.open(`https://www.discogs.com/release/${params.release_id}`)\n\n  // Wait for page\n  await browser.waitForSelector('.profile, h1, #release-title', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const title = document.querySelector('h1, #release-title')?.textContent?.trim() || ''; const artists = []; document.querySelectorAll('#profile_title a[href*=\"/artist/\"]').forEach(a => artists.push(a.textContent?.trim())); const tracks = []; document.querySelectorAll('.tracklist_track, tr[class*=\"track\"]').forEach(t => { const pos = t.querySelector('.tracklist_track_pos, td:first-child')?.textContent?.trim() || ''; const name = t.querySelector('.tracklist_track_title a, .trackTitle')?.textContent?.trim() || ''; const dur = t.querySelector('.tracklist_track_duration span, td:last-child')?.textContent?.trim() || ''; tracks.push({ position: pos, name, duration: dur }); }); const rating = document.querySelector('.rating_value, .average')?.textContent?.trim() || ''; return { title, artists, tracks, rating, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

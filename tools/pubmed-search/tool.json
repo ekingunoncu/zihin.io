@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "pubmed-search",
+    "slug": "pubmed-search",
+    "name": "pubmed_search",
+    "displayName": "Pubmed Search",
+    "description": "Search PubMed medical papers. Returns titles, authors, journals, and PMIDs.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "arxiv",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Medical paper search query",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open PubMed search\n  await browser.open(`https://pubmed.ncbi.nlm.nih.gov/?term=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('.results-article, article, .search-results', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract papers\n  const results = await browser.evaluate(`const results = []; document.querySelectorAll('article.full-docsum, .results-article').forEach((el, i) => { if (i < 15) { const titleEl = el.querySelector('a.docsum-title, .title a'); const authEl = el.querySelector('.docsum-authors, .authors'); const journalEl = el.querySelector('.docsum-journal-citation, .journal'); const pmidEl = el.querySelector('.docsum-pmid, .pmid'); results.push({ title: titleEl?.textContent?.trim() || '', url: titleEl?.href || '', authors: authEl?.textContent?.trim() || '', journal: journalEl?.textContent?.trim() || '', pmid: pmidEl?.textContent?.trim() || '' }); } }); return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

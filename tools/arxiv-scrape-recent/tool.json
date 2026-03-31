@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "arxiv-scrape-recent",
+    "slug": "arxiv-scrape-recent",
+    "name": "arxiv_scrape_recent",
+    "displayName": "Arxiv Scrape Recent",
+    "description": "Browse recent arXiv papers in a category.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "arxiv",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "category",
+        "type": "string",
+        "description": "arXiv category (e.g. \"cs.AI\", \"cs.LG\")",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open recent papers\n  await browser.open(`https://arxiv.org/list/${params.category}/recent`)\n\n  // Wait for list\n  await browser.waitForSelector('#dlpage, .list-title', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Extract recent papers\n  const results = await browser.evaluate(`const papers = []; document.querySelectorAll('dt').forEach((dt, i) => { if (i < 20) { const idEl = dt.querySelector('a[href*=\"/abs/\"]'); const dd = dt.nextElementSibling; const titleEl = dd?.querySelector('.list-title'); const authorsEl = dd?.querySelector('.list-authors'); papers.push({ arxiv_id: idEl?.textContent?.trim() || '', url: idEl?.href || '', title: titleEl?.textContent?.replace('Title:', '')?.trim() || '', authors: authorsEl?.textContent?.replace('Authors:', '')?.trim()?.slice(0, 200) || '' }); } }); return { category: '' + params.category + '', paper_count: papers.length, papers };`)\n\n  return results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "glassdoor-scrape-interviews",
+    "slug": "glassdoor-scrape-interviews",
+    "name": "glassdoor_scrape_interviews",
+    "displayName": "Glassdoor Scrape Interviews",
+    "description": "Scrape interview experiences from Glassdoor for a company. Returns up to 15 interview entries with job title, experience rating, difficulty, question samples, date, and outcome.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "glassdoor",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "interviews_url",
+        "type": "string",
+        "description": "Glassdoor interview page URL (e.g. 'https://www.glassdoor.com/Interview/Google-Interview-Questions-E9079.htm')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Glassdoor interviews page\n  await browser.open(`${params.interviews_url}`)\n\n  // Wait for interview data to load\n  await browser.waitForSelector('.interview-details, [data-test=\"interview-details\"], .interviewReview, #InterviewReview, .empInterviews, [id^=\"InterviewReview\"]', 15000)\n\n  // Let interview content render\n  await browser.wait(2500)\n\n  // Scroll to load more interviews\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Continue scrolling\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract interview experiences\n  const interview_data = await browser.evaluate(`const interviews = []; const interviewEls = document.querySelectorAll('.interview-details, [data-test=\"interview-details\"], .interviewReview, [id^=\"InterviewReview\"], .empInterviews .empReview, .gdReview'); for (let i = 0; i < Math.min(interviewEls.length, 15); i++) { const intv = interviewEls[i]; const titleEl = intv.querySelector('.interviewTitle, [data-test=\"interview-title\"], .reviewer-job-title, .reviewLink, h2 a, .interview-title'); const experienceEl = intv.querySelector('[data-test=\"interview-experience\"], .interviewOutcomes .experience, [class*=\"interviewOutcome\"], .interview-experience'); const difficultyEl = intv.querySelector('[data-test=\"interview-difficulty\"], .interviewOutcomes .difficulty, [class*=\"interviewDifficulty\"], .interview-difficulty'); const offerEl = intv.querySelector('[data-test=\"interview-offer\"], .interviewOutcomes .offer, [class*=\"interviewOffer\"], .interview-offer'); const dateEl = intv.querySelector('.interviewDate, [data-test=\"interview-date\"], .reviewDate, time, .date, .authorInfo'); const descEl = intv.querySelector('.interviewDetails, [data-test=\"interview-description\"], .interview-body, .mainText, [class*=\"interviewDetails\"], p.mt-0'); const questionsEl = intv.querySelector('.interviewQuestions, [data-test=\"interview-question\"], .interview-questions, [class*=\"interviewQuestion\"]'); const applicationEl = intv.querySelector('.applicationDetails, [data-test=\"application-details\"], [class*=\"applicationDetails\"]'); interviews.push({ job_title: titleEl ? titleEl.textContent.trim() : '', experience: experienceEl ? experienceEl.textContent.trim() : '', difficulty: difficultyEl ? difficultyEl.textContent.trim() : '', offer: offerEl ? offerEl.textContent.trim() : '', date: dateEl ? dateEl.textContent.trim() : '', description: descEl ? descEl.textContent.trim().slice(0, 500) : '', questions: questionsEl ? questionsEl.textContent.trim().slice(0, 500) : '', application: applicationEl ? applicationEl.textContent.trim().slice(0, 300) : '' }); } const companyEl = document.querySelector('[data-test=\"employer-name\"], .employer-name, h1'); return { company: companyEl ? companyEl.textContent.trim() : '', interview_count: interviews.length, interviews: interviews, interviews_url: window.location.href }`)\n\n  return interview_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "discogs-scrape-artist",
+    "slug": "discogs-scrape-artist",
+    "name": "discogs_scrape_artist",
+    "displayName": "Discogs Scrape Artist",
+    "description": "Scrape a Discogs artist page.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "discogs",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "artist_id",
+        "type": "string",
+        "description": "Artist ID",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Discogs\n  await browser.open(`https://www.discogs.com/artist/${params.artist_id}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1, .profile, .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const name = document.querySelector('h1')?.textContent?.trim() || ''; const bio = document.querySelector('.profile, [class*=\"bio\"]')?.textContent?.trim()?.slice(0, 500) || ''; const members = []; document.querySelectorAll('[class*=\"member\"] a, .group_members a').forEach(m => members.push(m.textContent?.trim())); return { name, bio, members, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

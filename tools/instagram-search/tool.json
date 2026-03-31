@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "instagram-search",
+    "slug": "instagram-search",
+    "name": "instagram_search",
+    "displayName": "Instagram Search",
+    "description": "Search for users, hashtags, or places on Instagram. Returns up to 10 results with usernames, full names, follower counts, and profile pictures. You must be logged in to Instagram.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "instagram",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'nasa', '#photography', 'New York')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Instagram\n  await browser.open('https://www.instagram.com/')\n\n  // Wait for Instagram to load\n  await browser.waitForSelector('svg[aria-label=\\'Search\\'], a[href*=\\'explore\\'], nav a[href=\\'/\\']', 15000)\n\n  // Let app fully initialize\n  await browser.wait(2000)\n\n  // Click search icon\n  const open_search = await browser.evaluate(`const searchLink = document.querySelector('a[href=\"/explore/\"]') || document.querySelector('svg[aria-label=\"Search\"]')?.closest('a') || document.querySelector('svg[aria-label=\"Search\"]')?.closest('div[role=\"button\"]') || Array.from(document.querySelectorAll('svg')).find(s => s.getAttribute('aria-label') === 'Search')?.closest('a, div[role=\"button\"]'); if (searchLink) { searchLink.click(); } return { clicked: !!searchLink }`)\n\n  // Wait for search panel to open\n  await browser.wait(1500)\n\n  // Wait for search input\n  await browser.waitForSelector('input[aria-label=\\'Search input\\'], input[placeholder=\\'Search\\']', 10000)\n\n  // Type search query\n  const type_query = await browser.evaluate(`const searchInput = document.querySelector('input[aria-label=\"Search input\"]') || document.querySelector('input[placeholder=\"Search\"]'); if (searchInput) { searchInput.focus(); searchInput.click(); await new Promise(r => setTimeout(r, 300)); searchInput.value = ''; searchInput.dispatchEvent(new Event('input', { bubbles: true })); document.execCommand('insertText', false, params.query); searchInput.dispatchEvent(new Event('input', { bubbles: true })); } return { typed: !!searchInput }`)\n\n  // Wait for search results to load\n  await browser.wait(3000)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const resultItems = document.querySelectorAll('a[href^=\"/\"][role=\"link\"], div[class*=\"SearchResult\"] a, div[role=\"none\"] a[href^=\"/\"]'); const seen = new Set(); for (const item of resultItems) { if (results.length >= 10) break; const href = item.getAttribute('href') || ''; if (!href || href === '/' || href.startsWith('/explore') || href.startsWith('/accounts') || seen.has(href)) continue; seen.add(href); const imgEl = item.querySelector('img'); const spans = item.querySelectorAll('span'); let username = ''; let fullName = ''; let subtitle = ''; const textParts = []; for (const span of spans) { const text = span.textContent.trim(); if (text && !textParts.includes(text)) textParts.push(text); } if (textParts.length >= 1) username = textParts[0]; if (textParts.length >= 2) fullName = textParts[1]; if (textParts.length >= 3) subtitle = textParts.slice(2).join(' '); if (!username && href) username = href.replace(/\\//g, ''); results.push({ username: username, full_name: fullName, subtitle: subtitle, profile_pic: imgEl ? imgEl.src : '', url: 'https://www.instagram.com' + href }); } return { query: params.query, result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

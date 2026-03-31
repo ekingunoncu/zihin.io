@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "espn-scrape-news",
+    "slug": "espn-scrape-news",
+    "name": "espn_scrape_news",
+    "displayName": "ESPN Scrape News",
+    "description": "Scrape top sports news and headlines from ESPN for a given sport. Returns up to 15 articles with title, URL, and description.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "espn",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "sport",
+        "type": "string",
+        "description": "Sport slug (e.g. 'nfl', 'nba', 'mlb', 'nhl', 'soccer', 'college-football')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open ESPN sport page\n  await browser.open(`https://www.espn.com/${params.sport}/`)\n\n  // Wait for news content\n  await browser.waitForSelector('article, .contentItem, [class*=\\'Story\\'], h1, .content', 15000)\n\n  // Let articles render\n  await browser.wait(3000)\n\n  // Scroll to load more articles\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract news articles\n  const result = await browser.evaluate(`const articles = []; const seen = new Set(); document.querySelectorAll('article, .contentItem, [class*=\"Story\"], [class*=\"ContentItem\"]').forEach((el, i) => { if (articles.length < 15) { const titleEl = el.querySelector('h1 a, h2 a, h3 a, .contentItem__title a, [class*=\"title\"] a'); const descEl = el.querySelector('p, .contentItem__subhead, [class*=\"description\"]'); const linkEl = titleEl || el.querySelector('a[href*=\"/story/\"], a[href*=\"/article/\"]'); const title = titleEl?.textContent?.trim() || ''; const url = linkEl?.href || ''; if (title && !seen.has(title)) { seen.add(title); articles.push({ title: title, url: url, description: descEl?.textContent?.trim()?.slice(0, 200) || '' }); } } }); return { sport: params.sport, article_count: articles.length, articles: articles };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

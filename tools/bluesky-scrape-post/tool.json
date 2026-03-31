@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "bluesky-scrape-post",
+    "slug": "bluesky-scrape-post",
+    "name": "bluesky_scrape_post",
+    "displayName": "Bluesky Scrape Post",
+    "description": "Scrape a specific Bluesky post and its thread. Returns post content, author, engagement stats, replies, and embedded content.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "bluesky",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "post_url",
+        "type": "string",
+        "description": "Bluesky post URL (e.g. 'https://bsky.app/profile/user.bsky.social/post/abc123')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open post\n  await browser.open(`${params.post_url}`)\n\n  // Wait for post\n  await browser.waitForSelector('[data-testid=\\'postText\\']', 15000)\n\n  await browser.wait(2000)\n\n  // Scroll for replies\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Extract post and thread\n  const post_data = await browser.evaluate(`const threadItems = document.querySelectorAll('[data-testid^=\"postThreadItem-by-\"]'); const mainPost = threadItems.length > 0 ? threadItems[0] : document.querySelector('article, div[tabindex=\"0\"]'); let authorName = ''; let authorHandle = ''; const authorLink = mainPost ? mainPost.querySelector('a[href*=\"/profile/\"]') : document.querySelector('a[href*=\"/profile/\"]'); if (authorLink) { const href = authorLink.getAttribute('href') || ''; const match = href.match(/\\/profile\\/([^/]+)/); if (match) authorHandle = match[1]; const nameSpan = authorLink.querySelector('span'); if (nameSpan) authorName = nameSpan.textContent.trim(); } const contentEl = document.querySelector('[data-testid=\"postText\"]'); const likeBtn = mainPost ? mainPost.querySelector('[data-testid=\"likeBtn\"]') : document.querySelector('[data-testid=\"likeBtn\"]'); const replyBtn = mainPost ? mainPost.querySelector('[data-testid=\"replyBtn\"]') : document.querySelector('[data-testid=\"replyBtn\"]'); const timeEl = mainPost ? mainPost.querySelector('time') : document.querySelector('time'); const imgEl = document.querySelector('img[src*=\"feed_\"], img[src*=\"cdn.bsky\"]'); const replies = []; for (let i = 1; i < Math.min(threadItems.length, 15); i++) { const el = threadItems[i]; const rAuthorLink = el.querySelector('a[href*=\"/profile/\"]'); let rAuthor = ''; if (rAuthorLink) { const nameSpan = rAuthorLink.querySelector('span'); if (nameSpan) rAuthor = nameSpan.textContent.trim(); } const rContentEl = el.querySelector('[data-testid=\"postText\"]'); const rLikeBtn = el.querySelector('[data-testid=\"likeBtn\"]'); const rTimeEl = el.querySelector('time'); replies.push({ author: rAuthor, content: rContentEl ? rContentEl.textContent.trim().substring(0, 300) : '', likes: rLikeBtn ? (rLikeBtn.getAttribute('aria-label') || '') : '', time: rTimeEl ? (rTimeEl.getAttribute('datetime') || rTimeEl.textContent.trim()) : '' }); } return { author: authorName, handle: authorHandle, content: contentEl ? contentEl.textContent.trim() : '', likes: likeBtn ? (likeBtn.getAttribute('aria-label') || '') : '', replies_info: replyBtn ? (replyBtn.getAttribute('aria-label') || '') : '', time: timeEl ? (timeEl.getAttribute('datetime') || timeEl.textContent.trim()) : '', has_image: !!imgEl, image: imgEl ? imgEl.getAttribute('src') : '', replies: replies, url: window.location.href }`)\n\n  return post_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

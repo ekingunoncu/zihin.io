@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "airbnb-compare-prices",
+    "slug": "airbnb-compare-prices",
+    "name": "airbnb_compare_prices",
+    "displayName": "Airbnb Compare Prices",
+    "description": "Compare prices across similar Airbnb listings in a location. Searches listings and extracts price comparisons including nightly rate, total price, rating, and property type for easy comparison.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "airbnb"
+    ],
+    "parameters": [
+      {
+        "name": "location",
+        "type": "string",
+        "description": "Location to compare prices (e.g. 'Paris, France', 'Manhattan, New York')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Airbnb listings\n  await browser.open(`https://www.airbnb.com/s/${params.location}/homes`)\n\n  // Wait for search results\n  await browser.waitForSelector('[itemprop=\\'itemListElement\\'], [data-testid=\\'card-container\\'], [data-testid=\\'listing-card-title\\']', 15000)\n\n  // Let results render\n  await browser.wait(3000)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll for more listings\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll to load all visible listings\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Extract and compare prices\n  const price_comparison = await browser.evaluate(`const listings = []; const cards = document.querySelectorAll('[itemprop=\"itemListElement\"], [data-testid=\"card-container\"], [aria-labelledby]'); for (let i = 0; i < Math.min(cards.length, 20); i++) { const el = cards[i]; const titleEl = el.querySelector('[data-testid=\"listing-card-title\"], [id^=\"title_\"]'); const subtitleEl = el.querySelector('[data-testid=\"listing-card-subtitle\"]'); const priceEl = el.querySelector('[data-testid=\"price-availability-row\"] span span, span._tyxjp1, span._14y1168'); const totalPriceEl = el.querySelector('[data-testid=\"price-availability-row\"] span[class*=\"total\"], button[aria-label*=\"total\"], ._1jo4hgw span'); const ratingEl = el.querySelector('[aria-label*=\"rating\"], .t1a9j9y7 span, svg[aria-label*=\"Rating\"] + span'); const linkEl = el.querySelector('a[href*=\"/rooms/\"]'); const imgEl = el.querySelector('img[src*=\"images\"]'); const bedsEl = el.querySelector('[data-testid=\"listing-card-subtitle\"]:last-of-type'); const superhostEl = el.querySelector('[aria-label*=\"Superhost\"], [data-testid*=\"superhost\"]'); const url = linkEl ? (linkEl.href.startsWith('http') ? linkEl.href : 'https://www.airbnb.com' + linkEl.getAttribute('href')) : ''; const title = titleEl ? titleEl.textContent.trim() : ''; const priceText = priceEl ? priceEl.textContent.trim() : ''; if (title && priceText) { listings.push({ title: title, subtitle: subtitleEl ? subtitleEl.textContent.trim() : '', price_per_night: priceText, total_price: totalPriceEl ? totalPriceEl.textContent.trim() : '', rating: ratingEl ? ratingEl.textContent.trim() : '', property_details: bedsEl ? bedsEl.textContent.trim() : '', is_superhost: !!superhostEl, image: imgEl ? imgEl.getAttribute('src') : '', url: url }); } } listings.sort(function(a, b) { const priceA = parseFloat(a.price_per_night.replace(/[^0-9.]/g, '')) || 0; const priceB = parseFloat(b.price_per_night.replace(/[^0-9.]/g, '')) || 0; return priceA - priceB; }); const prices = listings.map(function(l) { return parseFloat(l.price_per_night.replace(/[^0-9.]/g, '')) || 0; }).filter(function(p) { return p > 0; }); const avgPrice = prices.length > 0 ? (prices.reduce(function(a, b) { return a + b; }, 0) / prices.length).toFixed(2) : '0'; const minPrice = prices.length > 0 ? Math.min.apply(null, prices) : 0; const maxPrice = prices.length > 0 ? Math.max.apply(null, prices) : 0; return { location: params.location, listing_count: listings.length, price_summary: { average_price_per_night: avgPrice, min_price_per_night: minPrice, max_price_per_night: maxPrice, currency: listings[0] ? listings[0].price_per_night.replace(/[0-9.,\\s]/g, '').trim() : '' }, listings: listings }`)\n\n  return price_comparison\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

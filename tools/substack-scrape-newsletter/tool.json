@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "substack-scrape-newsletter",
+    "slug": "substack-scrape-newsletter",
+    "name": "substack_scrape_newsletter",
+    "displayName": "Substack Scrape Newsletter",
+    "description": "Scrape a Substack newsletter homepage. Returns newsletter name, description, author, subscriber count, recent posts, and categories.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "substack",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "newsletter_slug",
+        "type": "string",
+        "description": "Newsletter subdomain slug (e.g. 'platformer', 'thegeneralist', 'stratechery')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open newsletter homepage\n  await browser.open(`https://${params.newsletter_slug}.substack.com`)\n\n  // Wait for newsletter page to load\n  await browser.waitForSelector('h1, [class*=\\'publication\\'], [class*=\\'hero\\'], [class*=\\'navbar-title\\']', 15000)\n\n  // Let page fully render\n  await browser.wait(2000)\n\n  // Scroll to load posts\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract newsletter details\n  const newsletter_data = await browser.evaluate(`const nameEl = document.querySelector('h1, [class*=\"publication-name\"], [class*=\"navbar-title\"], [class*=\"hero\"] h1'); const descEl = document.querySelector('[class*=\"hero\"] p, [class*=\"description\"], [class*=\"about\"], [class*=\"tagline\"]'); const authorEl = document.querySelector('[class*=\"author\"] a, [class*=\"byline\"] a'); const subscribersEl = document.querySelector('[class*=\"subscriber\"], [class*=\"reader-count\"]'); const imgEl = document.querySelector('[class*=\"logo\"] img, [class*=\"publication\"] img, header img'); const posts = []; const postEls = document.querySelectorAll('[class*=\"post-preview\"], article, [class*=\"post-item\"], a[href*=\"/p/\"]'); for (let i = 0; i < Math.min(postEls.length, 10); i++) { const el = postEls[i]; const titleEl = el.querySelector('h2, h3, [class*=\"post-title\"], [class*=\"title\"]'); const dateEl = el.querySelector('time, [class*=\"date\"]'); const likesEl = el.querySelector('[class*=\"like\"] span, [class*=\"heart\"] span'); const previewEl = el.querySelector('[class*=\"subtitle\"], [class*=\"preview\"], p'); const linkEl = el.tagName === 'A' ? el : el.querySelector('a[href*=\"/p/\"]'); posts.push({ title: titleEl ? titleEl.textContent.trim() : '', preview: previewEl ? previewEl.textContent.trim().substring(0, 200) : '', date: dateEl ? (dateEl.getAttribute('datetime') || dateEl.textContent.trim()) : '', likes: likesEl ? likesEl.textContent.trim() : '', url: linkEl ? linkEl.href : '' }); } const categoryEls = document.querySelectorAll('[class*=\"section\"] a, [class*=\"category\"] a, nav a[href*=\"/s/\"]'); const categories = []; categoryEls.forEach(function(el) { const t = el.textContent.trim(); if (t && t.length < 80 && !categories.includes(t)) categories.push(t); }); return { name: nameEl ? nameEl.textContent.trim() : '' + params.newsletter_slug + '', description: descEl ? descEl.textContent.trim().substring(0, 500) : '', author: authorEl ? authorEl.textContent.trim() : '', subscribers: subscribersEl ? subscribersEl.textContent.trim() : '', image: imgEl ? imgEl.getAttribute('src') : '', categories: categories.slice(0, 10), post_count: posts.length, posts: posts, url: window.location.href }`)\n\n  return newsletter_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

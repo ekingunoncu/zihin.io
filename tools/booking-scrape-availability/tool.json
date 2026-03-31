@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "booking-scrape-availability",
+    "slug": "booking-scrape-availability",
+    "name": "booking_scrape_availability",
+    "displayName": "Booking Scrape Availability",
+    "description": "Check room availability for a Booking.com hotel for specific dates. Returns available room types with prices, bed configurations, max occupancy, amenities, and booking conditions.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "booking",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "hotel_url",
+        "type": "string",
+        "description": "Booking.com hotel URL (e.g. 'https://www.booking.com/hotel/fr/example-paris.html')",
+        "required": true
+      },
+      {
+        "name": "checkin",
+        "type": "string",
+        "description": "Check-in date in YYYY-MM-DD format (e.g. '2025-06-15')",
+        "required": true
+      },
+      {
+        "name": "checkout",
+        "type": "string",
+        "description": "Check-out date in YYYY-MM-DD format (e.g. '2025-06-18')",
+        "required": true
+      },
+      {
+        "name": "guests",
+        "type": "string",
+        "description": "Number of guests (e.g. '2'). Defaults to 2 if not specified.",
+        "required": false
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open hotel page with dates and guests\n  await browser.open(`${params.hotel_url}?checkin=${params.checkin}&checkout=${params.checkout}&group_adults=${params.guests}&no_rooms=1`)\n\n  // Wait for hotel page to load\n  await browser.waitForSelector('h2.pp-header__title, [data-testid=\\'header-title\\'], .hp__hotel-name, #hp_hotel_name', 15000)\n\n  // Let availability data render\n  await browser.wait(3000)\n\n  // Scroll to availability table\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Scroll further for all room options\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract room availability\n  const availability_data = await browser.evaluate(`const nameEl = document.querySelector('h2.pp-header__title, [data-testid=\"header-title\"], .hp__hotel-name, #hp_hotel_name'); const hotelName = nameEl ? nameEl.textContent.trim() : ''; const soldOutEl = document.querySelector('[data-testid=\"no-availability-message\"], .sold-out-message, .hp--soldout, #availability_warning'); const isSoldOut = !!soldOutEl; const rooms = []; const roomBlocks = document.querySelectorAll('.hprt-table tr, [data-testid=\"availability-row\"], table.hprt-table tbody tr, .js-rt-block-row'); roomBlocks.forEach(function(el, idx) { if (idx >= 25) return; const roomNameEl = el.querySelector('.hprt-roomtype-icon-link, [data-testid=\"room-type-link\"], a.hprt-roomtype-link, .room_link strong'); const priceEl = el.querySelector('.hprt-price-price, [data-testid=\"price-and-discounted-price\"], .bui-price-display__value'); const originalPriceEl = el.querySelector('.hprt-price-price-original, .bui-price-display__original'); const occupancyEl = el.querySelector('.hprt-occupancy-occupancy-info, [data-testid=\"occupancy-popup\"]'); const bedEl = el.querySelector('.hprt-roomtype-bed, .hprt-bedcell, [data-testid=\"bed-type\"]'); const mealEl = el.querySelector('.hprt-mealplan, [data-testid=\"meal-plan\"], .hprt-board-type'); const cancellationEl = el.querySelector('.hprt-conditions, [data-testid=\"cancellation-policy\"]'); const roomSizeEl = el.querySelector('.hprt-roomtype-room-size, [data-testid=\"room-size\"]'); const roomFacilities = []; const facilityEls = el.querySelectorAll('.hprt-facilities-facility, [data-testid=\"room-facility\"] span'); facilityEls.forEach(function(f) { const text = f.textContent.trim(); if (text && text.length > 1) roomFacilities.push(text); }); const selectEl = el.querySelector('.hprt-nos-select, select[data-testid=\"select-room-trigger\"]'); const isAvailable = !el.querySelector('.hprt-sold-out, [data-testid=\"sold-out\"]'); if (roomNameEl || priceEl) { rooms.push({ room_type: roomNameEl ? roomNameEl.textContent.trim() : '', price: priceEl ? priceEl.textContent.trim() : '', original_price: originalPriceEl ? originalPriceEl.textContent.trim() : '', bed_type: bedEl ? bedEl.textContent.trim() : '', max_occupancy: occupancyEl ? occupancyEl.textContent.trim() : '', room_size: roomSizeEl ? roomSizeEl.textContent.trim() : '', meal_plan: mealEl ? mealEl.textContent.trim() : '', cancellation: cancellationEl ? cancellationEl.textContent.trim().substring(0, 200) : '', facilities: roomFacilities.slice(0, 10), available: isAvailable }); } }); const taxInfoEl = document.querySelector('.hprt-price-tax-rate, [data-testid=\"taxes-and-charges\"]'); return { hotel_name: hotelName, checkin: params.checkin, checkout: params.checkout, guests: params.guests || '2', is_sold_out: isSoldOut, sold_out_message: soldOutEl ? soldOutEl.textContent.trim() : '', tax_info: taxInfoEl ? taxInfoEl.textContent.trim() : '', available_room_count: rooms.filter(function(r) { return r.available; }).length, total_room_count: rooms.length, rooms: rooms, url: window.location.href }`)\n\n  return availability_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

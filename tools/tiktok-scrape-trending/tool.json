@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tiktok-scrape-trending",
+    "slug": "tiktok-scrape-trending",
+    "name": "tiktok_scrape_trending",
+    "displayName": "Tiktok Scrape Trending",
+    "description": "Browse the TikTok Explore/Discover page to find trending videos. Returns trending videos with title, creator, views, and music/sound info.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tiktok",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open TikTok Explore page\n  await browser.open('https://www.tiktok.com/explore')\n\n  // Wait for trending content\n  await browser.waitForSelector('[data-e2e=\"explore-item\"], .explore-video-card, div[class*=\"DivVideoCard\"]', 15000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Scroll to load more trending videos\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll for additional content\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract trending videos\n  const trending_data = await browser.evaluate(`const videos = []; const items = document.querySelectorAll('[data-e2e=\"explore-item\"], .explore-video-card, div[class*=\"DivVideoCardBody\"], div[class*=\"DivWrapper\"] > div[class*=\"DivVideoCard\"]'); for (let i = 0; i < Math.min(items.length, 20); i++) { const el = items[i]; const descEl = el.querySelector('[data-e2e=\"explore-item-desc\"], a[title], .card-desc'); const creatorEl = el.querySelector('[data-e2e=\"explore-item-user-unique-id\"], [data-e2e=\"creator-uniqueid\"], .author-uniqueid, p[class*=\"PAuthorTitle\"]'); const viewsEl = el.querySelector('[data-e2e=\"video-views\"], strong.video-count, .view-count, span[class*=\"SpanCount\"]'); const musicEl = el.querySelector('.music-title, [data-e2e=\"explore-music\"]'); const thumbEl = el.querySelector('img[src*=\"tiktokcdn\"], img.poster, picture img'); const linkEl = el.querySelector('a[href*=\"/video/\"], a[href*=\"/@\"]'); videos.push({ description: descEl ? (descEl.getAttribute('title') || descEl.textContent.trim()).substring(0, 300) : '', creator: creatorEl ? creatorEl.textContent.trim() : '', views: viewsEl ? viewsEl.textContent.trim() : '', music: musicEl ? musicEl.textContent.trim() : '', thumbnail: thumbEl ? thumbEl.src : '', url: linkEl ? linkEl.href : '' }); } return { trending_count: videos.length, trending_videos: videos }`)\n\n  return trending_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

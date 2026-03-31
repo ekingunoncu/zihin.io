@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "duolingo-scrape-course",
+    "slug": "duolingo-scrape-course",
+    "name": "duolingo_scrape_course",
+    "displayName": "Duolingo Scrape Course",
+    "description": "Scrape Duolingo course information for a specific language.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "duolingo",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "language",
+        "type": "string",
+        "description": "ISO 639-1 language code of the target language (e.g. \"es\" for Spanish, \"fr\" for French, \"de\" for German, \"ja\" for Japanese)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Duolingo\n  await browser.open(`https://www.duolingo.com/course/${params.language}/en`)\n\n  // Wait for page\n  await browser.waitForSelector('h1, .content, [class*=\"course\"]', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const title = document.querySelector('h1')?.textContent?.trim() || ''; const desc = document.querySelector('[class*=\"description\"], p')?.textContent?.trim() || ''; const skills = []; document.querySelectorAll('[class*=\"skill\"], [class*=\"unit\"], li').forEach((el, i) => { if (i < 30) skills.push(el.textContent?.trim()?.slice(0, 100)); }); return { title, description: desc, skills, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

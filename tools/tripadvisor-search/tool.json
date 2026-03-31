@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tripadvisor-search",
+    "slug": "tripadvisor-search",
+    "name": "tripadvisor_search",
+    "displayName": "Tripadvisor Search",
+    "description": "Search for destinations, hotels, restaurants, and attractions on TripAdvisor. Returns up to 15 results with name, type, rating, review count, and URL.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tripadvisor",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'hotels in Paris', 'best restaurants Tokyo', 'things to do Rome')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search TripAdvisor\n  await browser.open(`https://www.tripadvisor.com/Search?q=${params.query}`)\n\n  // Wait for search results\n  await browser.waitForSelector('[data-test-target=\\'search-result\\'], .result-title, .search-results-list, .ui_columns', 15000)\n\n  // Let results fully render\n  await browser.wait(3000)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll further down\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const cards = document.querySelectorAll('[data-test-target=\"search-result\"], .result-title, .search-result, .result, [class*=\"search_result\"], [class*=\"SearchResult\"]'); const seen = new Set(); for (let i = 0; i < cards.length && results.length < 15; i++) { const el = cards[i]; const titleEl = el.querySelector('a[onclick], a[href*=\"-Reviews-\"], a[href*=\"Attraction_Review\"], a[href*=\"Restaurant_Review\"], a[href*=\"Hotel_Review\"], .result-title span, [class*=\"title\"] a, h3 a'); const linkEl = titleEl || el.querySelector('a[href*=\"tripadvisor\"]'); const ratingEl = el.querySelector('svg[aria-label*=\"bubble\"], .ui_bubble_rating, [class*=\"bubble\"], [aria-label*=\"of 5\"]'); const reviewCountEl = el.querySelector('[class*=\"review_count\"], [class*=\"reviewCount\"], a[href*=\"#REVIEWS\"], span[class*=\"count\"]'); const typeEl = el.querySelector('[class*=\"search-result-badge\"], [class*=\"type\"], [class*=\"category\"], .search_result_type'); const descEl = el.querySelector('[class*=\"description\"], [class*=\"snippet\"], .search-result-description'); const imgEl = el.querySelector('img[src*=\"photo\"], img[src*=\"media\"], img[data-lazyurl]'); const name = titleEl ? titleEl.textContent.trim() : ''; const url = linkEl ? (linkEl.href.startsWith('http') ? linkEl.href : 'https://www.tripadvisor.com' + linkEl.getAttribute('href')) : ''; if (name && !seen.has(name)) { seen.add(name); results.push({ name: name, type: typeEl ? typeEl.textContent.trim() : '', rating: ratingEl ? (ratingEl.getAttribute('aria-label') || ratingEl.className || '') : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', description: descEl ? descEl.textContent.trim().substring(0, 200) : '', image: imgEl ? (imgEl.getAttribute('src') || imgEl.getAttribute('data-lazyurl') || '') : '', url: url }); } } return { query: params.query, result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "pubmed-scrape-paper",
+    "slug": "pubmed-scrape-paper",
+    "name": "pubmed_scrape_paper",
+    "displayName": "Pubmed Scrape Paper",
+    "description": "Scrape a specific PubMed paper. Returns title, authors, abstract, DOI, and keywords.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "arxiv",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "pmid",
+        "type": "string",
+        "description": "PubMed ID (e.g. \"12345678\")",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open paper page\n  await browser.open(`https://pubmed.ncbi.nlm.nih.gov/${params.pmid}/`)\n\n  // Wait for page\n  await browser.waitForSelector('h1.heading-title, .abstract', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Extract paper info\n  const paper_data = await browser.evaluate(`const title = document.querySelector('h1.heading-title')?.textContent?.trim() || ''; const authors = []; document.querySelectorAll('.authors-list a.full-name').forEach(a => authors.push(a.textContent?.trim())); const abstract = document.querySelector('#eng-abstract p, .abstract-content p')?.textContent?.trim() || ''; const doi = document.querySelector('a[data-ga-action=\"DOI\"], .doi a')?.textContent?.trim() || ''; const journal = document.querySelector('.journal-actions button, .cit')?.textContent?.trim() || ''; const keywords = []; document.querySelectorAll('.keywords-list .keyword, .abstract + .keywords a').forEach(k => keywords.push(k.textContent?.trim())); return { pmid: '' + params.pmid + '', title, authors, abstract, doi, journal, keywords, url: window.location.href };`)\n\n  return paper_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

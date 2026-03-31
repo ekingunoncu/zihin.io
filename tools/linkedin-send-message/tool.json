@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "linkedin-send-message",
+    "slug": "linkedin-send-message",
+    "name": "linkedin_send_message",
+    "displayName": "Linkedin Send Message",
+    "description": "Send a message to an existing LinkedIn connection. You must already be connected with the recipient.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "linkedin",
+      "messaging"
+    ],
+    "parameters": [
+      {
+        "name": "profile_url",
+        "type": "string",
+        "description": "LinkedIn profile URL of the person to message",
+        "required": true
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "description": "Message text to send",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open profile\n  await browser.open(`${params.profile_url}`)\n\n  // Wait for profile\n  await browser.waitForSelector('.text-heading-xlarge', 15000)\n\n  await browser.wait(1500)\n\n  // Click Message button\n  const open_message = await browser.evaluate(`const msgBtn = document.querySelector('button[aria-label*=\"Message\"], a[href*=\"/messaging/\"]'); if (msgBtn) { msgBtn.click(); return { clicked: true }; } return { clicked: false, message: 'Message button not found - you may not be connected' }`)\n\n  await browser.wait(2000)\n\n  // Wait for message input\n  await browser.waitForSelector('.msg-form__contenteditable, div[role=\\'textbox\\'][contenteditable=\\'true\\']', 10000)\n\n  // Type message\n  const type_message = await browser.evaluate(`const el = document.querySelector('.msg-form__contenteditable[contenteditable=\"true\"], .msg-form__contenteditable p, div[role=\"textbox\"][contenteditable=\"true\"]'); if (!el) throw new Error('Message input not found'); el.focus(); document.execCommand('insertText', false, params.message); el.dispatchEvent(new Event('input', {bubbles: true})); return { typed: true }`)\n\n  await browser.wait(500)\n\n  // Send message\n  const result = await browser.evaluate(`const sendBtn = document.querySelector('.msg-form__send-button, button[type=\"submit\"].msg-form__send-button, button.msg-form__send-btn'); if (sendBtn) { sendBtn.click(); return { success: true, message: 'Message sent' }; } return { success: false, message: 'Send button not found' }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

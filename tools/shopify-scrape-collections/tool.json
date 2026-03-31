@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "shopify-scrape-collections",
+    "slug": "shopify-scrape-collections",
+    "name": "shopify_scrape_collections",
+    "displayName": "Shopify Scrape Collections",
+    "description": "Scrape all collections (categories) from a Shopify store. Navigates to the /collections page and extracts collection names, images, product counts, and links.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "shopify",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "store_url",
+        "type": "string",
+        "description": "Shopify store base URL (e.g. 'https://example.myshopify.com')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open collections page\n  await browser.open(`${params.store_url}/collections`)\n\n  // Wait for collections page to load\n  await browser.waitForSelector('body', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load more collections\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1000)\n\n  // Extract collections\n  const collections_data = await browser.evaluate(`const collections = []; const collectionCards = document.querySelectorAll('.collection-list__item, .grid__item, .collection-card, [class*=\"CollectionCard\"], [class*=\"collection-card\"], .list-collections__item'); for (let i = 0; i < Math.min(collectionCards.length, 30); i++) { const card = collectionCards[i]; const linkEl = card.querySelector('a[href*=\"/collections/\"]'); const nameEl = card.querySelector('h2, h3, .card__heading, .collection-card__title, [class*=\"title\"]'); const imgEl = card.querySelector('img'); const countEl = card.querySelector('[class*=\"count\"], .collection-card__count, .badge'); if (linkEl || nameEl) { collections.push({ name: nameEl ? nameEl.textContent.trim() : (linkEl ? linkEl.textContent.trim() : ''), url: linkEl ? linkEl.href : '', image: imgEl ? (imgEl.src || imgEl.dataset.src || '') : '', product_count: countEl ? countEl.textContent.trim() : '' }); } } if (collections.length === 0) { const links = document.querySelectorAll('a[href*=\"/collections/\"]'); const seen = new Set(); links.forEach(function(a) { const href = a.href; if (seen.has(href) || href.includes('/collections/all')) return; seen.add(href); const text = a.textContent.trim(); if (text && text.length > 1 && text.length < 100) { collections.push({ name: text, url: href, image: '', product_count: '' }); } }); } return { collection_count: collections.length, collections: collections, url: window.location.href }`)\n\n  return collections_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

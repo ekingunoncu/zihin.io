@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "expedia-bulk-search",
+    "slug": "expedia-bulk-search",
+    "name": "expedia_bulk_search",
+    "displayName": "Expedia Bulk Search",
+    "description": "Search multiple destinations on Expedia in parallel using concurrent browser tabs. Use this instead of calling expedia_search_hotels multiple times - it is faster and more efficient. Pass all destinations as a single comma-separated string.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "expedia",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "destinations",
+        "type": "string",
+        "description": "Comma-separated destination cities (e.g. 'New York,Paris,Tokyo')",
+        "required": true
+      },
+      {
+        "name": "checkin",
+        "type": "string",
+        "description": "Check-in date in YYYY-MM-DD format",
+        "required": true
+      },
+      {
+        "name": "checkout",
+        "type": "string",
+        "description": "Check-out date in YYYY-MM-DD format",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.destinations.split(',').map(d => ({ url: 'https://www.expedia.com/Hotel-Search?destination=' + encodeURIComponent(d.trim()) + '&startDate=' + params.checkin + '&endDate=' + params.checkout + '&adults=2', destination: d.trim() }))`)\n\n  // Search each destination in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

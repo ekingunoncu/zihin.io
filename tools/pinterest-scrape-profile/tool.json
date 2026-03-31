@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "pinterest-scrape-profile",
+    "slug": "pinterest-scrape-profile",
+    "name": "pinterest_scrape_profile",
+    "displayName": "Pinterest Scrape Profile",
+    "description": "Scrape a Pinterest user profile. Navigates to the user's profile page and extracts display name, username, bio, follower/following counts, and their public boards and pins.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "pinterest",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "username",
+        "type": "string",
+        "description": "Pinterest username (e.g. 'pinterest', 'designmilk')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Pinterest profile\n  await browser.open(`https://www.pinterest.com/${params.username}/`)\n\n  // Wait for profile to load\n  await browser.waitForSelector('[data-test-id=\\'profile-header\\'], [data-test-id=\\'user-profile-header\\'], h1', 15000)\n\n  // Let profile content render\n  await browser.wait(3000)\n\n  // Extract profile info and boards\n  const profile_data = await browser.evaluate(`const nameEl = document.querySelector('[data-test-id=\"profile-header\"] h1, h1, [data-test-id=\"user-profile-header\"] h1'); const bioEl = document.querySelector('[data-test-id=\"profile-bio\"], [data-test-id=\"user-profile-bio\"]'); const avatarEl = document.querySelector('[data-test-id=\"profile-avatar\"] img, [data-test-id=\"user-profile-avatar\"] img'); const followerEl = document.querySelector('[data-test-id=\"follower-count\"], [data-test-id=\"profile-follower-count\"]'); const followingEl = document.querySelector('[data-test-id=\"following-count\"], [data-test-id=\"profile-following-count\"]'); const statsEls = document.querySelectorAll('[data-test-id=\"profile-stat\"], [data-test-id=\"user-stats\"] span'); let followers = followerEl ? followerEl.textContent.trim() : ''; let following = followingEl ? followingEl.textContent.trim() : ''; if (!followers && statsEls.length > 0) { for (const s of statsEls) { const t = s.textContent.trim().toLowerCase(); if (t.includes('follower')) followers = t; else if (t.includes('following')) following = t; } } const boards = []; const boardEls = document.querySelectorAll('[data-test-id=\"board\"], [data-test-id=\"boardCard\"], a[href*=\"/board/\"]'); for (let i = 0; i < Math.min(boardEls.length, 20); i++) { const b = boardEls[i]; const bName = b.querySelector('[data-test-id=\"board-name\"], [title]'); const bImg = b.querySelector('img'); const bLink = b.tagName === 'A' ? b : b.querySelector('a'); const bCount = b.querySelector('[data-test-id=\"pin-count\"]'); boards.push({ name: bName ? (bName.getAttribute('title') || bName.textContent || '').trim() : '', image_url: bImg ? (bImg.getAttribute('src') || '') : '', board_url: bLink ? bLink.href : '', pin_count: bCount ? bCount.textContent.trim() : '' }); } return { display_name: nameEl ? nameEl.textContent.trim() : '', username: '' + params.username + '', bio: bioEl ? bioEl.textContent.trim().slice(0, 500) : '', avatar_url: avatarEl ? (avatarEl.getAttribute('src') || '') : '', followers: followers, following: following, boards_count: boards.length, boards: boards, profile_url: window.location.href }`)\n\n  return profile_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "cmc-bulk-scrape-coins",
+    "slug": "cmc-bulk-scrape-coins",
+    "name": "cmc_bulk_scrape_coins",
+    "displayName": "CMC Bulk Scrape Coins",
+    "description": "Bulk scrape detailed information for multiple cryptocurrencies from CoinMarketCap in parallel. Returns comprehensive data including price, stats, description, and tags for each coin. Use this instead of calling cmc_scrape_coin multiple times.",
+    "category": "Finance",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "coinmarketcap",
+      "scrape",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "coin_slugs",
+        "type": "string",
+        "description": "Comma-separated CoinMarketCap coin slugs (e.g. 'bitcoin,ethereum,solana,cardano,polkadot')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build coin URL list\n  const items = await browser.evaluate(`return params.coin_slugs.split(',').map(s => ({ url: 'https://coinmarketcap.com/currencies/' + s.trim() + '/', slug: s.trim() }))`)\n\n  // Scrape each coin in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

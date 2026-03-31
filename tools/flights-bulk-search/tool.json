@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "flights-bulk-search",
+    "slug": "flights-bulk-search",
+    "name": "flights_bulk_search",
+    "displayName": "Flights Bulk Search",
+    "description": "Search multiple flight routes on Google Flights in parallel using concurrent browser tabs. Use this instead of calling flights_search multiple times - it is faster and more efficient. Pass routes as comma-separated 'from-to' pairs. Example: 'NYC to London,NYC to Paris,NYC to Tokyo'.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-flights",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "routes",
+        "type": "string",
+        "description": "Comma-separated flight routes as 'from to destination' pairs (e.g. 'NYC to London,LA to Tokyo,Chicago to Miami')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build flight search URL list\n  const items = await browser.evaluate(`return params.routes.split(',').map(r => { const route = r.trim(); return { url: 'https://www.google.com/travel/flights?q=' + encodeURIComponent(route), route: route }; })`)\n\n  // Search each route in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

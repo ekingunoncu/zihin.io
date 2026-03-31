@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "strava-scrape-club",
+    "slug": "strava-scrape-club",
+    "name": "strava_scrape_club",
+    "displayName": "Strava Scrape Club",
+    "description": "Scrape a Strava club page. Returns name, description, member count, and recent activities.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "strava",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "club_id",
+        "type": "string",
+        "description": "Strava club ID or slug",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open(`https://www.strava.com/clubs/${params.club_id}`)\n\n  // Wait for content\n  await browser.waitForSelector('h1, [class*=\"Club\"], .club-heading', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const name = document.querySelector('h1, [class*=\"ClubName\"]')?.textContent?.trim()||''; const desc = document.querySelector('[class*=\"Description\"], .club-description')?.textContent?.trim()?.substring(0,500)||''; const memberCount = document.body.innerText.match(/(\\d[\\d,]*)\\s*members?/i)?.[1]||''; const sport = document.querySelector('[class*=\"sport\"], .club-type')?.textContent?.trim()||''; return { club_id: '' + params.club_id + '', name, description: desc, members: memberCount, sport, url: window.location.href }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

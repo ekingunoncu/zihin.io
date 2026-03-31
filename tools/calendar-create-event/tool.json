@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "calendar-create-event",
+    "slug": "calendar-create-event",
+    "name": "calendar_create_event",
+    "displayName": "Calendar Create Event",
+    "description": "Create a new event on Google Calendar. Provide a title and date at minimum. Optionally set a start time, duration in minutes, and description.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-calendar",
+      "create"
+    ],
+    "parameters": [
+      {
+        "name": "title",
+        "type": "string",
+        "description": "Event title",
+        "required": true
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "description": "Event date in YYYY-MM-DD format",
+        "required": true
+      },
+      {
+        "name": "time",
+        "type": "string",
+        "description": "Start time in HH:MM 24-hour format (e.g. '14:30'). Leave empty for all-day event.",
+        "required": false,
+        "default": ""
+      },
+      {
+        "name": "duration",
+        "type": "string",
+        "description": "Duration in minutes (e.g. '60' for 1 hour). Default is 60.",
+        "required": false,
+        "default": "60"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "description": "Event description or notes",
+        "required": false,
+        "default": ""
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Google Calendar\n  await browser.open('https://calendar.google.com/calendar/r')\n\n  // Wait for calendar to load\n  await browser.waitForSelector('[role=\\'main\\'], [data-eventid], .FAxxKc', 20000)\n\n  // Build eventedit URL and navigate to pre-filled event form\n  const navigate_to_form = await browser.evaluate(`const title = params.title; const date = params.date.replace(/-/g, ''); const time = params.time; const duration = parseInt(params.duration) || 60; const desc = params.description; let dates = ''; if (time && date) { const [h, m] = time.split(':'); const startMin = parseInt(h) * 60 + (parseInt(m) || 0); const endMin = startMin + duration; const endH = String(Math.floor(endMin / 60) % 24).padStart(2, '0'); const endM = String(endMin % 60).padStart(2, '0'); dates = date + 'T' + String(h).padStart(2, '0') + String(m || '00').padStart(2, '0') + '00/' + date + 'T' + endH + endM + '00'; } else if (date) { const d = new Date(parseInt(date.slice(0,4)), parseInt(date.slice(4,6))-1, parseInt(date.slice(6,8))+1); const next = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0'); dates = date + '/' + next; } const p = new URLSearchParams(); p.set('text', title); if (dates) p.set('dates', dates); if (desc) p.set('details', desc); window.location.href = 'https://calendar.google.com/calendar/r/eventedit?' + p.toString(); return { navigating: true, title: title, date: params.date, time: time || 'all-day' }`)\n\n  // Wait for event creation form to fully load\n  await browser.wait(5000)\n\n  // Wait for event creation form\n  await browser.waitForSelector('input[aria-label=\\'Title\\'], [data-key=\\'title\\'], input[placeholder=\\'Add title\\'], input[aria-label=\\'Add title\\'], [aria-label=\\'Save\\']', 20000)\n\n  // Let form fully render\n  await browser.wait(1000)\n\n  // Save the event\n  const save_result = await browser.evaluate(`const saveBtn = document.querySelector('[aria-label=\"Save\"], button[data-tooltip=\"Save\"], button[type=\"submit\"]'); if (!saveBtn) { const allButtons = [...document.querySelectorAll('button, [role=\"button\"]')]; const save = allButtons.find(b => (b.textContent || '').trim().toLowerCase() === 'save'); if (save) { save.click(); } else { return { error: 'Could not find Save button' }; } } else { saveBtn.click(); } await new Promise(r => setTimeout(r, 3000)); return { success: true, title: params.title, date: params.date, time: params.time || 'all-day', url: window.location.href }`)\n\n  return save_result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

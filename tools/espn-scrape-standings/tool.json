@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "espn-scrape-standings",
+    "slug": "espn-scrape-standings",
+    "name": "espn_scrape_standings",
+    "displayName": "ESPN Scrape Standings",
+    "description": "Scrape league standings for a sport on ESPN. Returns team names with their win/loss records and stats.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "espn",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "sport",
+        "type": "string",
+        "description": "Sport slug (e.g. 'nfl', 'nba', 'mlb', 'nhl', 'soccer')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open ESPN standings\n  await browser.open(`https://www.espn.com/${params.sport}/standings`)\n\n  // Wait for standings table\n  await browser.waitForSelector('table, [class*=\\'standings\\'], .content', 15000)\n\n  // Let standings render\n  await browser.wait(3000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract standings\n  const result = await browser.evaluate(`const headers = []; document.querySelectorAll('table thead th, table thead td, [class*=\"Table__TH\"]').forEach(th => { const text = th.textContent?.trim(); if (text) headers.push(text); }); const teams = []; document.querySelectorAll('table tbody tr, [class*=\"standings\"] tbody tr').forEach((el, i) => { if (i < 40) { const nameEl = el.querySelector('a[href*=\"/team/\"], .team-link, [class*=\"TeamLink\"], td:first-child a'); const cells = el.querySelectorAll('td'); const stats = []; cells.forEach((c, ci) => { if (ci > 0) stats.push(c.textContent?.trim()); }); if (nameEl?.textContent?.trim()) { teams.push({ team: nameEl.textContent.trim(), url: nameEl.href || '', stats: stats }); } } }); return { sport: params.sport, headers: headers, team_count: teams.length, teams: teams };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

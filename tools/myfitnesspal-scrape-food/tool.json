@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "myfitnesspal-scrape-food",
+    "slug": "myfitnesspal-scrape-food",
+    "name": "myfitnesspal_scrape_food",
+    "displayName": "Myfitnesspal Scrape Food",
+    "description": "Scrape detailed nutrition info for a specific food on MyFitnessPal.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "myfitnesspal",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "food_id",
+        "type": "string",
+        "description": "Food ID or slug",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open MyFitnessPal page\n  await browser.open(`https://www.myfitnesspal.com/food/calories/${params.food_id}`)\n\n  // Wait for page\n  await browser.waitForSelector('.nutrition-facts, h1, [class*=\"nutrition\"], .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const name = document.querySelector('h1, .food-name')?.textContent?.trim() || ''; const nutrition = {}; document.querySelectorAll('.nutrition-facts tr, [class*=\"nutrient\"], dl dt, dl dd').forEach(el => { const label = el.querySelector('td:first-child, dt')?.textContent?.trim()?.toLowerCase() || ''; const value = el.querySelector('td:last-child, dd, .value')?.textContent?.trim() || ''; if (label) nutrition[label] = value; }); return { name, nutrition, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "coinbase-scrape-gainers-losers",
+    "slug": "coinbase-scrape-gainers-losers",
+    "name": "coinbase_scrape_gainers_losers",
+    "displayName": "Coinbase Scrape Gainers Losers",
+    "description": "Scrape top gainers and top losers on Coinbase. Visits the top-gainers page first, then the top-losers page.",
+    "category": "Finance",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "coinbase",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open top gainers page\n  await browser.open('https://www.coinbase.com/explore/s/top-gainers')\n\n  // Wait for content\n  await browser.waitForSelector('table, a[href*=\\'/price/\\']', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract gainers\n  const gainers_data = await browser.evaluate(`const gainers = []; document.querySelectorAll('table tbody tr, a[href*=\"/price/\"]').forEach((el, i) => { if (i >= 15) return; const name = el.querySelector('td:first-child, h2, p')?.textContent?.trim() || el.textContent?.trim() || ''; const price = el.querySelector('td:nth-child(2), [class*=\"Price\"]')?.textContent?.trim() || ''; const change = el.querySelector('td:nth-child(3), [class*=\"Change\"]')?.textContent?.trim() || ''; const link = el.querySelector('a[href*=\"/price/\"]') || (el.matches?.('a[href*=\"/price/\"]') ? el : null); const url = link ? link.href : ''; if (name && name.length < 100) gainers.push({ name, price, change, url }); }); return { gainers, url: window.location.href }`)\n\n  // Open top losers page\n  await browser.open('https://www.coinbase.com/explore/s/top-losers')\n\n  // Wait for content\n  await browser.waitForSelector('table, a[href*=\\'/price/\\']', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract losers\n  const losers_data = await browser.evaluate(`const losers = []; document.querySelectorAll('table tbody tr, a[href*=\"/price/\"]').forEach((el, i) => { if (i >= 15) return; const name = el.querySelector('td:first-child, h2, p')?.textContent?.trim() || el.textContent?.trim() || ''; const price = el.querySelector('td:nth-child(2), [class*=\"Price\"]')?.textContent?.trim() || ''; const change = el.querySelector('td:nth-child(3), [class*=\"Change\"]')?.textContent?.trim() || ''; const link = el.querySelector('a[href*=\"/price/\"]') || (el.matches?.('a[href*=\"/price/\"]') ? el : null); const url = link ? link.href : ''; if (name && name.length < 100) losers.push({ name, price, change, url }); }); return { losers, url: window.location.href }`)\n\n  return losers_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

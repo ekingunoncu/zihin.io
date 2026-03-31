@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "spotify-bulk-search",
+    "slug": "spotify-bulk-search",
+    "name": "spotify_bulk_search",
+    "displayName": "Spotify Bulk Search",
+    "description": "Search for multiple queries on Spotify in parallel using concurrent browser tabs. More efficient than calling spotify_search multiple times. Pass all search queries as a single comma-separated string.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "spotify",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'Bohemian Rhapsody, Stairway to Heaven, Hotel California')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search query list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ query: q.trim(), url: 'https://open.spotify.com/search/' + encodeURIComponent(q.trim()) }))`)\n\n  // Search each query in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "youtube-scrape-comments",
+    "slug": "youtube-scrape-comments",
+    "name": "youtube_scrape_comments",
+    "displayName": "Youtube Scrape Comments",
+    "description": "Scrape comments from a YouTube video. Returns up to 20 top comments with author, content, likes, and time posted.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "youtube",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "video_url",
+        "type": "string",
+        "description": "YouTube video URL (e.g. 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open video page\n  await browser.open(`${params.video_url}`)\n\n  // Wait for video to load\n  await browser.waitForSelector('#title h1, h1.ytd-watch-metadata yt-formatted-string', 15000)\n\n  await browser.wait(2000)\n\n  // Scroll down to trigger comments loading\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  // Wait for comments section to load\n  await browser.wait(3000)\n\n  // Scroll more to load additional comments\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Scroll for even more comments\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract comments\n  const comments_data = await browser.evaluate(`const comments = []; const commentEls = document.querySelectorAll('ytd-comment-thread-renderer'); for (let i = 0; i < Math.min(commentEls.length, 20); i++) { const el = commentEls[i]; const authorEl = el.querySelector('#author-text span, #author-text'); const contentEl = el.querySelector('#content-text, yt-attributed-string#content-text'); const likesEl = el.querySelector('#vote-count-middle, span.vote-count-middle'); const timeEl = el.querySelector('#header-author .published-time-text a, yt-formatted-string.published-time-text a'); const pinnedEl = el.querySelector('#pinned-comment-badge'); const heartEl = el.querySelector('#creator-heart-button ytd-creator-heart-renderer[is-hearted]'); comments.push({ author: authorEl ? authorEl.textContent.trim() : 'Anonymous', content: contentEl ? contentEl.textContent.trim().substring(0, 500) : '', likes: likesEl ? likesEl.textContent.trim() : '0', time: timeEl ? timeEl.textContent.trim() : '', is_pinned: !!pinnedEl, has_heart: !!heartEl }); } const commentCountEl = document.querySelector('#count yt-formatted-string span, h2#count yt-formatted-string'); return { total_comment_count: commentCountEl ? commentCountEl.textContent.trim() : '', scraped_count: comments.length, comments: comments }`)\n\n  return comments_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

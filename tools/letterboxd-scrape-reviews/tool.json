@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "letterboxd-scrape-reviews",
+    "slug": "letterboxd-scrape-reviews",
+    "name": "letterboxd_scrape_reviews",
+    "displayName": "Letterboxd Scrape Reviews",
+    "description": "Scrape reviews for a film on Letterboxd. Returns reviewer, rating, and review text.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "letterboxd",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "film_slug",
+        "type": "string",
+        "description": "Film slug",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open(`https://letterboxd.com/film/${params.film_slug}/reviews/`)\n\n  // Wait for content\n  await browser.waitForSelector('section.film-reviews, div.viewing-list, article.film-detail', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const reviews = Array.from(document.querySelectorAll('article.film-detail, article.production-viewing')).slice(0,15).map(rev => { const reviewer = rev.querySelector('strong.displayname, a.context')?.textContent?.trim()||''; const rating = rev.querySelector('span.rating')?.textContent?.trim()||''; const text = rev.querySelector('div.body-text p')?.textContent?.trim()?.substring(0,500)||''; return { reviewer, rating, text }; }).filter(r=>r.text); return { film: '' + params.film_slug + '', reviews, url: window.location.href }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

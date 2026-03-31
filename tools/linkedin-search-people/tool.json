@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "linkedin-search-people",
+    "slug": "linkedin-search-people",
+    "name": "linkedin_search_people",
+    "displayName": "Linkedin Search People",
+    "description": "Search for people on LinkedIn by name, title, company, or keywords. Returns up to 10 results with name, headline, location, and profile URL.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "linkedin",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (name, title, company, or keywords)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search LinkedIn people\n  await browser.open('https://www.linkedin.com/search/results/people/')\n\n  // Wait for search results\n  await browser.waitForSelector('.reusable-search__result-container, .search-results-container', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const cards = document.querySelectorAll('.reusable-search__result-container, li.reusable-search__result-container'); for (let i = 0; i < Math.min(cards.length, 10); i++) { const card = cards[i]; const nameEl = card.querySelector('.entity-result__title-text a span[aria-hidden=\"true\"], .entity-result__title-text a'); const headlineEl = card.querySelector('.entity-result__primary-subtitle'); const locationEl = card.querySelector('.entity-result__secondary-subtitle'); const linkEl = card.querySelector('.entity-result__title-text a, a.app-aware-link'); results.push({ name: nameEl ? nameEl.textContent.trim() : 'Unknown', headline: headlineEl ? headlineEl.textContent.trim() : '', location: locationEl ? locationEl.textContent.trim() : '', profile_url: linkEl ? linkEl.href.split('?')[0] : '' }); } return { result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

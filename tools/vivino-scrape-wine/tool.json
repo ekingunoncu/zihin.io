@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "vivino-scrape-wine",
+    "slug": "vivino-scrape-wine",
+    "name": "vivino_scrape_wine",
+    "displayName": "Vivino Scrape Wine",
+    "description": "Scrape details for a specific wine on Vivino including name, winery, rating, price, region, grape, and description.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "vivino",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "wine_path",
+        "type": "string",
+        "description": "Wine URL path (e.g. 'w/9253313' or 'FR/Bordeaux/wines/Chateau-Margaux/')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Vivino\n  await browser.open(`https://www.vivino.com/${params.wine_path}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1, [class*=\"vintageTitle\"], .inner-page', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const name = document.querySelector('h1, [class*=\"vintageTitle\"], [class*=\"wineName\"]')?.textContent?.trim() || ''; const winery = document.querySelector('[class*=\"winery\"], a[href*=\"/wineries/\"]')?.textContent?.trim() || ''; const rating = document.querySelector('[class*=\"averageValue\"], [class*=\"averageRating\"], [class*=\"rating\"]')?.textContent?.trim() || ''; const ratingCount = document.querySelector('[class*=\"basedOn\"], [class*=\"ratingCount\"]')?.textContent?.trim() || ''; const price = document.querySelector('[class*=\"price\"], [class*=\"amount\"]')?.textContent?.trim() || ''; const region = document.querySelector('[class*=\"region\"], [class*=\"country\"], [class*=\"Location\"]')?.textContent?.trim() || ''; const grape = document.querySelector('[class*=\"grape\"], [class*=\"varietal\"]')?.textContent?.trim() || ''; const desc = document.querySelector('[class*=\"description\"], [class*=\"taste\"]')?.textContent?.trim()?.slice(0, 500) || ''; return { name, winery, rating, ratingCount, price, region, grape, description: desc, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

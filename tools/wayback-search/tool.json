@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "wayback-search",
+    "slug": "wayback-search",
+    "name": "wayback_search",
+    "displayName": "Wayback Search",
+    "description": "Look up a URL on the Wayback Machine calendar view. Returns capture history summary and snapshot availability for the given URL.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "wayback",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "URL to look up in the Wayback Machine (e.g. 'example.com', 'https://example.com/page')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Wayback Machine search\n  await browser.open(`https://web.archive.org/web/*/${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('#wb-calendar, .calendar-grid, .calendar, [class*=\"CalendarMonth\"], .content', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const snapshots = document.querySelector('#wb-calendar, .calendar-grid, .calendar, [class*=\"CalendarMonth\"]')?.textContent?.trim()?.slice(0, 500) || ''; const sparkline = document.querySelector('.sparkline-container, [class*=\"captures\"], [class*=\"capture-count\"], .captures-range-info')?.textContent?.trim() || ''; return { url_searched: '' + params.query + '', calendar_summary: snapshots, captures_info: sparkline, page_url: window.location.href };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "yelp-search",
+    "slug": "yelp-search",
+    "name": "yelp_search",
+    "displayName": "Yelp Search",
+    "description": "Search for businesses on Yelp. Returns up to 15 results with name, rating, review count, category, price range, address, and URL.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "yelp",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'pizza', 'best coffee shops', 'plumber')",
+        "required": true
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "description": "Location (e.g. 'San Francisco, CA', 'New York, NY', '90210')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Yelp\n  await browser.open(`https://www.yelp.com/search?find_desc=${params.query}&find_loc=${params.location}`)\n\n  // Wait for search results\n  await browser.waitForSelector('[class*=\\'businessName\\'], [class*=\\'search-result\\'], [data-testid=\\'serp-ia-card\\']', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const items = document.querySelectorAll('[data-testid=\"serp-ia-card\"], [class*=\"container\"][class*=\"hoverable\"], [class*=\"businessName\"]'); const cards = items.length > 0 ? items : document.querySelectorAll('[class*=\"search-result\"], li[class*=\"border\"]'); for (let i = 0; i < Math.min(cards.length, 15); i++) { const el = cards[i]; const nameEl = el.querySelector('[class*=\"businessName\"] a, h3 a, a[href*=\"/biz/\"]'); const ratingEl = el.querySelector('[class*=\"star\"][aria-label], [class*=\"rating\"], [role=\"img\"][aria-label]'); const reviewCountEl = el.querySelector('[class*=\"reviewCount\"], [class*=\"review-count\"]'); const categoryEl = el.querySelector('[class*=\"category\"] a, [class*=\"priceCategory\"] a'); const priceEl = el.querySelector('[class*=\"priceRange\"], [class*=\"price-range\"]'); const addressEl = el.querySelector('[class*=\"secondary\"] address, [class*=\"address\"], address'); const imgEl = el.querySelector('img[src*=\"yelp\"], img'); const linkEl = el.querySelector('a[href*=\"/biz/\"]'); results.push({ name: nameEl ? nameEl.textContent.trim() : '', rating: ratingEl ? (ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim()) : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', category: categoryEl ? categoryEl.textContent.trim() : '', price_range: priceEl ? priceEl.textContent.trim() : '', address: addressEl ? addressEl.textContent.trim() : '', url: linkEl ? linkEl.href : '', image: imgEl ? imgEl.getAttribute('src') : '' }); } return { query: params.query, location: '' + params.location + '', result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

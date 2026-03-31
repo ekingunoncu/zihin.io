@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "sheets-bulk-read",
+    "slug": "sheets-bulk-read",
+    "name": "sheets_bulk_read",
+    "displayName": "Sheets Bulk Read",
+    "description": "Read a cell range from multiple Google Spreadsheets in parallel using concurrent browser tabs. Pass all spreadsheet URLs as a single comma-separated string. Each spreadsheet will be opened in a separate tab and the specified range will be read from each.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-sheets",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "spreadsheet_urls",
+        "type": "string",
+        "description": "Comma-separated Google Sheets URLs (e.g. 'https://docs.google.com/spreadsheets/d/ID1/edit,https://docs.google.com/spreadsheets/d/ID2/edit')",
+        "required": true
+      },
+      {
+        "name": "range",
+        "type": "string",
+        "description": "Cell range in A1 notation to read from each spreadsheet (e.g. 'A1:C10')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build spreadsheet URL list\n  const items = await browser.evaluate(`return params.spreadsheet_urls.split(',').map(u => ({ url: u.trim(), range: params.range }))`)\n\n  // Read range from each spreadsheet in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

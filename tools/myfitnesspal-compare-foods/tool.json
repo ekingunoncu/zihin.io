@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "myfitnesspal-compare-foods",
+    "slug": "myfitnesspal-compare-foods",
+    "name": "myfitnesspal_compare_foods",
+    "displayName": "Myfitnesspal Compare Foods",
+    "description": "Compare nutrition data for multiple foods on MyFitnessPal in parallel.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "myfitnesspal"
+    ],
+    "parameters": [
+      {
+        "name": "food_queries",
+        "type": "string",
+        "description": "Comma-separated food names to compare",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build food search URLs\n  const items = await browser.evaluate(`return params.food_queries.split(',').map(q => ({ url: 'https://www.myfitnesspal.com/food/search?search=' + encodeURIComponent(q.trim()), food: q.trim() }))`)\n\n  // Search each food in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tripadvisor-scrape-hotel",
+    "slug": "tripadvisor-scrape-hotel",
+    "name": "tripadvisor_scrape_hotel",
+    "displayName": "Tripadvisor Scrape Hotel",
+    "description": "Scrape hotel details from TripAdvisor. Returns hotel name, price range, rating, review count, amenities, address, and description.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tripadvisor",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "hotel_url",
+        "type": "string",
+        "description": "Full TripAdvisor hotel URL (e.g. 'https://www.tripadvisor.com/Hotel_Review-g187147-d188726-Reviews-...')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open hotel page\n  await browser.open(`${params.hotel_url}`)\n\n  // Wait for hotel page to load\n  await browser.waitForSelector('[data-test-target=\\'hr-about-section\\'], h1#HEADING, .hotelDescription, [class*=\\'HotelHeader\\']', 15000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Scroll to load amenities section\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Extract hotel details\n  const result = await browser.evaluate(`const nameEl = document.querySelector('h1#HEADING, h1[data-test-target=\"top-info-header\"], h1[class*=\"hotel\"], [data-test-target=\"hotel-header\"]'); const name = nameEl ? nameEl.textContent.trim() : ''; const ratingEl = document.querySelector('svg[aria-label*=\"bubble\"], .ui_bubble_rating, [class*=\"ratingValue\"], span[class*=\"rating\"]'); const rating = ratingEl ? (ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim() || '') : ''; const reviewCountEl = document.querySelector('a[href*=\"#REVIEWS\"] span, [class*=\"reviewCount\"], [data-test-target=\"review-count\"]'); const reviewCount = reviewCountEl ? reviewCountEl.textContent.trim() : ''; const priceEl = document.querySelector('[data-test-target=\"price-summary\"], [class*=\"priceRange\"], [class*=\"price\"], .priceRange'); const price = priceEl ? priceEl.textContent.trim() : ''; const rankEl = document.querySelector('[class*=\"ranking\"], [data-test-target=\"hotel-ranking\"], .popRanking'); const ranking = rankEl ? rankEl.textContent.trim() : ''; const addressEl = document.querySelector('[class*=\"address\"], [data-test-target=\"address-text\"], span[class*=\"street\"], .address'); const address = addressEl ? addressEl.textContent.trim() : ''; const descEl = document.querySelector('[class*=\"description\"], [data-test-target=\"about-description\"], .hotelDescription, [class*=\"aboutText\"]'); const description = descEl ? descEl.textContent.trim().substring(0, 500) : ''; const amenities = []; const amenityEls = document.querySelectorAll('[data-test-target=\"amenity-name\"], [class*=\"amenity\"] span, .amenityList span, [class*=\"AmenityItem\"]'); for (const el of amenityEls) { const text = el.textContent.trim(); if (text && text.length < 50 && !amenities.includes(text)) amenities.push(text); } const classEl = document.querySelector('[class*=\"hotelClass\"], [class*=\"starRating\"], svg[aria-label*=\"star\"]'); const hotelClass = classEl ? (classEl.getAttribute('aria-label') || classEl.textContent.trim() || '') : ''; const imgEl = document.querySelector('img[class*=\"photo\"], img[data-test-target=\"hero-photo\"], [class*=\"heroPhoto\"] img, .hotels-hero-photo img'); const image = imgEl ? imgEl.src : ''; return { name: name, rating: rating, review_count: reviewCount, price_range: price, ranking: ranking, hotel_class: hotelClass, address: address, description: description, amenities: amenities.slice(0, 20), image: image, url: window.location.href }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

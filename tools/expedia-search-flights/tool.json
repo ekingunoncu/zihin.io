@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "expedia-search-flights",
+    "slug": "expedia-search-flights",
+    "name": "expedia_search_flights",
+    "displayName": "Expedia Search Flights",
+    "description": "Search for flights on Expedia. Returns up to 15 flight results with airline, departure/arrival times, duration, stops, price, and booking URL.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "expedia",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "origin",
+        "type": "string",
+        "description": "Origin airport code (e.g. 'LAX', 'JFK', 'ORD')",
+        "required": true
+      },
+      {
+        "name": "destination",
+        "type": "string",
+        "description": "Destination airport code (e.g. 'LHR', 'CDG', 'NRT')",
+        "required": true
+      },
+      {
+        "name": "departure_date",
+        "type": "string",
+        "description": "Departure date in M/D/YYYY format (e.g. '3/15/2025')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search flights on Expedia\n  await browser.open(`https://www.expedia.com/Flights-Search?leg1=from:${params.origin},to:${params.destination},departure:${params.departure_date}TANYT&passengers=adults:1&trip=oneway&mode=search`)\n\n  // Wait for flight results\n  await browser.waitForSelector('[data-stid=\\'section-results\\'] li, ul[data-stid=\\'results-list\\'] li, [data-test-id=\\'offer-listing\\']', 25000)\n\n  // Let results render\n  await browser.wait(4000)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract flight results\n  const flight_results = await browser.evaluate(`const results = []; const items = document.querySelectorAll('[data-test-id=\"offer-listing\"], ul[data-stid=\"results-list\"] > li, [data-stid=\"section-results\"] li'); for (let i = 0; i < Math.min(items.length, 15); i++) { const el = items[i]; const allText = el.textContent || ''; const spans = el.querySelectorAll('span'); const divs = el.querySelectorAll('div'); let airline = ''; let departTime = ''; let arriveTime = ''; let duration = ''; let stops = ''; let price = ''; for (let s = 0; s < spans.length; s++) { const t = spans[s].textContent.trim(); if (t.match(/^\\d{1,2}:\\d{2}\\s*(AM|PM|am|pm)$/)) { if (!departTime) departTime = t; else if (!arriveTime) arriveTime = t; } if (t.match(/^\\d+h\\s*\\d*m?$/) || t.match(/^\\d+\\s*hr/)) duration = t; if (t.match(/nonstop|Nonstop|\\d+\\s*stop/i)) stops = t; if (t.match(/^\\$[\\d,.]+$/)) price = t; } for (let d = 0; d < divs.length; d++) { const t = divs[d].textContent.trim(); if (!airline && t.match(/Airlines?|Airways?|Air\\s|United|Delta|American|Southwest|JetBlue|Spirit|Frontier|Alaska|Hawaiian/i) && t.length < 40) airline = t; } const linkEl = el.querySelector('a[href], button[data-test-id=\"select-button\"]'); const logoEl = el.querySelector('img[alt]'); if (!airline && logoEl) airline = logoEl.getAttribute('alt') || ''; results.push({ airline: airline, departure_time: departTime, arrival_time: arriveTime, duration: duration, stops: stops, price: price, url: linkEl && linkEl.href ? linkEl.href : window.location.href }); } return { origin: params.origin, destination: params.destination, departure_date: params.departure_date, result_count: results.length, results: results }`)\n\n  return flight_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

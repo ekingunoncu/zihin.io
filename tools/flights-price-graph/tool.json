@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "flights-price-graph",
+    "slug": "flights-price-graph",
+    "name": "flights_price_graph",
+    "displayName": "Flights Price Graph",
+    "description": "View the price graph/calendar for a flight route on Google Flights. Shows price trends over time to help find the cheapest travel dates.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-flights"
+    ],
+    "parameters": [
+      {
+        "name": "from",
+        "type": "string",
+        "description": "Origin city or airport code (e.g. 'New York', 'JFK')",
+        "required": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "description": "Destination city or airport code (e.g. 'London', 'LHR')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Google Flights\n  await browser.open(`https://www.google.com/travel/flights?q=${params.from}+to+${params.to}`)\n\n  // Wait for flight results\n  await browser.waitForSelector('li.pIav2d', 20000)\n\n  // Let page render\n  await browser.wait(3000)\n\n  // Open price graph view\n  const open_price_graph = await browser.evaluate(`const priceGraphBtn = document.querySelector('button[aria-label*=\"Price graph\"], button[aria-label*=\"price graph\"], button[jsaction*=\"price_graph\"], div[data-flt-ve=\"price_graph\"] button'); if (priceGraphBtn) { priceGraphBtn.click(); return { clicked: true }; } const dateBtns = document.querySelectorAll('button[aria-label*=\"Date grid\"], button[aria-label*=\"date grid\"]'); if (dateBtns.length > 0) { dateBtns[0].click(); return { clicked: true, type: 'date_grid' }; } return { clicked: false }`)\n\n  // Wait for price graph to load\n  await browser.wait(3000)\n\n  // Scroll to see price graph\n  await browser.scroll({ direction: 'down', amount: 600 })\n\n  await browser.wait(2000)\n\n  // Extract price graph data\n  const price_graph_data = await browser.evaluate(`const pricePoints = []; const graphBars = document.querySelectorAll('div[data-flt-ve=\"price_graph\"] div[role=\"button\"], div.JRwjBf div[role=\"button\"], g[role=\"listitem\"]'); graphBars.forEach((bar, i) => { if (i >= 30) return; const label = bar.getAttribute('aria-label') || bar.textContent.trim(); if (label) pricePoints.push(label); }); const calendarCells = document.querySelectorAll('td[data-value], button[aria-label*=\"$\"], button[aria-label*=\"EUR\"], button[aria-label*=\"GBP\"]'); const calendarPrices = []; calendarCells.forEach((cell, i) => { if (i >= 60) return; const label = cell.getAttribute('aria-label') || cell.textContent.trim(); if (label && label.match(/\\d/)) calendarPrices.push(label); }); const tipEl = document.querySelector('div.CQYfx, div[class*=\"price-insight\"], div[class*=\"tip\"]'); return { from: params.from, to: params.to, price_graph_points: pricePoints, calendar_prices: calendarPrices, travel_tip: tipEl ? tipEl.textContent.trim() : '', data_points_count: pricePoints.length + calendarPrices.length, url: window.location.href }`)\n\n  return price_graph_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

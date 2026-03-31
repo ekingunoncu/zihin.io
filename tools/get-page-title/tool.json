@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "get-page-title",
+    "slug": "get-page-title",
+    "name": "get_page_title",
+    "displayName": "Get Page Title",
+    "description": "Navigates to a URL and returns the page title.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": ["example", "demo"],
+    "parameters": [
+      {
+        "name": "url",
+        "type": "string",
+        "description": "The URL to navigate to",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  await browser.open(params.url)\n  await browser.waitForLoad()\n  const title = await browser.evaluate('document.title')\n  await browser.close()\n  return { title }\n}",
+    "createdAt": "2026-02-17T00:00:00.000Z",
+    "updatedAt": "2026-04-01T00:00:00.000Z"
+  }
+}

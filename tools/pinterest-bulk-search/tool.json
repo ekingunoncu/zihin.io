@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "pinterest-bulk-search",
+    "slug": "pinterest-bulk-search",
+    "name": "pinterest_bulk_search",
+    "displayName": "Pinterest Bulk Search",
+    "description": "Bulk search Pinterest pins for multiple queries in parallel using concurrent browser tabs. Pass all search queries as a single comma-separated string. Example: 'home decor,wedding ideas,healthy recipes'.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "pinterest",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'home decor,wedding ideas,healthy recipes')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build query list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ query: q.trim() }))`)\n\n  // Search each query in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

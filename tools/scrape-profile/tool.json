@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-scrape-profile",
+    "slug": "scrape-profile",
+    "name": "scrape_profile",
+    "displayName": "Scrape Profile",
+    "description": "Scrape a user's X/Twitter profile info: bio, follower/following counts, location, website, etc.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "username",
+        "type": "string",
+        "description": "Username to scrape (without @)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open profile\n  await browser.open(`https://x.com/${params.username}`)\n\n  // Wait for page content\n  await browser.waitForSelector('[data-testid=\\'UserName\\']', 15000)\n\n  // Let page settle\n  await browser.wait(1000)\n\n  // Extract profile data\n  const profile = await browser.evaluate(`const nameEl = document.querySelector('[data-testid=\"UserName\"]'); const bioEl = document.querySelector('[data-testid=\"UserDescription\"]'); const locationEl = document.querySelector('[data-testid=\"UserLocation\"]'); const urlEl = document.querySelector('[data-testid=\"UserUrl\"]'); const joinDateEl = document.querySelector('[data-testid=\"UserJoinDate\"]'); const headerPhoto = document.querySelector('[data-testid=\"UserAvatar-Container-unknown\"] img, a[href$=\"/photo\"] img'); const followingLink = document.querySelector('a[href$=\"/following\"] span span'); const followersLink = document.querySelector('a[href$=\"/verified_followers\"] span span, a[href$=\"/followers\"] span span'); const isVerified = !!document.querySelector('[data-testid=\"icon-verified\"]'); return { name: nameEl ? nameEl.querySelector('span span') ? nameEl.querySelector('span span').textContent.trim() : nameEl.textContent.trim().split('\\n')[0] : 'Unknown', username: '@' + window.location.pathname.replace('/', ''), bio: bioEl ? bioEl.textContent.trim() : '', location: locationEl ? locationEl.textContent.trim() : '', website: urlEl ? urlEl.textContent.trim() : '', join_date: joinDateEl ? joinDateEl.textContent.trim() : '', following_count: followingLink ? followingLink.textContent.trim() : '0', followers_count: followersLink ? followersLink.textContent.trim() : '0', verified: isVerified, avatar_url: headerPhoto ? headerPhoto.src : '', profile_url: window.location.href }`)\n\n  return profile\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

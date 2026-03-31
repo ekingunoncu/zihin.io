@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "discord-scrape-server-info",
+    "slug": "discord-scrape-server-info",
+    "name": "discord_scrape_server_info",
+    "displayName": "Discord Scrape Server Info",
+    "description": "Get information about a Discord server: name, member count, channels, and boost level.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "discord",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "channel_url",
+        "type": "string",
+        "description": "Any channel URL in the server (e.g. 'https://discord.com/channels/123/456')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Discord server\n  await browser.open(`${params.channel_url}`)\n\n  // Wait for server to load\n  await browser.waitForSelector('div[role=\\'textbox\\'], nav[aria-label=\\'Servers sidebar\\']', 15000)\n\n  await browser.wait(2000)\n\n  // Extract server info\n  const server_info = await browser.evaluate(`const serverNameEl = document.querySelector('h2[aria-label], header h1, [data-list-id=\"channels\"]')?.closest('nav')?.querySelector('h2, h1, header button span, header a span'); let serverName = ''; if (serverNameEl) { serverName = serverNameEl.textContent.trim(); } else { const headerBtn = document.querySelector('button[aria-label*=\"Server\"], header button'); if (headerBtn) serverName = headerBtn.textContent.trim().split('\\n')[0]; } const channels = []; const channelNav = document.querySelector('nav[aria-label*=\"channel\"], nav[aria-label*=\"Channel\"], div[data-list-id=\"channels\"]')?.closest('nav') || document.querySelector('[aria-label*=\"Channels\"]'); const channelEls = channelNav ? channelNav.querySelectorAll('a[data-list-item-id*=\"channels\"], a[href*=\"/channels/\"]') : document.querySelectorAll('a[href*=\"/channels/\"][data-list-item-id]'); const seen = new Set(); channelEls.forEach(el => { const nameEl = el.querySelector('span, div'); const name = nameEl ? nameEl.textContent.trim() : el.textContent.trim(); if (name && !seen.has(name) && name.length < 50) { seen.add(name); channels.push(name); } }); if (!serverName) serverName = document.title.replace(/\\s*[-|].*$/, '') || 'Unknown'; const serverId = window.location.pathname.split('/')[2]; return { server_name: serverName, server_id: serverId, channel_count: channels.length, channels: channels.slice(0, 30), url: window.location.href }`)\n\n  return server_info\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

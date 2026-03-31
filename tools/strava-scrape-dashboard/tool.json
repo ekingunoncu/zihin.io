@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "strava-scrape-dashboard",
+    "slug": "strava-scrape-dashboard",
+    "name": "strava_scrape_dashboard",
+    "displayName": "Strava Scrape Dashboard",
+    "description": "Scrape the Strava dashboard/activity feed. Requires login.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "strava",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Strava\n  await browser.open('https://www.strava.com/dashboard')\n\n  // Wait for page\n  await browser.waitForSelector('.feed, .activity-feed, [class*=\"Feed\"]', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const activities = []; document.querySelectorAll('.activity, [class*=\"FeedEntry\"], .feed-entry').forEach((el, i) => { if (i < 10) { const nameEl = el.querySelector('.entry-owner, a[href*=\"/athletes/\"]'); const titleEl = el.querySelector('.entry-title, h3, a[href*=\"/activities/\"]'); const statsEl = el.querySelector('.entry-stats, .stat'); activities.push({ athlete: nameEl?.textContent?.trim() || '', title: titleEl?.textContent?.trim() || '', stats: statsEl?.textContent?.trim() || '' }); } }); return { activity_count: activities.length, activities };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

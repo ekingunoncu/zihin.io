@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "huggingface-scrape-space",
+    "slug": "huggingface-scrape-space",
+    "name": "huggingface_scrape_space",
+    "displayName": "Huggingface Scrape Space",
+    "description": "Scrape a Hugging Face Space demo page. Returns name, description, SDK, likes, and linked models.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "huggingface",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "space_id",
+        "type": "string",
+        "description": "Space ID (e.g. 'stabilityai/stable-diffusion')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open(`https://huggingface.co/spaces/${params.space_id}`)\n\n  // Wait for content\n  await browser.waitForSelector('h1, main, iframe', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const title = document.querySelector('h1')?.textContent?.trim()||''; const desc = document.querySelector('main p')?.textContent?.trim()||''; const tags = Array.from(document.querySelectorAll('a[href*=\"/spaces?\"]')).slice(0,10).map(t=>t.textContent.trim()); const sdkEl = document.querySelector('a[href*=\"/spaces?sdk=\"], a[href*=\"sdk:\"]'); const sdk = sdkEl?.textContent?.trim()||''; const likesEl = document.querySelector('button[title*=\"Like\"], button[title*=\"like\"]'); const likes = likesEl?.textContent?.trim()||''; const linkedModels = Array.from(document.querySelectorAll('a[href]:not([href*=\"spaces\"])')).filter(a => { const h = a.getAttribute('href')||''; return h.match(/^\\/[^/]+\\/[^/]+$/) && !h.includes('/spaces/') && !h.includes('/datasets/'); }).slice(0,5).map(a => ({ name: a.textContent.trim(), url: 'https://huggingface.co' + a.getAttribute('href') })); return { title, description: desc, tags, sdk, likes, linked_models: linkedModels, url: window.location.href }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

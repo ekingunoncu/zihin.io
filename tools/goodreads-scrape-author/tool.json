@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "goodreads-scrape-author",
+    "slug": "goodreads-scrape-author",
+    "name": "goodreads_scrape_author",
+    "displayName": "Goodreads Scrape Author",
+    "description": "Scrape a Goodreads author page.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "goodreads",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "author_id",
+        "type": "string",
+        "description": "Author ID",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Goodreads\n  await browser.open(`https://www.goodreads.com/author/show/${params.author_id}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1, .authorName, .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const name = document.querySelector('h1, .authorName')?.textContent?.trim() || ''; const bioEl = document.querySelector('[data-testid=\"aboutAuthor\"], [class*=\"AboutAuthor\"] [class*=\"Formatted\"], .aboutAuthorInfo span, [class*=\"DetailsLayoutRightParagraph\"]'); const bio = bioEl?.textContent?.trim()?.slice(0, 500) || ''; const books = []; document.querySelectorAll('a.bookTitle, [class*=\"book\"] a[href*=\"/book/show/\"], a[href*=\"/book/show/\"]').forEach((b, i) => { if (i < 10) books.push({ title: b.textContent?.trim(), url: b.href || '' }); }); const img = document.querySelector('.authorPhoto img, img[alt*=\"author\"], [class*=\"AuthorPhoto\"] img')?.src || ''; return { name, bio, books, image: img, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

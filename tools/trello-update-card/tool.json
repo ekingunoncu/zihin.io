@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "trello-update-card",
+    "slug": "trello-update-card",
+    "name": "trello_update_card",
+    "displayName": "Trello Update Card",
+    "description": "Update a Trello card's title, description, or due date.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "trello"
+    ],
+    "parameters": [
+      {
+        "name": "card_id",
+        "type": "string",
+        "description": "Trello card ID",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "description": "New card title (leave empty to keep current)",
+        "required": false,
+        "default": ""
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "description": "New description (leave empty to keep current)",
+        "required": false,
+        "default": ""
+      },
+      {
+        "name": "due_date",
+        "type": "string",
+        "description": "New due date in ISO format or 'null' to remove (leave empty to keep current)",
+        "required": false,
+        "default": ""
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Trello\n  await browser.open('https://trello.com')\n\n  // Let Trello load\n  await browser.wait(2000)\n\n  // Update card via Trello API\n  const result = await browser.evaluate(`const params = new URLSearchParams(); const name = params.name; if (name) params.set('name', name); const desc = params.description; if (desc) params.set('desc', desc); const due = params.due_date; if (due === 'null') params.set('due', ''); else if (due) params.set('due', due); if ([...params].length === 0) return { success: false, message: 'No fields to update' }; const resp = await fetch('/1/cards/' + params.card_id + '?' + params.toString(), { method: 'PUT', credentials: 'same-origin' }); if (!resp.ok) { const err = await resp.text(); throw new Error('Update failed: ' + resp.status + ' ' + err); } const card = await resp.json(); return { success: true, id: card.id, name: card.name, url: card.shortUrl || card.url }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

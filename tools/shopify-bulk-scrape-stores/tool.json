@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "shopify-bulk-scrape-stores",
+    "slug": "shopify-bulk-scrape-stores",
+    "name": "shopify_bulk_scrape_stores",
+    "displayName": "Shopify Bulk Scrape Stores",
+    "description": "Bulk scrape multiple Shopify stores in parallel. Returns store name, description, product count, and featured products for each store. Use this instead of calling shopify_scrape_store multiple times.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "shopify",
+      "scrape",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "store_urls",
+        "type": "string",
+        "description": "Comma-separated Shopify store URLs (e.g. 'https://store1.myshopify.com,https://store2.com,https://store3.com')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build store URL list\n  const items = await browser.evaluate(`return params.store_urls.split(',').map(u => ({ url: u.trim().replace(/\\/$/, ''), store: u.trim().replace(/\\/$/, '') }))`)\n\n  // Scrape each store in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

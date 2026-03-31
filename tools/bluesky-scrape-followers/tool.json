@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "bluesky-scrape-followers",
+    "slug": "bluesky-scrape-followers",
+    "name": "bluesky_scrape_followers",
+    "displayName": "Bluesky Scrape Followers",
+    "description": "Scrape followers list from a Bluesky profile. Returns follower names, handles, bios, and avatar URLs.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "bluesky",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "handle",
+        "type": "string",
+        "description": "Bluesky handle (e.g. 'user.bsky.social')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open followers page\n  await browser.open(`https://bsky.app/profile/${params.handle}/followers`)\n\n  // Wait for followers list\n  await browser.waitForSelector('div[role=\\'link\\'], a[href*=\\'/profile/\\'], [data-testid^=\\'feedItem-by-\\']', 15000)\n\n  await browser.wait(2000)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Extract followers\n  const followers_data = await browser.evaluate(`const followers = []; const cards = document.querySelectorAll('div[role=\"link\"][tabindex=\"0\"], div[data-testid^=\"feedItem-by-\"]'); for (let i = 0; i < Math.min(cards.length, 30); i++) { const el = cards[i]; const nameEl = el.querySelector('[data-testid=\"profileHeaderDisplayName\"], span[style*=\"font-weight\"], div[style*=\"font-weight\"] span'); const linkEl = el.querySelector('a[href*=\"/profile/\"]'); let handle = ''; if (linkEl) { const href = linkEl.getAttribute('href') || ''; const match = href.match(/\\/profile\\/([^/]+)/); if (match) handle = match[1]; } const bioEl = el.querySelector('[data-testid=\"profileHeaderDescription\"], span[style*=\"color\"]'); const avatarEl = el.querySelector('img[src*=\"avatar\"]'); followers.push({ name: nameEl ? nameEl.textContent.trim() : '', handle: handle, bio: bioEl ? bioEl.textContent.trim().substring(0, 200) : '', avatar: avatarEl ? avatarEl.getAttribute('src') : '', url: linkEl ? linkEl.href : '' }); } return { handle: '' + params.handle + '', follower_count: followers.length, followers: followers, url: window.location.href }`)\n\n  return followers_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

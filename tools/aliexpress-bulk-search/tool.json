@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "aliexpress-bulk-search",
+    "slug": "aliexpress-bulk-search",
+    "name": "aliexpress_bulk_search",
+    "displayName": "Aliexpress Bulk Search",
+    "description": "Search multiple products on AliExpress in parallel using concurrent browser tabs. Use this instead of calling aliexpress_search multiple times.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "aliexpress",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'wireless earbuds,phone case,LED strip')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://www.aliexpress.com/w/wholesale-' + encodeURIComponent(q.trim()) + '.html', query: q.trim() }))`)\n\n  // Search each query in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

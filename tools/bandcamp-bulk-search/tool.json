@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "bandcamp-bulk-search",
+    "slug": "bandcamp-bulk-search",
+    "name": "bandcamp_bulk_search",
+    "displayName": "Bandcamp Bulk Search",
+    "description": "Search multiple queries on Bandcamp in parallel using concurrent browser tabs. More efficient than calling bandcamp_search multiple times. Pass all search queries as a single comma-separated string.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "bandcamp",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'aphex twin, boards of canada, autechre')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ query: q.trim(), url: 'https://bandcamp.com/search?q=' + encodeURIComponent(q.trim()) }))`)\n\n  // Search in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "telegram-scrape-channel",
+    "slug": "telegram-scrape-channel",
+    "name": "telegram_scrape_channel",
+    "displayName": "Telegram Scrape Channel",
+    "description": "Scrape channel info and recent messages from a Telegram channel. Returns channel name, subscriber count, description, and the last 20 messages.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "telegram",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "channel_name",
+        "type": "string",
+        "description": "Name of the Telegram channel to scrape",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Telegram Web\n  await browser.open('https://web.telegram.org/k/')\n\n  // Wait for Telegram to load\n  await browser.waitForSelector('.input-search input, .chatlist-chat, .chat-list', 15000)\n\n  // Let app fully initialize\n  await browser.wait(2000)\n\n  // Search for the channel\n  const search_channel = await browser.evaluate(`const searchInput = document.querySelector('.input-search input') || document.querySelector('input[type=\"text\"]'); if (searchInput) { searchInput.focus(); searchInput.click(); await new Promise(r => setTimeout(r, 300)); searchInput.value = ''; searchInput.dispatchEvent(new Event('input', { bubbles: true })); document.execCommand('insertText', false, params.channel_name); searchInput.dispatchEvent(new Event('input', { bubbles: true })); } return { searched: true }`)\n\n  // Wait for search results\n  await browser.wait(2500)\n\n  // Click on the matching channel\n  const click_channel = await browser.evaluate(`const chatItems = document.querySelectorAll('.chatlist-chat, .chat-list .ListItem, .search-group .chatlist-chat'); let clicked = false; for (const item of chatItems) { const nameEl = item.querySelector('.peer-title, .user-title, .dialog-title'); if (nameEl && nameEl.textContent.trim().toLowerCase().includes(params.channel_name.toLowerCase())) { item.click(); clicked = true; break; } } if (!clicked && chatItems.length > 0) { chatItems[0].click(); clicked = true; } return { clicked: clicked }`)\n\n  // Wait for channel to load\n  await browser.wait(3000)\n\n  // Wait for channel content\n  await browser.waitForSelector('.bubble, .message, .chat-info', 10000)\n\n  // Extract channel info\n  const channel_info = await browser.evaluate(`const infoBtn = document.querySelector('.chat-info, .btn-icon.sidebar-header-btn, .chat-utils .btn-icon[class*=\"info\"]'); if (infoBtn) infoBtn.click(); await new Promise(r => setTimeout(r, 1500)); const info = {}; const titleEl = document.querySelector('.chat-info .peer-title, .profile-content .peer-title, .top .peer-title'); info.name = titleEl ? titleEl.textContent.trim() : params.channel_name; const subtitleEl = document.querySelector('.chat-info .info, .profile-content .subtitle, .chat-info-subtitle, .profile-subtitle'); info.subscribers = subtitleEl ? subtitleEl.textContent.trim() : ''; const descEl = document.querySelector('.profile-content .bio, .profile-row .row-title, .section-content .bio'); info.description = descEl ? descEl.textContent.trim() : ''; const closeBtn = document.querySelector('.sidebar-close-button, .btn-icon.sidebar-close'); if (closeBtn) closeBtn.click(); return info`)\n\n  await browser.wait(1000)\n\n  // Extract channel messages\n  const channel_messages = await browser.evaluate(`const messages = []; const bubbles = document.querySelectorAll('.bubble:not(.is-date), .message'); const startIdx = Math.max(0, bubbles.length - 20); for (let i = startIdx; i < bubbles.length; i++) { const el = bubbles[i]; const authorEl = el.querySelector('.peer-title, .name, .bubble-name .peer-title'); const contentEl = el.querySelector('.text-content, .message-content, .message'); const timeEl = el.querySelector('.time, time, .bubble-content .time'); const viewsEl = el.querySelector('.post-views, .message-views'); const content = contentEl ? contentEl.textContent.trim() : ''; if (!content) continue; messages.push({ author: authorEl ? authorEl.textContent.trim() : '', content: content, timestamp: timeEl ? timeEl.textContent.trim() : '', views: viewsEl ? viewsEl.textContent.trim() : '' }); } return { message_count: messages.length, messages: messages }`)\n\n  return channel_messages\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

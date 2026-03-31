@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "amazon-scrape-product",
+    "slug": "amazon-scrape-product",
+    "name": "amazon_scrape_product",
+    "displayName": "Amazon Scrape Product",
+    "description": "Scrape full product details from an Amazon product page. Returns title, price, rating, review count, description, bullet points, availability, seller, and images.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "amazon",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "product_url",
+        "type": "string",
+        "description": "Amazon product URL (e.g. 'https://www.amazon.com/dp/B09V3KXJPB')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open product page\n  await browser.open(`${params.product_url}`)\n\n  // Wait for product page to load\n  await browser.waitForSelector('#productTitle, .a-size-large.product-title-word-break', 15000)\n\n  // Let page fully render\n  await browser.wait(2000)\n\n  // Scroll to load additional content\n  await browser.scroll({ direction: 'down', amount: 600 })\n\n  await browser.wait(1500)\n\n  // Extract product details\n  const product_data = await browser.evaluate(`const titleEl = document.querySelector('#productTitle, .a-size-large.product-title-word-break'); const priceEl = document.querySelector('.a-price .a-offscreen, #priceblock_ourprice, #corePrice_feature_div .a-offscreen, .a-price-whole'); const ratingEl = document.querySelector('#acrPopover .a-icon-alt, .a-icon-star .a-icon-alt'); const reviewCountEl = document.querySelector('#acrCustomerReviewText'); const descriptionEl = document.querySelector('#productDescription p, #productDescription span, #productDescription'); const availabilityEl = document.querySelector('#availability span, #availability .a-size-medium'); const sellerEl = document.querySelector('#sellerProfileTriggerId, #merchant-info a, #tabular-buybox .tabular-buybox-text a'); const brandEl = document.querySelector('#bylineInfo, a#brand'); const bulletPoints = []; const bulletEls = document.querySelectorAll('#feature-bullets ul li span.a-list-item'); bulletEls.forEach(function(bp) { const text = bp.textContent.trim(); if (text && !text.includes('Make sure this fits') && text.length > 5) { bulletPoints.push(text); } }); const images = []; const imageEls = document.querySelectorAll('#altImages ul li img, #imgTagWrapperId img, #landingImage'); imageEls.forEach(function(img) { const src = img.getAttribute('src') || ''; if (src && src.includes('images') && !src.includes('sprite') && !src.includes('grey-pixel')) { images.push(src); } }); const listPriceEl = document.querySelector('.a-text-price .a-offscreen, .basisPrice .a-offscreen'); const savingsEl = document.querySelector('.savingsPercentage, #dealprice_savings_percentage'); const categoryEls = document.querySelectorAll('#wayfinding-breadcrumbs_container ul li a, .a-breadcrumb li a'); const categories = []; categoryEls.forEach(function(c) { categories.push(c.textContent.trim()); }); return { title: titleEl ? titleEl.textContent.trim() : '', price: priceEl ? priceEl.textContent.trim() : '', list_price: listPriceEl ? listPriceEl.textContent.trim() : '', savings: savingsEl ? savingsEl.textContent.trim() : '', rating: ratingEl ? ratingEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', brand: brandEl ? brandEl.textContent.trim() : '', description: descriptionEl ? descriptionEl.textContent.trim().substring(0, 1000) : '', bullet_points: bulletPoints.slice(0, 10), availability: availabilityEl ? availabilityEl.textContent.trim() : '', seller: sellerEl ? sellerEl.textContent.trim() : '', categories: categories, images: images.slice(0, 5), url: window.location.href }`)\n\n  return product_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

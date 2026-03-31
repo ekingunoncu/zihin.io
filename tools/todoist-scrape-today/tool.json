@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "todoist-scrape-today",
+    "slug": "todoist-scrape-today",
+    "name": "todoist_scrape_today",
+    "displayName": "Todoist Scrape Today",
+    "description": "Scrape today's tasks from Todoist. Requires login.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "todoist",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open('https://app.todoist.com/app/today')\n\n  // Wait for content\n  await browser.waitForSelector('.task_list_item, [data-testid=\"task\"]', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const tasks = Array.from(document.querySelectorAll('.task_list_item, [data-testid=\"task\"]')).slice(0,50).map(el => { const title = el.querySelector('.task_content, [data-testid=\"task-name\"]')?.textContent?.trim()||''; const project = el.querySelector('[class*=\"project\"], .project_link')?.textContent?.trim()||''; const priority = el.querySelector('[class*=\"priority\"]')?.className?.match(/priority_(\\d)/)?.[1]||''; return { title, project, priority }; }).filter(t=>t.title); return { view: 'Today', tasks }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

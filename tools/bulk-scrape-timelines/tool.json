@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-bulk-scrape-timelines",
+    "slug": "bulk-scrape-timelines",
+    "name": "bulk_scrape_timelines",
+    "displayName": "Bulk Scrape Timelines",
+    "description": "Scrape recent tweets from multiple X/Twitter timelines in parallel (up to 10 tweets per user).",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation",
+      "scrape",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "usernames",
+        "type": "string",
+        "description": "Comma-separated usernames to scrape (without @, e.g. 'elonmusk,openai,anthropic')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build timeline URL list\n  const items = await browser.evaluate(`return params.usernames.split(',').map(u => ({ url: 'https://x.com/' + u.trim(), username: u.trim() }))`)\n\n  // Scrape each timeline in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

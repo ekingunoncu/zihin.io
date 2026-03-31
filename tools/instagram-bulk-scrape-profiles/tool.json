@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "instagram-bulk-scrape-profiles",
+    "slug": "instagram-bulk-scrape-profiles",
+    "name": "instagram_bulk_scrape_profiles",
+    "displayName": "Instagram Bulk Scrape Profiles",
+    "description": "Scrape multiple Instagram user profiles in parallel using concurrent browser tabs. Pass all usernames as a single comma-separated string. Returns profile data for each user including username, full name, bio, post count, followers, following, and profile picture. You must be logged in to Instagram.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "instagram",
+      "scrape",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "usernames",
+        "type": "string",
+        "description": "Comma-separated Instagram usernames to scrape (e.g. 'nasa,natgeo,spacex')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build username list\n  const items = await browser.evaluate(`return params.usernames.split(',').map(u => ({ username: u.trim(), url: 'https://www.instagram.com/' + u.trim() + '/' }))`)\n\n  // Scrape each profile in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

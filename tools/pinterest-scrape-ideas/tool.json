@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "pinterest-scrape-ideas",
+    "slug": "pinterest-scrape-ideas",
+    "name": "pinterest_scrape_ideas",
+    "displayName": "Pinterest Scrape Ideas",
+    "description": "Browse Pinterest ideas and trending topics. Navigates to the Pinterest ideas page and scrapes trending categories, popular topics, and featured pins.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "pinterest",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Pinterest ideas page\n  await browser.open('https://www.pinterest.com/ideas/')\n\n  // Wait for ideas page to load\n  await browser.waitForSelector('a[href*=\\'/ideas/\\'], [data-test-id=\\'pin\\'], h2, h3', 15000)\n\n  // Let ideas content render\n  await browser.wait(3000)\n\n  // Extract trending ideas and topics\n  const ideas_data = await browser.evaluate(`const topics = []; const topicEls = document.querySelectorAll('a[href*=\"/ideas/\"]'); const seen = new Set(); for (let i = 0; i < topicEls.length; i++) { const el = topicEls[i]; const href = el.getAttribute('href') || ''; const text = el.textContent.trim(); if (text && !seen.has(text) && href.includes('/ideas/')) { seen.add(text); const imgEl = el.querySelector('img'); topics.push({ topic: text.slice(0, 200), url: 'https://www.pinterest.com' + href, image_url: imgEl ? (imgEl.getAttribute('src') || '') : '' }); } if (topics.length >= 30) break; } const featuredPins = []; const pinEls = document.querySelectorAll('[data-test-id=\"pin\"], [data-test-id=\"pinWrapper\"], div[data-grid-item]'); for (let i = 0; i < Math.min(pinEls.length, 15); i++) { const pin = pinEls[i]; const imgEl = pin.querySelector('img'); const linkEl = pin.querySelector('a[href*=\"/pin/\"]'); const titleEl = pin.querySelector('[data-test-id=\"pinTitle\"], [title]') || imgEl; featuredPins.push({ title: titleEl ? (titleEl.getAttribute('title') || titleEl.getAttribute('alt') || titleEl.textContent || '').trim().slice(0, 200) : '', image_url: imgEl ? (imgEl.getAttribute('src') || '') : '', pin_url: linkEl ? 'https://www.pinterest.com' + linkEl.getAttribute('href') : '' }); } return { source: 'Pinterest Ideas / Trending', topic_count: topics.length, topics: topics, featured_pin_count: featuredPins.length, featured_pins: featuredPins }`)\n\n  return ideas_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

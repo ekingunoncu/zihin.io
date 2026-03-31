@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "whatsapp-scrape-chat",
+    "slug": "whatsapp-scrape-chat",
+    "name": "whatsapp_scrape_chat",
+    "displayName": "Whatsapp Scrape Chat",
+    "description": "Scrape recent messages from a WhatsApp chat. Opens the chat and extracts message content, sender, and time.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "whatsapp",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "contact_name",
+        "type": "string",
+        "description": "Contact or group name to open",
+        "required": true
+      },
+      {
+        "name": "limit",
+        "type": "string",
+        "description": "Number of messages to extract (default: 20)",
+        "required": false,
+        "default": "20"
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open WhatsApp Web\n  await browser.open('https://web.whatsapp.com')\n\n  // Wait for WhatsApp to load\n  await browser.waitForSelector('div[contenteditable=\\'true\\'][data-tab=\\'3\\'], div#side', 30000)\n\n  // Let app render\n  await browser.wait(3000)\n\n  // Search and open chat\n  const open_chat = await browser.evaluate(`const searchBox = document.querySelector('div[contenteditable=\"true\"][data-tab=\"3\"]'); if (!searchBox) throw new Error('Search box not found'); searchBox.focus(); searchBox.textContent = ''; document.execCommand('insertText', false, params.contact_name); searchBox.dispatchEvent(new Event('input', { bubbles: true })); await new Promise(r => setTimeout(r, 2000)); const results = document.querySelectorAll('#pane-side span[title], [data-testid=\"cell-frame-title\"] span'); for (const r of results) { if (r.getAttribute('title')?.toLowerCase().includes(params.contact_name.toLowerCase()) || r.textContent?.toLowerCase().includes(params.contact_name.toLowerCase())) { r.closest('[data-testid=\"list-item\"], [data-testid=\"cell-frame-container\"], div[tabindex]')?.click(); break; } } await new Promise(r => setTimeout(r, 2000)); return { opened: true }`)\n\n  // Let messages load\n  await browser.wait(2000)\n\n  // Extract messages\n  const result = await browser.evaluate(`const limit = parseInt(params.limit) || 20; const messages = []; const msgEls = document.querySelectorAll('div.message-in, div.message-out, div[data-id], [data-testid=\"msg-container\"]'); const startIdx = Math.max(0, msgEls.length - limit); for (let i = startIdx; i < msgEls.length; i++) { const msg = msgEls[i]; const isOutgoing = msg.classList.contains('message-out') || msg.querySelector('[data-testid=\"msg-check\"], [data-testid=\"msg-dblcheck\"]') != null; const textEl = msg.querySelector('span.selectable-text, span[data-testid=\"conversation-text\"], .copyable-text'); const timeEl = msg.querySelector('[data-testid=\"msg-meta\"] span, span.message-time'); const senderEl = msg.querySelector('[data-testid=\"msg-author\"], span[aria-label]'); messages.push({ direction: isOutgoing ? 'sent' : 'received', sender: senderEl?.textContent?.trim() || (isOutgoing ? 'You' : params.contact_name), text: textEl?.textContent?.trim()?.substring(0, 500) || '', time: timeEl?.textContent?.trim() || '' }); } return { contact: params.contact_name, message_count: messages.length, messages: messages }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

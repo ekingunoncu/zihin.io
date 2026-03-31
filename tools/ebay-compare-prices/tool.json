@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "ebay-compare-prices",
+    "slug": "ebay-compare-prices",
+    "name": "ebay_compare_prices",
+    "displayName": "Ebay Compare Prices",
+    "description": "Compare prices for a product across multiple eBay listings. Searches for the product and returns listings sorted by price with seller info, condition, and shipping costs for easy comparison.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "ebay"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Product to compare prices for (e.g. 'iPhone 15 Pro 256GB', 'PS5 Digital Edition')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search eBay sorted by price + shipping lowest first\n  await browser.open(`https://www.ebay.com/sch/i.html?_nkw=${params.query}&_sop=15`)\n\n  // Wait for search results\n  await browser.waitForSelector('.srp-results .s-item, .srp-river-results .s-item, li.s-item, li.s-card', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(1500)\n\n  // Extract and compare prices\n  const price_comparison = await browser.evaluate(`const listings = []; const items = document.querySelectorAll('.srp-results .s-item, .srp-river-results .s-item, li.s-item, li.s-card'); for (let i = 0; i < Math.min(items.length, 20); i++) { const el = items[i]; const isCard = el.classList.contains('s-card'); const titleEl = el.querySelector(isCard ? '.s-card__title' : '.s-item__title, .s-item__title span'); const linkEl = el.querySelector(isCard ? '.s-card__title a, a' : '.s-item__link, a.s-item__link'); const priceEl = el.querySelector(isCard ? '.s-card__price' : '.s-item__price, .s-item__price span.POSITIVE, .s-item__price span.BOLD'); const shippingEl = el.querySelector(isCard ? '.s-card__shipping' : '.s-item__shipping, .s-item__freeXDays, .s-item__logisticsCost'); const conditionEl = el.querySelector(isCard ? '.s-card__subtitle' : '.SECONDARY_INFO, .s-item__subtitle span'); const sellerEl = el.querySelector('.s-item__seller-info-text, .s-item__seller-info a'); const sellerRatingEl = el.querySelector('.s-item__seller-info .s-item__seller-info-text, .s-item__etrs-text'); const soldEl = el.querySelector('.s-item__quantitySold, .s-item__hotness, [class*=\"sold\"]'); const imgEl = el.querySelector(isCard ? '.s-card__image img' : '.s-item__image-wrapper img, .s-item__image img'); const formatEl = el.querySelector('.s-item__purchase-options, .s-item__detail--primary .BOLD'); const locationEl = el.querySelector('.s-item__itemLocation, .s-item__location'); const title = titleEl ? titleEl.textContent.trim() : ''; if (!title || title === 'Shop on eBay' || title === 'Results matching fewer words') continue; listings.push({ title: title, price: priceEl ? priceEl.textContent.trim() : '', shipping: shippingEl ? shippingEl.textContent.trim() : '', total_estimate: '', condition: conditionEl ? conditionEl.textContent.trim() : '', format: formatEl ? formatEl.textContent.trim() : '', seller: sellerEl ? sellerEl.textContent.trim() : '', seller_rating: sellerRatingEl ? sellerRatingEl.textContent.trim() : '', sold_count: soldEl ? soldEl.textContent.trim() : '', location: locationEl ? locationEl.textContent.trim() : '', image: imgEl ? imgEl.getAttribute('src') : '', url: linkEl ? linkEl.href : '' }); } return { query: params.query, listing_count: listings.length, sorted_by: 'price_plus_shipping_lowest', listings: listings, compared_at: new Date().toISOString() }`)\n\n  return price_comparison\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

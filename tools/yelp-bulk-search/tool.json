@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "yelp-bulk-search",
+    "slug": "yelp-bulk-search",
+    "name": "yelp_bulk_search",
+    "displayName": "Yelp Bulk Search",
+    "description": "Search multiple business types on Yelp in parallel using concurrent browser tabs. Use this instead of calling yelp_search multiple times.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "yelp",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated queries (e.g. 'pizza,sushi,tacos')",
+        "required": true
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "description": "Location for all searches (e.g. 'San Francisco, CA')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://www.yelp.com/search?find_desc=' + encodeURIComponent(q.trim()) + '&find_loc=' + encodeURIComponent(params.location), query: q.trim() }))`)\n\n  // Search each query in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

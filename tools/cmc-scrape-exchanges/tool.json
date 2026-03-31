@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "cmc-scrape-exchanges",
+    "slug": "cmc-scrape-exchanges",
+    "name": "cmc_scrape_exchanges",
+    "displayName": "CMC Scrape Exchanges",
+    "description": "Scrape the top cryptocurrency exchanges from CoinMarketCap's exchanges ranking page. Returns exchange name, trading volume, number of markets, and trust score.",
+    "category": "Finance",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "coinmarketcap",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "limit",
+        "type": "string",
+        "description": "Number of exchanges to scrape (default '20', max '50')",
+        "required": false
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open exchanges ranking page\n  await browser.open('https://coinmarketcap.com/rankings/exchanges/')\n\n  // Wait for exchanges table to load\n  await browser.waitForSelector('table tbody tr', 15000)\n\n  // Let table render\n  await browser.wait(2500)\n\n  // Scroll to load more exchanges\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Extract exchange rankings\n  const exchanges_data = await browser.evaluate(`var limit = parseInt('' + params.limit + '') || 20; var exchanges = []; var rows = document.querySelectorAll('table tbody tr'); for (var i = 0; i < Math.min(rows.length, limit); i++) { var row = rows[i]; var cells = row.querySelectorAll('td'); if (cells.length < 4) continue; var rank = cells[0] ? cells[0].textContent.trim() : String(i + 1); var nameCell = cells[1] || cells[2]; var linkEl = nameCell ? nameCell.querySelector('a[href*=\"/exchanges/\"]') : null; var nameEl = linkEl || (nameCell ? nameCell.querySelector('a, p') : null); var volumeCell = cells[2] || cells[3]; var volume = volumeCell ? volumeCell.textContent.trim() : ''; var marketsCell = cells[3] || cells[4]; var markets = marketsCell ? marketsCell.textContent.trim() : ''; var coinsCell = cells[4] || cells[5]; var coins = coinsCell ? coinsCell.textContent.trim() : ''; var scoreCell = cells[5] || cells[6]; var score = scoreCell ? scoreCell.textContent.trim() : ''; exchanges.push({ rank: rank, name: nameEl ? nameEl.textContent.trim() : '', volume_24h: volume, markets: markets, coins: coins, exchange_score: score, url: linkEl ? linkEl.href : '' }); } return { scraped_count: exchanges.length, exchanges: exchanges }`)\n\n  return exchanges_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

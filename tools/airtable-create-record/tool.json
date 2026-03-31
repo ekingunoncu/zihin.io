@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "airtable-create-record",
+    "slug": "airtable-create-record",
+    "name": "airtable_create_record",
+    "displayName": "Airtable Create Record",
+    "description": "Create a new record in an Airtable table. Clicks the add row button and fills in field values by clicking cells and typing.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "airtable",
+      "create"
+    ],
+    "parameters": [
+      {
+        "name": "table_url",
+        "type": "string",
+        "description": "Airtable table URL (e.g. 'https://airtable.com/appXXX/tblXXX/viwXXX')",
+        "required": true
+      },
+      {
+        "name": "field_values",
+        "type": "string",
+        "description": "JSON string of field:value pairs (e.g. '{\"Name\":\"Acme Corp\",\"Status\":\"Active\",\"Notes\":\"New client\"}')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Airtable table\n  await browser.open(`${params.table_url}`)\n\n  // Wait for grid to load\n  await browser.waitForSelector('.dataRow, [data-rowindex], .headerRow', 15000)\n\n  // Let grid fully render\n  await browser.wait(2000)\n\n  // Click add row button\n  await browser.click('.addRowButton, [aria-label=\"Add row\"], [data-testid=\"add-row-button\"], .newRowButton')\n\n  // Wait for new row to appear\n  await browser.wait(1500)\n\n  // Fill in field values for new record\n  const result = await browser.evaluate(`const fields = JSON.parse(params.field_values); const headers = []; document.querySelectorAll('.headerRow .header, .columnHeader, [data-columnid] .header, [role=\"columnheader\"]').forEach(h => { headers.push(h.textContent?.trim() || ''); }); const lastRow = document.querySelector('.dataRow:last-child, [data-rowindex]:last-child, [role=\"row\"]:last-child'); if (!lastRow) throw new Error('Could not find newly created row'); const filledFields = []; for (const [fieldName, value] of Object.entries(fields)) { const colIndex = headers.findIndex(h => h.toLowerCase() === fieldName.toLowerCase()); if (colIndex === -1) { filledFields.push({ field: fieldName, status: 'column_not_found' }); continue; } const cells = lastRow.querySelectorAll('.cell, [data-columnid], [role=\"gridcell\"]'); const targetCell = cells[colIndex]; if (!targetCell) { filledFields.push({ field: fieldName, status: 'cell_not_found' }); continue; } targetCell.click(); await new Promise(r => setTimeout(r, 500)); const input = targetCell.querySelector('.cellInput, [contenteditable=\"true\"], input, textarea') || document.activeElement; if (input) { if (input.contentEditable === 'true') { input.textContent = String(value); input.dispatchEvent(new Event('input', { bubbles: true })); } else { const nativeSet = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set || Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; nativeSet.call(input, String(value)); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); } filledFields.push({ field: fieldName, status: 'filled', value: String(value) }); } else { filledFields.push({ field: fieldName, status: 'no_input_found' }); } await new Promise(r => setTimeout(r, 300)); } document.activeElement?.blur(); return { success: true, fields_processed: filledFields.length, fields: filledFields }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

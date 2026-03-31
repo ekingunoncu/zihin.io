@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "strava-scrape-activity",
+    "slug": "strava-scrape-activity",
+    "name": "strava_scrape_activity",
+    "displayName": "Strava Scrape Activity",
+    "description": "Scrape a specific Strava activity. Returns title, type, distance, duration, elevation, and pace.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "strava",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "activity_id",
+        "type": "string",
+        "description": "Strava activity ID",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Strava page\n  await browser.open(`https://www.strava.com/activities/${params.activity_id}`)\n\n  // Wait for page\n  await browser.waitForSelector('.activity-summary, .heading, h1, [class*=\"Activity\"]', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const title = document.querySelector('h1, .activity-name, .heading span')?.textContent?.trim() || ''; const type = document.querySelector('[class*=\"activity-type\"], .activity-type-icon + span')?.textContent?.trim() || ''; const stats = {}; document.querySelectorAll('.inline-stats li, .stat, [class*=\"Stat\"]').forEach(s => { const label = s.querySelector('.label, .stat-subtext, dt')?.textContent?.trim()?.toLowerCase() || ''; const value = s.querySelector('.stat, .stat-text, dd, strong')?.textContent?.trim() || ''; if (label) stats[label] = value; }); const kudos = document.querySelector('[data-testid=\"kudos_count\"], .kudos-count, button[class*=\"kudo\"] span')?.textContent?.trim() || '0'; return { title, type, stats, kudos, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

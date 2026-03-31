@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "letterboxd-scrape-film",
+    "slug": "letterboxd-scrape-film",
+    "name": "letterboxd_scrape_film",
+    "displayName": "Letterboxd Scrape Film",
+    "description": "Scrape a Letterboxd film page. Returns title, year, director, rating, description, genres, and cast.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "letterboxd",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "film_slug",
+        "type": "string",
+        "description": "Film slug (e.g. 'parasite-2019')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open(`https://letterboxd.com/film/${params.film_slug}/`)\n\n  // Wait for content\n  await browser.waitForSelector('h1.primaryname, h1.filmtitle, h1', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const title = document.querySelector('h1.primaryname span.name, h1.filmtitle, h1')?.textContent?.trim()||''; const year = document.querySelector('div.releaseyear a, small.number a')?.textContent?.trim()||''; const director = document.querySelector('a.text-sluglist[href*=\"/director/\"], span.text-sluglist a, a[href*=\"/director/\"]')?.textContent?.trim()||''; const rating = document.querySelector('span.average-rating a, span.average-rating')?.textContent?.trim()||''; const tagline = document.querySelector('div.tagline')?.textContent?.trim()||''; const desc = document.querySelector('div.truncate p, div.body-text p')?.textContent?.trim()?.substring(0,1000)||''; const genres = Array.from(document.querySelectorAll('div#tab-genres a, a[href*=\"/films/genre/\"]')).map(g=>g.textContent.trim()); const cast = Array.from(document.querySelectorAll('div#tab-cast a.tooltip, a[href*=\"/actor/\"]')).slice(0,15).map(a=>a.textContent.trim()); return { title, year, director, rating, tagline, description: desc, genres, cast, url: window.location.href }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

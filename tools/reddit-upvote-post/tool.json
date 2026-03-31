@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "reddit-upvote-post",
+    "slug": "reddit-upvote-post",
+    "name": "reddit_upvote_post",
+    "displayName": "Reddit Upvote Post",
+    "description": "Upvote a Reddit post. You must be logged in to old.reddit.com.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "reddit"
+    ],
+    "parameters": [
+      {
+        "name": "post_url",
+        "type": "string",
+        "description": "Reddit post URL to upvote",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open post\n  await browser.open(`${params.post_url}`)\n\n  // Wait for post\n  await browser.waitForSelector('.thing.link, .top-matter', 15000)\n\n  await browser.wait(1500)\n\n  // Upvote the post\n  const result = await browser.evaluate(`const upvoteBtn = document.querySelector('.thing.link div.up, .thing.link div.arrow.up'); if (!upvoteBtn) return { success: false, message: 'Upvote button not found' }; const alreadyUpvoted = document.querySelector('.thing.link div.upmod'); if (alreadyUpvoted) return { success: true, message: 'Already upvoted' }; upvoteBtn.click(); return { success: true, message: 'Post upvoted' }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "craigslist-search",
+    "slug": "craigslist-search",
+    "name": "craigslist_search",
+    "displayName": "Craigslist Search",
+    "description": "Search Craigslist for-sale listings across all regions. Returns matching results with title, price, date, and URL.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "craigslist",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'laptop', 'bicycle', 'couch')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Craigslist search\n  await browser.open(`https://www.craigslist.org/search/sss?query=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('.cl-search-result, .result-row, .cl-static-search-result, body', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const results = []; document.querySelectorAll('.cl-search-result, .result-row, .cl-static-search-result').forEach((el, i) => { if (i < 20) { const titleEl = el.querySelector('a.posting-title, a.result-title, .titlestring, a.cl-app-anchor'); const priceEl = el.querySelector('.priceinfo, .result-price'); const metaEl = el.querySelector('.meta, .result-date'); const dateEl = el.querySelector('time'); results.push({ title: titleEl?.textContent?.trim() || '', url: titleEl?.href || '', price: priceEl?.textContent?.trim() || '', date: dateEl?.textContent?.trim() || metaEl?.textContent?.trim() || '' }); } }); return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

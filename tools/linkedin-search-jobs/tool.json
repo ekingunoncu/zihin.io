@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "linkedin-search-jobs",
+    "slug": "linkedin-search-jobs",
+    "name": "linkedin_search_jobs",
+    "displayName": "Linkedin Search Jobs",
+    "description": "Search for jobs on LinkedIn by title, company, or keywords. Returns up to 10 job listings with title, company, location, and URL.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "linkedin",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Job search query (title, company, or keywords)",
+        "required": true
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "description": "Optional location filter (e.g. 'San Francisco', 'Remote')",
+        "required": false
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search LinkedIn jobs\n  await browser.open('https://www.linkedin.com/jobs/search/')\n\n  // Wait for job results\n  await browser.waitForSelector('.job-card-container, .jobs-search-results-list, .scaffold-layout__list', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract job listings\n  const search_results = await browser.evaluate(`const jobs = []; const cards = document.querySelectorAll('.job-card-container, .job-card-list__entity-lockup, li.jobs-search-results__list-item'); for (let i = 0; i < Math.min(cards.length, 10); i++) { const card = cards[i]; const titleEl = card.querySelector('.job-card-list__title, .job-card-container__link strong, a.job-card-list__title--link strong'); const companyEl = card.querySelector('.job-card-container__primary-description, .artdeco-entity-lockup__subtitle span'); const locationEl = card.querySelector('.job-card-container__metadata-item, .artdeco-entity-lockup__caption span'); const linkEl = card.querySelector('a[href*=\"/jobs/view/\"], a.job-card-list__title--link, a.job-card-container__link'); jobs.push({ title: titleEl ? titleEl.textContent.trim() : 'Unknown', company: companyEl ? companyEl.textContent.trim() : '', location: locationEl ? locationEl.textContent.trim() : '', url: linkEl ? 'https://www.linkedin.com' + linkEl.getAttribute('href').split('?')[0] : '' }); } return { job_count: jobs.length, jobs: jobs }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

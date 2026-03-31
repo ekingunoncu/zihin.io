@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "substack-scrape-archive",
+    "slug": "substack-scrape-archive",
+    "name": "substack_scrape_archive",
+    "displayName": "Substack Scrape Archive",
+    "description": "Scrape the full archive of a Substack newsletter. Returns all available posts with title, date, preview, like count, and URL.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "substack",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "newsletter_slug",
+        "type": "string",
+        "description": "Newsletter subdomain slug (e.g. 'platformer', 'thegeneralist')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open newsletter archive\n  await browser.open(`https://${params.newsletter_slug}.substack.com/archive`)\n\n  // Wait for archive to load\n  await browser.waitForSelector('[class*=\\'post\\'], article, a[href*=\\'/p/\\'], [class*=\\'archive\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load more posts\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Scroll even further\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Extract archive posts\n  const archive_data = await browser.evaluate(`const posts = []; const postEls = document.querySelectorAll('[class*=\"post-preview\"], article, [class*=\"post-item\"], [class*=\"archive\"] a[href*=\"/p/\"]'); for (let i = 0; i < Math.min(postEls.length, 30); i++) { const el = postEls[i]; const titleEl = el.querySelector('h2, h3, [class*=\"post-title\"], [class*=\"title\"]'); const dateEl = el.querySelector('time, [class*=\"date\"], [class*=\"timestamp\"]'); const previewEl = el.querySelector('[class*=\"subtitle\"], [class*=\"preview\"], p'); const likesEl = el.querySelector('[class*=\"like\"] span, [class*=\"heart\"] span'); const commentsEl = el.querySelector('[class*=\"comment\"] span'); const linkEl = el.tagName === 'A' ? el : el.querySelector('a[href*=\"/p/\"]'); const isPaid = !!el.querySelector('[class*=\"paywall\"], [class*=\"lock\"], [class*=\"paid\"]'); posts.push({ title: titleEl ? titleEl.textContent.trim() : '', preview: previewEl ? previewEl.textContent.trim().substring(0, 200) : '', date: dateEl ? (dateEl.getAttribute('datetime') || dateEl.textContent.trim()) : '', likes: likesEl ? likesEl.textContent.trim() : '', comments: commentsEl ? commentsEl.textContent.trim() : '', is_paid: isPaid, url: linkEl ? linkEl.href : '' }); } return { newsletter: '' + params.newsletter_slug + '', post_count: posts.length, posts: posts, url: window.location.href }`)\n\n  return archive_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

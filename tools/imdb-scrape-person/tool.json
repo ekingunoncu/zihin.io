@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "imdb-scrape-person",
+    "slug": "imdb-scrape-person",
+    "name": "imdb_scrape_person",
+    "displayName": "IMDb Scrape Person",
+    "description": "Scrape a person's profile from IMDb. Returns name, bio, filmography, known for titles, birth info, and awards.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "imdb",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "person_url",
+        "type": "string",
+        "description": "IMDb person URL (e.g. 'https://www.imdb.com/name/nm0634240/' for Christopher Nolan)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open person page\n  await browser.open(`${params.person_url}`)\n\n  // Wait for page to load\n  await browser.waitForSelector('[data-testid=\\'hero-title-block__title\\'], [data-testid=\\'hero__pageTitle\\'], h1, [class*=\\'NameHeader\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load filmography\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract person profile\n  const person_data = await browser.evaluate(`const nameEl = document.querySelector('[data-testid=\"hero-title-block__title\"], [data-testid=\"hero__pageTitle\"] span, h1 span, h1, [class*=\"NameHeader\"] h1'); const bioEl = document.querySelector('[data-testid=\"bio-content\"], [class*=\"bio\"] p, .ipc-html-content-inner-div'); const photoEl = document.querySelector('[data-testid=\"hero-media__photo\"] img, [data-testid=\"hero__photo\"] img, [class*=\"Poster\"] img, #name-poster'); const birthInfoEl = document.querySelector('[data-testid=\"birth-and-death-info\"], [class*=\"birth\"]'); const knownFor = []; document.querySelectorAll('[data-testid=\"nm-flmg-known-for-card\"], [class*=\"KnownFor\"] [class*=\"KnownForCard\"]').forEach(function(el) { const titleEl = el.querySelector('a[href*=\"/title/\"], [class*=\"title\"]'); const yearEl = el.querySelector('[class*=\"year\"], span'); const roleEl = el.querySelector('[class*=\"role\"], [class*=\"character\"]'); const imgEl = el.querySelector('img'); knownFor.push({ title: titleEl ? titleEl.textContent.trim() : '', year: yearEl ? yearEl.textContent.trim() : '', role: roleEl ? roleEl.textContent.trim() : '', url: titleEl ? titleEl.href || '' : '', image: imgEl ? imgEl.getAttribute('src') : '' }); }); const filmography = []; const filmEls = document.querySelectorAll('[data-testid=\"nm-flmg-credits-single-item\"], [class*=\"FilmographyItem\"], [class*=\"filmography\"] [class*=\"row\"]'); for (let i = 0; i < Math.min(filmEls.length, 20); i++) { const el = filmEls[i]; const tEl = el.querySelector('a[href*=\"/title/\"], [class*=\"title\"]'); const yEl = el.querySelector('[class*=\"year\"]'); filmography.push({ title: tEl ? tEl.textContent.trim() : '', year: yEl ? yEl.textContent.trim() : '', url: tEl ? tEl.href || '' : '' }); } const awardsEl = document.querySelector('[data-testid=\"awards-summary\"], [class*=\"Awards\"]'); return { name: nameEl ? nameEl.textContent.trim() : '', bio: bioEl ? bioEl.textContent.trim().substring(0, 1500) : '', photo: photoEl ? photoEl.getAttribute('src') : '', birth_info: birthInfoEl ? birthInfoEl.textContent.trim() : '', known_for: knownFor.slice(0, 6), filmography: filmography, awards: awardsEl ? awardsEl.textContent.trim().substring(0, 500) : '', url: window.location.href }`)\n\n  return person_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

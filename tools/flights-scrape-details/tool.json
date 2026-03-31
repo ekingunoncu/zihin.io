@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "flights-scrape-details",
+    "slug": "flights-scrape-details",
+    "name": "flights_scrape_details",
+    "displayName": "Flights Scrape Details",
+    "description": "Scrape detailed flight information from a Google Flights result URL. Returns full itinerary details including layovers, aircraft type, baggage info, and booking options.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-flights",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "flight_url",
+        "type": "string",
+        "description": "Google Flights URL for a specific flight result (from flights_search results)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open flight details page\n  await browser.open(`${params.flight_url}`)\n\n  // Wait for flight details\n  await browser.waitForSelector('div.yR1fYc, div.BVAVmf, li.pIav2d', 20000)\n\n  // Let details fully render\n  await browser.wait(3000)\n\n  // Expand flight detail sections\n  const expand_details = await browser.evaluate(`const expandBtns = document.querySelectorAll('button[aria-expanded=\"false\"], div[role=\"button\"][aria-expanded=\"false\"]'); expandBtns.forEach(btn => { const label = (btn.getAttribute('aria-label') || btn.textContent || '').toLowerCase(); if (label.includes('flight') || label.includes('detail') || label.includes('more') || label.includes('expand')) btn.click(); }); return { expanded: expandBtns.length }`)\n\n  // Wait for expanded content\n  await browser.wait(2000)\n\n  // Scroll to see more details\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract detailed flight information\n  const flight_details = await browser.evaluate(`const segments = []; const segmentEls = document.querySelectorAll('div.yR1fYc, div.BVAVmf'); segmentEls.forEach((seg, i) => { if (i >= 6) return; const airlineEl = seg.querySelector('div.sSHqwe.tPgKwe.ogfYpf, div.sSHqwe span'); const flightNumEl = seg.querySelector('span.Xsgmwe'); const aircraftEl = seg.querySelector('span[class*=\"aircraft\"]'); const depTimeEl = seg.querySelector('span[aria-label^=\"Departure time\"], div.zxVSec span.eoY5cb'); const arrTimeEl = seg.querySelector('span[aria-label^=\"Arrival time\"]'); const depAirportEl = seg.querySelector('div.G2WY5c span'); const arrAirportEl = seg.querySelector('div.c8rWCd span'); const durationEl = seg.querySelector('div[aria-label^=\"Total duration\"], div.gvkrdb'); const classEl = seg.querySelector('span[class*=\"cabin\"]'); segments.push({ airline: airlineEl ? airlineEl.textContent.trim() : '', flight_number: flightNumEl ? flightNumEl.textContent.trim() : '', aircraft: aircraftEl ? aircraftEl.textContent.trim() : '', departure_time: depTimeEl ? depTimeEl.textContent.trim() : '', arrival_time: arrTimeEl ? arrTimeEl.textContent.trim() : '', departure_airport: depAirportEl ? depAirportEl.textContent.trim() : '', arrival_airport: arrAirportEl ? arrAirportEl.textContent.trim() : '', duration: durationEl ? durationEl.textContent.trim() : '', cabin_class: classEl ? classEl.textContent.trim() : '' }); }); const priceEl = document.querySelector('div.FpEdX span, div.YMlIz span, span[data-gs]'); const totalDurationEl = document.querySelector('div[aria-label^=\"Total duration\"], div.gvkrdb'); const co2El = document.querySelector('div.O7CXue, div[class*=\"emission\"]'); const layoverEls = document.querySelectorAll('div.tvtJdb, div[class*=\"layover\"]'); const layovers = []; layoverEls.forEach(l => { layovers.push(l.textContent.trim()); }); const baggageEl = document.querySelector('div.YBQ0ob, div[class*=\"baggage\"], span[aria-label*=\"bag\"]'); return { price: priceEl ? priceEl.textContent.trim() : '', total_duration: totalDurationEl ? totalDurationEl.textContent.trim() : '', segments: segments, layovers: layovers, co2_emissions: co2El ? co2El.textContent.trim() : '', baggage: baggageEl ? baggageEl.textContent.trim() : '', url: window.location.href }`)\n\n  return flight_details\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

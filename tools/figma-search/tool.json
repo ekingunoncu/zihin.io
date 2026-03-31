@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "figma-search",
+    "slug": "figma-search",
+    "name": "figma_search",
+    "displayName": "Figma Search",
+    "description": "Search for files and projects in Figma by query. Returns matching file names, project names, thumbnails, and URLs. You must be logged into Figma.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "figma",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'landing page', 'design system', 'mobile app')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Figma home\n  await browser.open('https://www.figma.com/files/recents')\n\n  // Wait for search input\n  await browser.waitForSelector('input[placeholder*=\"Search\"], [data-testid=\"search-input\"], [class*=\"search\"] input', 15000)\n\n  // Let page stabilize\n  await browser.wait(2000)\n\n  // Click search input\n  await browser.click('input[placeholder*=\"Search\"], [data-testid=\"search-input\"], [class*=\"search\"] input, [class*=\"search_bar\"], [class*=\"global_search\"]')\n\n  // Let search focus\n  await browser.wait(500)\n\n  // Type search query\n  const type_result = await browser.evaluate(`const searchInput = document.querySelector('input[placeholder*=\"Search\"], [data-testid=\"search-input\"], [class*=\"search\"] input'); if (!searchInput) throw new Error('Search input not found'); searchInput.focus(); const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; nativeSetter.call(searchInput, params.query); searchInput.dispatchEvent(new Event('input', { bubbles: true })); searchInput.dispatchEvent(new Event('change', { bubbles: true })); await new Promise(r => setTimeout(r, 300)); searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true })); return { typed: true }`)\n\n  // Wait for search results\n  await browser.wait(3000)\n\n  // Extract search results\n  const result = await browser.evaluate(`const results = []; const items = document.querySelectorAll('[data-testid=\"file-card\"], .file_card, [class*=\"search_result\"], [class*=\"file-browser-page\"] .tile, [class*=\"search\"] [class*=\"result_item\"]'); for (let i = 0; i < Math.min(items.length, 15); i++) { const item = items[i]; const nameEl = item.querySelector('.file-name, [data-testid=\"filename\"], [class*=\"file_name\"], [class*=\"result_name\"]'); const linkEl = item.querySelector('a[href*=\"/design/\"], a[href*=\"/file/\"], a[href*=\"/board/\"]'); const thumbEl = item.querySelector('img[src*=\"figma\"], img[class*=\"thumbnail\"]'); const projectEl = item.querySelector('[class*=\"project_name\"], [class*=\"folder\"], [class*=\"breadcrumb\"]'); results.push({ name: nameEl ? nameEl.textContent.trim() : '', url: linkEl ? linkEl.href : '', thumbnail: thumbEl ? thumbEl.src : '', project: projectEl ? projectEl.textContent.trim() : '' }); } return { query: params.query, result_count: results.length, results: results }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-bookmark-tweet",
+    "slug": "bookmark-tweet",
+    "name": "bookmark_tweet",
+    "displayName": "Bookmark Tweet",
+    "description": "Bookmark a tweet for later reading.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation"
+    ],
+    "parameters": [
+      {
+        "name": "tweet_url",
+        "type": "string",
+        "description": "Full URL of the tweet to bookmark",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open the tweet\n  await browser.open(`${params.tweet_url}`)\n\n  // Wait for page content\n  await browser.waitForSelector('article[data-testid=\\'tweet\\']', 15000)\n\n  // Let page settle\n  await browser.wait(1000)\n\n  // Wait for bookmark button\n  await browser.waitForSelector('[data-testid$=\\'bookmark\\']', 10000)\n\n  // Bookmark the tweet\n  const result = await browser.evaluate(`const bookmarkBtn = document.querySelector('[data-testid$=\"bookmark\"]'); const unbookmarkBtn = document.querySelector('[data-testid$=\"removeBookmark\"]'); if (unbookmarkBtn) return { already_bookmarked: true, message: 'Tweet is already bookmarked' }; if (bookmarkBtn) { bookmarkBtn.click(); return { success: true, message: 'Tweet bookmarked' }; } return { success: false, message: 'Bookmark button not found' }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

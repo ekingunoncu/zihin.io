@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "trello-create-card",
+    "slug": "trello-create-card",
+    "name": "trello_create_card",
+    "displayName": "Trello Create Card",
+    "description": "Create a new card in a Trello list. Requires the list ID and card name.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "trello",
+      "create"
+    ],
+    "parameters": [
+      {
+        "name": "list_id",
+        "type": "string",
+        "description": "Trello list ID to create the card in",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "description": "Card title/name",
+        "required": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "description": "Card description (supports markdown)",
+        "required": false,
+        "default": ""
+      },
+      {
+        "name": "due_date",
+        "type": "string",
+        "description": "Due date in ISO format (e.g. '2025-12-31'). Leave empty for no due date.",
+        "required": false,
+        "default": ""
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Trello\n  await browser.open('https://trello.com')\n\n  // Let Trello load\n  await browser.wait(2000)\n\n  // Create card via Trello API\n  const result = await browser.evaluate(`const params = new URLSearchParams({ idList: params.list_id, name: params.name }); const desc = params.description; if (desc) params.set('desc', desc); const due = params.due_date; if (due) params.set('due', due); const resp = await fetch('/1/cards?' + params.toString(), { method: 'POST', credentials: 'same-origin' }); if (!resp.ok) { const err = await resp.text(); throw new Error('Create card failed: ' + resp.status + ' ' + err); } const card = await resp.json(); return { success: true, id: card.id, name: card.name, url: card.shortUrl || card.url }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

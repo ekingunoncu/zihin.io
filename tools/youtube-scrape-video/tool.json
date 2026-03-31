@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "youtube-scrape-video",
+    "slug": "youtube-scrape-video",
+    "name": "youtube_scrape_video",
+    "displayName": "Youtube Scrape Video",
+    "description": "Scrape detailed information about a YouTube video: title, description, views, likes, channel name, upload date, and subscriber count.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "youtube",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "video_url",
+        "type": "string",
+        "description": "YouTube video URL (e.g. 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open video page\n  await browser.open(`${params.video_url}`)\n\n  // Wait for video to load\n  await browser.waitForSelector('#title h1, h1.ytd-watch-metadata yt-formatted-string', 15000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Expand description\n  const expand_desc = await browser.evaluate(`const expandBtn = document.querySelector('#description-inline-expander tp-yt-paper-button#expand, ytd-text-inline-expander #expand'); if (expandBtn) expandBtn.click(); return { clicked: true }`)\n\n  await browser.wait(1000)\n\n  // Extract video details\n  const video_details = await browser.evaluate(`const titleEl = document.querySelector('#title h1 yt-formatted-string, h1.ytd-watch-metadata yt-formatted-string'); const channelEl = document.querySelector('#channel-name ytd-channel-name a, ytd-channel-name #text a'); const subscriberEl = document.querySelector('#owner-sub-count, yt-formatted-string#owner-sub-count'); const viewsEl = document.querySelector('#info-strings yt-formatted-string span, ytd-watch-info-text .view-count, #info-strings yt-formatted-string'); const dateEl = document.querySelector('#info-strings yt-formatted-string:last-child, ytd-watch-info-text .date'); const likeBtnEl = document.querySelector('like-button-view-model button, #top-level-buttons-computed button'); const likeLabel = likeBtnEl ? (likeBtnEl.getAttribute('aria-label') || likeBtnEl.textContent.trim()) : ''; const descEl = document.querySelector('#description-inline-expander yt-attributed-string, ytd-text-inline-expander yt-attributed-string, #description yt-attributed-string'); const descText = descEl ? descEl.textContent.trim().substring(0, 2000) : ''; return { title: titleEl ? titleEl.textContent.trim() : 'Unknown', channel: channelEl ? channelEl.textContent.trim() : '', subscriber_count: subscriberEl ? subscriberEl.textContent.trim() : '', views: viewsEl ? viewsEl.textContent.trim() : '', upload_date: dateEl ? dateEl.textContent.trim() : '', likes: likeLabel, description: descText, url: window.location.href }`)\n\n  return video_details\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

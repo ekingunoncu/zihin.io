@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "gmail-bulk-send-email",
+    "slug": "gmail-bulk-send-email",
+    "name": "gmail_bulk_send_email",
+    "displayName": "Gmail Bulk Send Email",
+    "description": "Send multiple emails via Gmail in sequence using separate browser tabs. Each email is composed and sent independently. Pass all emails as a JSON array string. Use this instead of calling gmail_send_email multiple times - it is faster and more efficient. You must be logged in to Gmail.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "gmail",
+      "bulk",
+      "messaging"
+    ],
+    "parameters": [
+      {
+        "name": "emails",
+        "type": "string",
+        "description": "JSON array string of emails to send. Each object must have 'to', 'subject', and 'body' fields. Example: [{\"to\":\"a@b.com\",\"subject\":\"Hi\",\"body\":\"Hello\"}]",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Parse email list\n  const items = await browser.evaluate(`const items = JSON.parse(params.emails); if (!Array.isArray(items) || items.length === 0) throw new Error('emails must be a non-empty JSON array'); return items.map(e => ({ to: e.to, subject: e.subject, body: e.body, url: 'https://mail.google.com/mail/u/0/#inbox' }))`)\n\n  // Send each email\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

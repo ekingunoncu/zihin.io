@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "todoist-create-task",
+    "slug": "todoist-create-task",
+    "name": "todoist_create_task",
+    "displayName": "Todoist Create Task",
+    "description": "Create a new task in Todoist by clicking the Add Task button, typing the task name, and submitting. Requires login.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "todoist",
+      "create"
+    ],
+    "parameters": [
+      {
+        "name": "task_name",
+        "type": "string",
+        "description": "Task name to create",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Todoist\n  await browser.open('https://app.todoist.com/app/today')\n\n  // Wait for page\n  await browser.waitForSelector('main, .content, [class*=\"task\"]', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Click Add Task button\n  const open_add = await browser.evaluate(`const addBtn = document.querySelector('[data-testid=\"quick-add-task-button\"], button[class*=\"plus\"], .add_task, [class*=\"add_task\"], button[aria-label*=\"Add task\"], button[aria-label*=\"add task\"]'); if (addBtn) { addBtn.click(); return { clicked: true }; } document.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', code: 'KeyQ', keyCode: 81, bubbles: true })); return { clicked: false, used_shortcut: true };`)\n\n  // Wait for task editor\n  await browser.wait(1500)\n\n  // Type task name\n  const type_task = await browser.evaluate(`const input = document.querySelector('[data-testid=\"task-name-input\"], .task_editor__content_field, [contenteditable=\"true\"][class*=\"task\"], [class*=\"task_editor\"] [contenteditable], textarea[class*=\"task\"], [class*=\"quick_add\"] [contenteditable], [class*=\"quick_add\"] textarea, [class*=\"quick_add\"] input'); if (input) { input.focus(); if (input.tagName === 'TEXTAREA' || input.tagName === 'INPUT') { input.value = '' + params.task_name + ''; input.dispatchEvent(new Event('input', { bubbles: true })); } else { document.execCommand('insertText', false, '' + params.task_name + ''); } return { typed: true }; } return { typed: false, error: 'Could not find task input field' };`)\n\n  // Wait before submit\n  await browser.wait(1000)\n\n  // Submit task\n  const result = await browser.evaluate(`const submitBtn = document.querySelector('[data-testid=\"task-editor-submit-button\"], button[type=\"submit\"], .task_editor__submit_btn, [class*=\"task_editor\"] button[type=\"submit\"], [class*=\"quick_add\"] button[type=\"submit\"]'); if (submitBtn) { submitBtn.click(); return { submitted: true, task_name: '' + params.task_name + '' }; } return { submitted: false, error: 'Could not find submit button' };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

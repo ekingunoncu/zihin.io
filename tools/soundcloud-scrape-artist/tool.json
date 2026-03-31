@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "soundcloud-scrape-artist",
+    "slug": "soundcloud-scrape-artist",
+    "name": "soundcloud_scrape_artist",
+    "displayName": "Soundcloud Scrape Artist",
+    "description": "Scrape a SoundCloud artist profile page. Returns name, bio, follower count, track count, recent tracks, and location.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "soundcloud",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "artist_url",
+        "type": "string",
+        "description": "SoundCloud artist URL (e.g. 'https://soundcloud.com/artist-name')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open artist page\n  await browser.open(`${params.artist_url}`)\n\n  // Wait for profile to load\n  await browser.waitForSelector('.profileHeaderInfo__userName, h3[class*=\\'profileHeader\\'], [class*=\\'userInfoBar\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load tracks\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract artist profile\n  const artist_data = await browser.evaluate(`const nameEl = document.querySelector('.profileHeaderInfo__userName, h3[class*=\"profileHeader\"], h1'); const bioEl = document.querySelector('[class*=\"userInfoBar__description\"], [class*=\"bio\"], [class*=\"about\"]'); const followersEl = document.querySelector('a[href*=\"followers\"] span, [class*=\"followers\"] span, [class*=\"followersCount\"]'); const followingEl = document.querySelector('a[href*=\"following\"] span, [class*=\"following\"] span'); const trackCountEl = document.querySelector('a[href*=\"tracks\"] span, [class*=\"trackCount\"]'); const locationEl = document.querySelector('[class*=\"location\"], [class*=\"city\"]'); const avatarEl = document.querySelector('.profileHeaderInfo__avatar img, .image__full, .sc-artwork img'); const verifiedEl = document.querySelector('[class*=\"verified\"], [class*=\"pro\"]'); const tracks = []; const trackEls = document.querySelectorAll('.soundList__item, [class*=\"soundList__item\"], [class*=\"trackItem\"]'); for (let i = 0; i < Math.min(trackEls.length, 10); i++) { const el = trackEls[i]; const titleEl = el.querySelector('.soundTitle__title span, a[class*=\"soundTitle\"] span'); const playsEl = el.querySelector('[class*=\"playbackCount\"], [title*=\"plays\"]'); const likesEl = el.querySelector('[class*=\"likeCount\"]'); const linkEl = el.querySelector('a[class*=\"soundTitle__title\"], a.soundTitle__title'); tracks.push({ title: titleEl ? titleEl.textContent.trim() : '', plays: playsEl ? playsEl.textContent.trim() : '', likes: likesEl ? likesEl.textContent.trim() : '', url: linkEl ? linkEl.href : '' }); } return { name: nameEl ? nameEl.textContent.trim() : '', bio: bioEl ? bioEl.textContent.trim().substring(0, 500) : '', followers: followersEl ? followersEl.textContent.trim() : '', following: followingEl ? followingEl.textContent.trim() : '', track_count: trackCountEl ? trackCountEl.textContent.trim() : '', location: locationEl ? locationEl.textContent.trim() : '', avatar: avatarEl ? avatarEl.getAttribute('src') : '', is_verified: !!verifiedEl, recent_tracks: tracks, profile_url: window.location.href }`)\n\n  return artist_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

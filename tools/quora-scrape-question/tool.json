@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "quora-scrape-question",
+    "slug": "quora-scrape-question",
+    "name": "quora_scrape_question",
+    "displayName": "Quora Scrape Question",
+    "description": "Scrape a Quora question page. Returns the question, answer count, top answers with authors, upvotes, and content.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "quora",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "question_url",
+        "type": "string",
+        "description": "Quora question URL (e.g. 'https://www.quora.com/What-is-artificial-intelligence')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open question page\n  await browser.open(`${params.question_url}`)\n\n  // Wait for page\n  await browser.waitForSelector('[class*=\\'Question\\'], h1, [class*=\\'question\\']', 15000)\n\n  await browser.wait(2000)\n\n  // Scroll through answers\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Extract question and answers\n  const question_data = await browser.evaluate(`const questionEl = document.querySelector('[class*=\"question_text\"], [class*=\"Question\"] span, h1'); const answerCountEl = document.querySelector('[class*=\"answer-count\"], [class*=\"AnswerCount\"]'); const answers = []; const answerEls = document.querySelectorAll('[class*=\"Answer\"], [class*=\"answer\"][class*=\"base\"]'); for (let i = 0; i < Math.min(answerEls.length, 10); i++) { const el = answerEls[i]; const authorEl = el.querySelector('[class*=\"user\"] a, [class*=\"author\"] a, a[class*=\"name\"]'); const credentialEl = el.querySelector('[class*=\"credential\"], [class*=\"description\"]'); const contentEl = el.querySelector('[class*=\"inline\"], [class*=\"answer-content\"], [class*=\"formatted_q_text\"]'); const upvotesEl = el.querySelector('[class*=\"upvote\"] [class*=\"count\"], [class*=\"VoteButton\"]'); const dateEl = el.querySelector('[class*=\"date\"], time, a[href*=\"/answer/\"]'); answers.push({ author: authorEl ? authorEl.textContent.trim() : '', credential: credentialEl ? credentialEl.textContent.trim() : '', content: contentEl ? contentEl.textContent.trim().substring(0, 1500) : '', upvotes: upvotesEl ? upvotesEl.textContent.trim() : '', date: dateEl ? dateEl.textContent.trim() : '' }); } const relatedQuestions = []; document.querySelectorAll('[class*=\"related\"] a, [class*=\"Related\"] a').forEach(function(el) { const text = el.textContent.trim(); if (text.length > 10 && text.length < 200) relatedQuestions.push(text); }); return { question: questionEl ? questionEl.textContent.trim() : '', answer_count: answerCountEl ? answerCountEl.textContent.trim() : '', answers: answers, related_questions: relatedQuestions.slice(0, 10), url: window.location.href }`)\n\n  return question_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

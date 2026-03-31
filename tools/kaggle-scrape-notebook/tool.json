@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "kaggle-scrape-notebook",
+    "slug": "kaggle-scrape-notebook",
+    "name": "kaggle_scrape_notebook",
+    "displayName": "Kaggle Scrape Notebook",
+    "description": "Scrape a Kaggle notebook/code page. Returns title, author, code snippets, votes, comments count, and linked datasets. Note: Kaggle renders notebooks in an iframe so full code extraction may be limited.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "kaggle",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "notebook_url",
+        "type": "string",
+        "description": "Full Kaggle notebook URL (e.g. 'https://www.kaggle.com/code/username/notebook-name')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open notebook page\n  await browser.open(`${params.notebook_url}`)\n\n  // Wait for notebook page\n  await browser.waitForSelector('h1, [role=\\'main\\']', 15000)\n\n  // Let notebook and iframe render\n  await browser.wait(4000)\n\n  // Scroll to load more content\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Extract notebook data\n  const page_data = await browser.evaluate(`const title = document.querySelector('h1')?.textContent?.trim() || document.title.split('|')[0]?.trim() || ''; const authorEl = document.querySelector('a[href*=\"/code/\"]')?.closest('div')?.querySelector('a[href^=\"/\"]') || document.querySelector('a[href*=\"/users/\"]'); const author = authorEl?.textContent?.trim() || ''; const codeCells = []; const outputCells = []; document.querySelectorAll('pre code, pre, .CodeMirror-code, [class*=\"code\"] pre').forEach(el => { const text = el.textContent.trim(); if (text.length > 5 && text.length < 2000) codeCells.push(text.substring(0, 500)); }); document.querySelectorAll('[class*=\"output\"] pre, [class*=\"Output\"], [class*=\"result\"]').forEach(el => { const text = el.textContent.trim(); if (text.length > 5) outputCells.push(text.substring(0, 300)); }); const datasets = []; document.querySelectorAll('a[href*=\"/datasets/\"]').forEach(a => { const href = a.getAttribute('href'); if (href && href.match(/\\/datasets\\/[^/]+\\/[^/]+/)) { datasets.push({ name: a.textContent.trim(), url: 'https://www.kaggle.com' + href }); } }); const allText = document.body.innerText; const votes = allText.match(/(\\d+)\\s*votes?/i)?.[1] || ''; const comments = allText.match(/(\\d+)\\s*comments?/i)?.[1] || ''; return { title, author, votes, comments, code_cells: codeCells.slice(0, 10), outputs: outputCells.slice(0, 5), linked_datasets: datasets.slice(0, 5), url: window.location.href };`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

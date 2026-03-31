@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "threads-like-post",
+    "slug": "threads-like-post",
+    "name": "threads_like_post",
+    "displayName": "Threads Like Post",
+    "description": "Like a post on Threads. Navigates to the post and clicks the heart/like button. You must be logged in to Threads.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "threads"
+    ],
+    "parameters": [
+      {
+        "name": "post_url",
+        "type": "string",
+        "description": "Full URL of the Threads post to like (e.g. 'https://www.threads.net/@username/post/ABC123')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Threads post\n  await browser.open(`${params.post_url}`)\n\n  // Wait for post to load\n  await browser.waitForSelector('[class*=\\'ThreadItem\\'], article, div[role=\\'article\\'], [data-pressable-container=\\'true\\']', 15000)\n\n  // Let post fully render\n  await browser.wait(2500)\n\n  // Like the post\n  const result = await browser.evaluate(`const mainPost = document.querySelector('[class*=\"ThreadItem\"], article, div[role=\"article\"], [data-pressable-container=\"true\"]'); if (!mainPost) return { success: false, message: 'Post not found' }; const unlikeSvg = mainPost.querySelector('svg[aria-label*=\"Unlike\"], svg[aria-label*=\"unlike\"], [class*=\"liked\"] svg, [aria-label*=\"Liked\"]'); if (unlikeSvg) { return { success: true, message: 'Post is already liked', already_liked: true, post_url: params.post_url }; } const likeSvg = mainPost.querySelector('svg[aria-label*=\"Like\"], svg[aria-label*=\"like\"]'); if (likeSvg) { const likeBtn = likeSvg.closest('button') || likeSvg.closest('div[role=\"button\"]') || likeSvg.parentElement; if (likeBtn) { likeBtn.click(); await new Promise(r => setTimeout(r, 1500)); const confirmUnlike = mainPost.querySelector('svg[aria-label*=\"Unlike\"], svg[aria-label*=\"unlike\"], [class*=\"liked\"] svg, [aria-label*=\"Liked\"]'); return { success: !!confirmUnlike, message: confirmUnlike ? 'Post liked successfully' : 'Like button clicked but could not confirm', post_url: params.post_url }; } } const heartBtns = mainPost.querySelectorAll('[role=\"button\"], button'); for (const btn of heartBtns) { const svg = btn.querySelector('svg'); const ariaLabel = btn.getAttribute('aria-label') || (svg ? svg.getAttribute('aria-label') : '') || ''; if (ariaLabel.toLowerCase().includes('like') && !ariaLabel.toLowerCase().includes('unlike')) { btn.click(); await new Promise(r => setTimeout(r, 1500)); return { success: true, message: 'Like button clicked', post_url: params.post_url }; } } return { success: false, message: 'Like button not found. Make sure you are logged in and the post URL is valid.' }`)\n\n  // Wait for like to register\n  await browser.wait(1000)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

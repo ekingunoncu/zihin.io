@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "facebook-search",
+    "slug": "facebook-search",
+    "name": "facebook_search",
+    "displayName": "Facebook Search",
+    "description": "Search Facebook for posts, people, and pages. Returns up to 15 results with name, snippet, type, and URL.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "facebook",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'artificial intelligence', 'local restaurants')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Facebook\n  await browser.open(`https://www.facebook.com/search/top/?q=${params.query}`)\n\n  // Wait for search results\n  await browser.waitForSelector('[role=\\'feed\\'], [role=\\'main\\']', 15000)\n\n  // Let results render\n  await browser.wait(3000)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Scroll further down\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const feedItems = document.querySelectorAll('[role=\"feed\"] > div, [role=\"main\"] [data-ad-preview], [role=\"article\"]'); for (let i = 0; i < Math.min(feedItems.length, 15); i++) { const el = feedItems[i]; const linkEls = el.querySelectorAll('a[href]'); let profileLink = ''; let profileName = ''; let snippet = ''; let resultType = 'post'; for (const link of linkEls) { const href = link.getAttribute('href') || ''; if (href.includes('facebook.com/') && !href.includes('/search/') && !href.includes('#') && !href.includes('policies') && !href.includes('help.')) { if (!profileLink) { profileLink = href; profileName = link.textContent.trim(); } if (href.includes('/posts/') || href.includes('/photos/') || href.includes('/videos/')) { resultType = 'post'; } else if (href.includes('/groups/')) { resultType = 'group'; } else if (href.includes('/events/')) { resultType = 'event'; } else if (!href.includes('/posts/')) { resultType = 'page_or_profile'; } break; } } const textEls = el.querySelectorAll('div[dir=\"auto\"], span[dir=\"auto\"]'); for (const t of textEls) { const text = t.textContent.trim(); if (text.length > 20 && text.length < 1000) { snippet = text.substring(0, 300); break; } } if (profileName || snippet) { results.push({ name: profileName || '', snippet: snippet, type: resultType, url: profileLink }); } } return { query: params.query, result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

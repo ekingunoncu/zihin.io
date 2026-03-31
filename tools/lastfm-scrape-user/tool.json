@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "lastfm-scrape-user",
+    "slug": "lastfm-scrape-user",
+    "name": "lastfm_scrape_user",
+    "displayName": "Lastfm Scrape User",
+    "description": "Scrape a Last.fm user profile including scrobble count, top artists, and recent tracks.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "lastfm",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "username",
+        "type": "string",
+        "description": "Last.fm username",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Last.fm user profile\n  await browser.open(`https://www.last.fm/user/${params.username}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1.header-title, .header-metadata, .page-content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract user data\n  const result = await browser.evaluate(`const name = document.querySelector('h1.header-title')?.textContent?.trim() || ''; const displayName = document.querySelector('.header-title-display-name')?.textContent?.trim() || ''; const scrobbleSince = document.querySelector('.header-scrobble-since')?.textContent?.trim() || ''; const metaItems = document.querySelectorAll('.header-metadata-item'); let scrobbles = ''; let artistCount = ''; let lovedTracks = ''; metaItems.forEach(item => { const title = item.querySelector('.header-metadata-title')?.textContent?.trim() || ''; const abbr = item.querySelector('abbr[title]'); const link = item.querySelector('.header-metadata-display a'); const val = abbr ? abbr.getAttribute('title') : (link ? link.textContent?.trim() : item.querySelector('.header-metadata-display p')?.textContent?.trim() || ''); if (title.includes('Scrobble')) scrobbles = val || ''; if (title.includes('Artist')) artistCount = val || ''; if (title.includes('Loved')) lovedTracks = val || ''; }); const topArtists = []; document.querySelectorAll('.grid-items-item-details').forEach((el, i) => { if (i < 10) { const artistName = el.querySelector('.grid-items-item-main-text a.link-block-target')?.textContent?.trim() || ''; const aux = el.querySelector('.grid-items-item-aux-text')?.textContent?.trim() || ''; topArtists.push({ name: artistName, info: aux }); } }); const recentTracks = []; document.querySelectorAll('.chartlist-row').forEach((el, i) => { if (i < 10) { const trackName = el.querySelector('.chartlist-name a.link-block-target')?.textContent?.trim() || ''; const artistEl = el.querySelector('.chartlist-artist a'); recentTracks.push({ track: trackName, artist: artistEl?.textContent?.trim() || '' }); } }); return { username: '' + params.username + '', display_name: displayName || name, scrobble_since: scrobbleSince, scrobbles, artist_count: artistCount, loved_tracks: lovedTracks, top_artists: topArtists, recent_tracks: recentTracks, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

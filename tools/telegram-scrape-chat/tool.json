@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "telegram-scrape-chat",
+    "slug": "telegram-scrape-chat",
+    "name": "telegram_scrape_chat",
+    "displayName": "Telegram Scrape Chat",
+    "description": "Read messages from a specific Telegram chat. Searches for the chat by name, opens it, and scrapes the last 20 messages with author, content, and timestamp.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "telegram",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "chat_name",
+        "type": "string",
+        "description": "Name of the chat, group, or channel to open and read messages from",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Telegram Web\n  await browser.open('https://web.telegram.org/k/')\n\n  // Wait for Telegram to load\n  await browser.waitForSelector('.input-search input, .chatlist-chat, .chat-list', 15000)\n\n  // Let app fully initialize\n  await browser.wait(2000)\n\n  // Search for the chat\n  const search_chat = await browser.evaluate(`const searchInput = document.querySelector('.input-search input') || document.querySelector('input[type=\"text\"]'); if (searchInput) { searchInput.focus(); searchInput.click(); await new Promise(r => setTimeout(r, 300)); searchInput.value = ''; searchInput.dispatchEvent(new Event('input', { bubbles: true })); document.execCommand('insertText', false, params.chat_name); searchInput.dispatchEvent(new Event('input', { bubbles: true })); } return { searched: true }`)\n\n  // Wait for search results\n  await browser.wait(2500)\n\n  // Click on the matching chat\n  const click_chat = await browser.evaluate(`const chatItems = document.querySelectorAll('.chatlist-chat, .chat-list .ListItem, .search-group .chatlist-chat'); let clicked = false; for (const item of chatItems) { const nameEl = item.querySelector('.peer-title, .user-title, .dialog-title'); if (nameEl && nameEl.textContent.trim().toLowerCase().includes(params.chat_name.toLowerCase())) { item.click(); clicked = true; break; } } if (!clicked && chatItems.length > 0) { chatItems[0].click(); clicked = true; } return { clicked: clicked }`)\n\n  // Wait for messages to load\n  await browser.wait(3000)\n\n  // Wait for message bubbles\n  await browser.waitForSelector('.message, .bubble, .bubble-content', 10000)\n\n  // Extract messages from chat\n  const chat_messages = await browser.evaluate(`const messages = []; const bubbles = document.querySelectorAll('.bubble:not(.is-date), .message'); const startIdx = Math.max(0, bubbles.length - 20); for (let i = startIdx; i < bubbles.length; i++) { const el = bubbles[i]; const authorEl = el.querySelector('.peer-title, .name, .bubble-name .peer-title'); const contentEl = el.querySelector('.text-content, .message-content, .message'); const timeEl = el.querySelector('.time, time, .bubble-content .time'); const content = contentEl ? contentEl.textContent.trim() : ''; if (!content) continue; messages.push({ author: authorEl ? authorEl.textContent.trim() : '', content: content, timestamp: timeEl ? timeEl.textContent.trim() : '', is_outgoing: el.classList.contains('is-out') || el.classList.contains('outgoing') }); } const chatTitle = document.querySelector('.chat-info .peer-title, .top .peer-title'); return { chat_name: chatTitle ? chatTitle.textContent.trim() : params.chat_name, message_count: messages.length, messages: messages }`)\n\n  return chat_messages\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "instagram-scrape-profile",
+    "slug": "instagram-scrape-profile",
+    "name": "instagram_scrape_profile",
+    "displayName": "Instagram Scrape Profile",
+    "description": "Scrape an Instagram user profile including username, full name, bio, post count, followers, following, profile picture, and recent post thumbnails. You must be logged in to Instagram.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "instagram",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "username",
+        "type": "string",
+        "description": "Instagram username to scrape (e.g. 'nasa', 'natgeo')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open user profile\n  await browser.open(`https://www.instagram.com/${params.username}/`)\n\n  // Wait for profile page to load\n  await browser.waitForSelector('header section, main[role=\\'main\\'] header, [class*=\\'ProfileHeader\\']', 15000)\n\n  // Let profile fully render\n  await browser.wait(2500)\n\n  // Extract profile data\n  const result = await browser.evaluate(`const header = document.querySelector('header section') || document.querySelector('main header'); const username = document.querySelector('header h2, header h1, header span[class*=\"username\"]')?.textContent?.trim() || '' + params.username + ''; const fullNameEl = document.querySelector('header section span[class*=\"fullName\"], header section > div > span, header span[dir=\"auto\"]'); let fullName = ''; if (fullNameEl) fullName = fullNameEl.textContent.trim(); const bioEl = document.querySelector('header section div[class*=\"bio\"] span, header section > div > span + br, header h1 + div span, div[class*=\"-bio\"] span'); let bio = ''; const bioContainer = document.querySelector('header section')?.querySelectorAll('span[dir=\"auto\"]'); if (bioContainer) { for (const el of bioContainer) { const text = el.textContent.trim(); if (text && text !== username && text !== fullName && text.length > 3) { bio = text; break; } } } const statElements = document.querySelectorAll('header section ul li, header section > ul > li'); let posts = ''; let followers = ''; let following = ''; if (statElements.length >= 3) { posts = statElements[0]?.querySelector('span span, span[class*=\"count\"]')?.textContent?.trim() || statElements[0]?.textContent?.trim() || ''; followers = statElements[1]?.querySelector('span span, span[class*=\"count\"], a span')?.textContent?.trim() || statElements[1]?.textContent?.trim() || ''; following = statElements[2]?.querySelector('span span, span[class*=\"count\"], a span')?.textContent?.trim() || statElements[2]?.textContent?.trim() || ''; } else { const allSpans = document.querySelectorAll('header section span'); for (const span of allSpans) { const text = span.textContent.trim().toLowerCase(); if (text.includes('post')) posts = span.querySelector('span')?.textContent?.trim() || ''; if (text.includes('follower') && !text.includes('following')) followers = span.querySelector('span')?.textContent?.trim() || ''; if (text.includes('following')) following = span.querySelector('span')?.textContent?.trim() || ''; } } const profilePicEl = document.querySelector('header img[alt*=\"profile\"], header img[draggable=\"false\"], header canvas + img, header span[role=\"link\"] img'); const profilePic = profilePicEl ? profilePicEl.src : ''; const postThumbnails = []; const postLinks = document.querySelectorAll('article a[href*=\"/p/\"], main a[href*=\"/p/\"], div[class*=\"_aabd\"] a[href*=\"/p/\"]'); for (let i = 0; i < Math.min(postLinks.length, 12); i++) { const link = postLinks[i]; const img = link.querySelector('img'); postThumbnails.push({ url: 'https://www.instagram.com' + link.getAttribute('href'), thumbnail: img ? img.src : '', alt: img ? (img.alt || '') : '' }); } return { username: username, full_name: fullName, bio: bio, posts_count: posts, followers: followers, following: following, profile_pic: profilePic, recent_posts: postThumbnails, profile_url: window.location.href }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

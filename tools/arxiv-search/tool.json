@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "arxiv-search",
+    "slug": "arxiv-search",
+    "name": "arxiv_search",
+    "displayName": "Arxiv Search",
+    "description": "Search arXiv papers. Returns titles, authors, abstract snippets, arxiv IDs, and categories.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "arxiv",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Paper search query",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open arXiv search\n  await browser.open(`https://arxiv.org/search/?searchtype=all&query=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('li.arxiv-result, ol.breathe-horizontal', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Extract papers\n  const results = await browser.evaluate(`const results = []; document.querySelectorAll('li.arxiv-result').forEach((el, i) => { if (i < 15) { const titleEl = el.querySelector('p.title'); const authorsEl = el.querySelector('p.authors'); const abstractEl = el.querySelector('.abstract-full') || el.querySelector('.abstract-short'); const idEl = el.querySelector('.list-title a[href*=\"/abs/\"]'); const catsEl = el.querySelector('.tags'); results.push({ title: titleEl?.textContent?.replace('Title:', '')?.trim() || '', authors: authorsEl?.textContent?.replace('Authors:', '')?.trim() || '', abstract: (abstractEl?.textContent?.trim()?.replace(/\\s*(More|Less)\\s*$/, '') || '').slice(0, 300), arxiv_id: idEl?.textContent?.trim() || '', url: idEl?.href || '', categories: catsEl?.textContent?.trim() || '' }); } }); return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

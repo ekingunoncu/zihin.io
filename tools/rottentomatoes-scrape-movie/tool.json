@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "rottentomatoes-scrape-movie",
+    "slug": "rottentomatoes-scrape-movie",
+    "name": "rottentomatoes_scrape_movie",
+    "displayName": "Rottentomatoes Scrape Movie",
+    "description": "Scrape full movie details from a Rotten Tomatoes movie page. Returns title, Tomatometer, audience score, critics consensus, synopsis, cast, director, rating, genre, runtime, and release date.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "rottentomatoes",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "movie_url",
+        "type": "string",
+        "description": "Rotten Tomatoes movie URL (e.g. 'https://www.rottentomatoes.com/m/the_matrix')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open movie page\n  await browser.open(`${params.movie_url}`)\n\n  // Wait for movie page to load\n  await browser.waitForSelector('h1, [data-qa=\\'score-panel\\'], [class*=\\'scoreboard\\'], rt-button', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load content\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract movie details\n  const movie_data = await browser.evaluate(`const titleEl = document.querySelector('h1, [class*=\"scoreboard\"] h1, [data-qa=\"score-panel-title\"]'); const tomatometerEl = document.querySelector('rt-button[slot=\"criticsScore\"] rt-text, [data-qa=\"tomatometer\"], score-board[tomatometerscore], [class*=\"tomatometer\"] span'); const audienceEl = document.querySelector('rt-button[slot=\"audienceScore\"] rt-text, [data-qa=\"audience-score\"], score-board[audiencescore], [class*=\"audience-score\"] span'); const consensusEl = document.querySelector('[data-qa=\"critics-consensus\"], [class*=\"consensus\"], p[data-qa=\"what-to-know\"]'); const synopsisEl = document.querySelector('[data-qa=\"movie-info-synopsis\"], [class*=\"synopsis\"], #movieSynopsis, [data-qa=\"section:media-scorecard\"] p'); const imgEl = document.querySelector('[data-qa=\"poster-image\"] img, .posterImage img, img[class*=\"posterImage\"]'); const infoEls = document.querySelectorAll('[data-qa=\"movie-info-item\"], li[class*=\"info-item\"], [class*=\"category-wrap\"]'); const info = {}; infoEls.forEach(function(el) { const labelEl = el.querySelector('[data-qa=\"movie-info-item-label\"], b, [class*=\"label\"]'); const valueEl = el.querySelector('[data-qa=\"movie-info-item-value\"], span, [class*=\"value\"]'); if (labelEl && valueEl) { info[labelEl.textContent.trim().replace(':', '')] = valueEl.textContent.trim(); } }); const castEls = document.querySelectorAll('[data-qa=\"cast-item\"], [class*=\"cast-item\"], [class*=\"castSection\"] a'); const cast = []; castEls.forEach(function(el) { const nameEl = el.querySelector('[data-qa=\"cast-item-name\"], [class*=\"name\"], a'); const charEl = el.querySelector('[data-qa=\"cast-item-character\"], [class*=\"character\"]'); cast.push({ name: nameEl ? nameEl.textContent.trim() : el.textContent.trim(), character: charEl ? charEl.textContent.trim() : '' }); }); let scoreboard = document.querySelector('score-board, [class*=\"scoreboard\"]'); let tomatometerState = ''; let audienceState = ''; if (scoreboard) { tomatometerState = scoreboard.getAttribute('tomatometerstate') || ''; audienceState = scoreboard.getAttribute('audiencestate') || ''; } return { title: titleEl ? titleEl.textContent.trim() : '', tomatometer: tomatometerEl ? tomatometerEl.textContent.trim() : '', tomatometer_state: tomatometerState, audience_score: audienceEl ? audienceEl.textContent.trim() : '', audience_state: audienceState, critics_consensus: consensusEl ? consensusEl.textContent.trim().substring(0, 500) : '', synopsis: synopsisEl ? synopsisEl.textContent.trim().substring(0, 1000) : '', info: info, cast: cast.slice(0, 10), image: imgEl ? imgEl.getAttribute('src') : '', url: window.location.href }`)\n\n  return movie_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

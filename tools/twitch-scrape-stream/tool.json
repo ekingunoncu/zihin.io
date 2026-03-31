@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "twitch-scrape-stream",
+    "slug": "twitch-scrape-stream",
+    "name": "twitch_scrape_stream",
+    "displayName": "Twitch Scrape Stream",
+    "description": "Scrape a live Twitch stream page. Returns stream title, game, viewer count, streamer info, tags, and stream uptime.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "twitch",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "channel_name",
+        "type": "string",
+        "description": "Twitch channel name (e.g. 'shroud', 'pokimane')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open stream page\n  await browser.open(`https://www.twitch.tv/${params.channel_name}`)\n\n  // Wait for stream page\n  await browser.waitForSelector('[data-a-target=\\'stream-title\\'], [class*=\\'channel-header\\'], h1, h2', 15000)\n\n  // Let stream page load\n  await browser.wait(3000)\n\n  // Extract stream info\n  const stream_data = await browser.evaluate(`const titleEl = document.querySelector('[data-a-target=\"stream-title\"], [class*=\"stream-info\"] h2, [class*=\"channel-info\"] p[data-a-target]'); const gameEl = document.querySelector('[data-a-target=\"stream-game-link\"], a[href*=\"/directory/game/\"]'); const viewersEl = document.querySelector('[data-a-target=\"animated-channel-viewers-count\"], [class*=\"stream-info\"] [aria-label*=\"viewer\"]'); const isLive = !!document.querySelector('[class*=\"live-indicator\"], [class*=\"LiveIndicator\"], [data-a-target=\"player-overlay-click-handler\"]'); const nameEl = document.querySelector('h1, [data-a-target=\"profile-username\"]'); const tags = []; const tagEls = document.querySelectorAll('[data-a-target=\"stream-tag\"], [class*=\"tag-list\"] button, [class*=\"stream-tags\"] a'); tagEls.forEach(function(el) { tags.push(el.textContent.trim()); }); const uptimeEl = document.querySelector('[class*=\"live-time\"], [class*=\"uptime\"]'); const avatarEl = document.querySelector('[class*=\"channel-info\"] img, [class*=\"avatar\"] img'); return { channel_name: '' + params.channel_name + '', display_name: nameEl ? nameEl.textContent.trim() : '', stream_title: titleEl ? titleEl.textContent.trim() : '', game: gameEl ? gameEl.textContent.trim() : '', viewer_count: viewersEl ? viewersEl.textContent.trim() : '', is_live: isLive, uptime: uptimeEl ? uptimeEl.textContent.trim() : '', tags: tags.slice(0, 10), avatar: avatarEl ? avatarEl.getAttribute('src') : '', url: window.location.href }`)\n\n  return stream_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

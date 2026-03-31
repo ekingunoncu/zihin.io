@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "aliexpress-scrape-store",
+    "slug": "aliexpress-scrape-store",
+    "name": "aliexpress_scrape_store",
+    "displayName": "Aliexpress Scrape Store",
+    "description": "Scrape a seller/store profile from AliExpress. Returns store name, rating, feedback score, followers, top products, and store age.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "aliexpress",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "store_url",
+        "type": "string",
+        "description": "AliExpress store URL (e.g. 'https://www.aliexpress.com/store/1234567')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open store page\n  await browser.open(`${params.store_url}`)\n\n  // Wait for store page\n  await browser.waitForSelector('[class*=\\'store-name\\'], [class*=\\'shop-name\\'], h1', 15000)\n\n  await browser.wait(2000)\n\n  // Scroll for products\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract store profile\n  const store_data = await browser.evaluate(`const nameEl = document.querySelector('[class*=\"store-name\"], [class*=\"shop-name\"], h1'); const ratingEl = document.querySelector('[class*=\"store-rating\"], [class*=\"score\"]'); const followersEl = document.querySelector('[class*=\"followers\"], [class*=\"follower\"]'); const feedbackEl = document.querySelector('[class*=\"feedback\"], [class*=\"positive\"]'); const sinceEl = document.querySelector('[class*=\"since\"], [class*=\"open-date\"]'); const products = []; document.querySelectorAll('[class*=\"product-card\"], [class*=\"item-card\"], a[href*=\"/item/\"]').forEach(function(el) { const titleEl = el.querySelector('[class*=\"title\"], h3'); const priceEl = el.querySelector('[class*=\"price\"]'); const imgEl = el.querySelector('img'); const linkEl = el.tagName === 'A' ? el : el.querySelector('a'); if (products.length < 10) { products.push({ title: titleEl ? titleEl.textContent.trim().substring(0, 150) : '', price: priceEl ? priceEl.textContent.trim() : '', url: linkEl ? linkEl.href : '', image: imgEl ? imgEl.getAttribute('src') : '' }); } }); return { store_name: nameEl ? nameEl.textContent.trim() : '', rating: ratingEl ? ratingEl.textContent.trim() : '', followers: followersEl ? followersEl.textContent.trim() : '', feedback: feedbackEl ? feedbackEl.textContent.trim() : '', open_since: sinceEl ? sinceEl.textContent.trim() : '', product_count: products.length, top_products: products, url: window.location.href }`)\n\n  return store_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

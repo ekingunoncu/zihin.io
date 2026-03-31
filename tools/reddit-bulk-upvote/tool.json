@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "reddit-bulk-upvote",
+    "slug": "reddit-bulk-upvote",
+    "name": "reddit_bulk_upvote",
+    "displayName": "Reddit Bulk Upvote",
+    "description": "Upvote multiple Reddit posts in parallel using concurrent browser tabs. Use this instead of calling reddit_upvote_post multiple times - it is faster and more efficient. Pass all post URLs as a single comma-separated string. You must be logged in to Reddit.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "reddit",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "post_urls",
+        "type": "string",
+        "description": "Comma-separated Reddit post URLs to upvote",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build post URL list\n  const items = await browser.evaluate(`return params.post_urls.split(',').map(u => { let url = u.trim(); url = url.replace('www.reddit.com', 'old.reddit.com').replace('new.reddit.com', 'old.reddit.com'); if (!url.includes('old.reddit.com')) url = url.replace('reddit.com', 'old.reddit.com'); return { url: url }; })`)\n\n  // Upvote each post in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

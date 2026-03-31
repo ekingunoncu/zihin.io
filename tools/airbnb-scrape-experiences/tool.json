@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "airbnb-scrape-experiences",
+    "slug": "airbnb-scrape-experiences",
+    "name": "airbnb_scrape_experiences",
+    "displayName": "Airbnb Scrape Experiences",
+    "description": "Browse and scrape Airbnb experiences in a given location. Returns up to 15 experiences with title, price, rating, review count, category, duration, and URL.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "airbnb",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "location",
+        "type": "string",
+        "description": "Location to search for experiences (e.g. 'Paris', 'Tokyo', 'New York')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Airbnb experiences page\n  await browser.open(`https://www.airbnb.com/s/${params.location}/experiences`)\n\n  // Wait for experiences to load\n  await browser.waitForSelector('[itemprop=\\'itemListElement\\'], [data-testid=\\'card-container\\'], [data-testid=\\'listing-card-title\\']', 15000)\n\n  // Let experiences render\n  await browser.wait(3000)\n\n  // Scroll to load more experiences\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll for more experiences\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Extract experiences\n  const experiences_data = await browser.evaluate(`const experiences = []; const cards = document.querySelectorAll('[itemprop=\"itemListElement\"], [data-testid=\"card-container\"], [aria-labelledby]'); for (let i = 0; i < Math.min(cards.length, 15); i++) { const el = cards[i]; const titleEl = el.querySelector('[data-testid=\"listing-card-title\"], [id^=\"title_\"], h3'); const priceEl = el.querySelector('span._tyxjp1, span[class*=\"price\"], [data-testid=\"price-availability-row\"] span span'); const ratingEl = el.querySelector('[aria-label*=\"rating\"], span[class*=\"rating\"], .t1a9j9y7 span'); const reviewCountEl = el.querySelector('[aria-label*=\"review\"], span[class*=\"review\"]'); const linkEl = el.querySelector('a[href*=\"/experiences/\"]'); const imgEl = el.querySelector('img[src*=\"images\"], img[data-original-uri]'); const categoryEl = el.querySelector('[data-testid=\"listing-card-subtitle\"], span[class*=\"subtitle\"], .f15liw5s span'); const durationEl = el.querySelector('[data-testid=\"listing-card-subtitle\"]:last-of-type, .s1cjsi4j span'); const url = linkEl ? (linkEl.href.startsWith('http') ? linkEl.href : 'https://www.airbnb.com' + linkEl.getAttribute('href')) : ''; const title = titleEl ? titleEl.textContent.trim() : ''; if (title) { experiences.push({ title: title, price: priceEl ? priceEl.textContent.trim() : '', rating: ratingEl ? ratingEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', category: categoryEl ? categoryEl.textContent.trim() : '', duration: durationEl ? durationEl.textContent.trim() : '', image: imgEl ? (imgEl.getAttribute('src') || imgEl.getAttribute('data-original-uri') || '') : '', url: url }); } } return { location: params.location, result_count: experiences.length, experiences: experiences }`)\n\n  return experiences_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

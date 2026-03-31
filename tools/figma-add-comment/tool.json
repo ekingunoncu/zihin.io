@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "figma-add-comment",
+    "slug": "figma-add-comment",
+    "name": "figma_add_comment",
+    "displayName": "Figma Add Comment",
+    "description": "Add a comment to a Figma file. You must be logged into Figma and have commenting access to the file.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "figma"
+    ],
+    "parameters": [
+      {
+        "name": "file_url",
+        "type": "string",
+        "description": "Figma file URL (e.g. 'https://www.figma.com/design/FILEID/FileName')",
+        "required": true
+      },
+      {
+        "name": "comment",
+        "type": "string",
+        "description": "Comment text to add to the file",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Figma file\n  await browser.open(`${params.file_url}`)\n\n  // Wait for editor to load\n  await browser.waitForSelector('[class*=\"toolbar\"], [data-testid=\"canvas\"]', 20000)\n\n  // Let editor initialize\n  await browser.wait(3000)\n\n  // Open comments panel\n  await browser.click('[class*=\"comment\"] button, [data-testid=\"comments-toggle\"], button[aria-label*=\"Comment\"], [class*=\"toolbar\"] [class*=\"comment_icon\"]')\n\n  // Let comments panel load\n  await browser.wait(2000)\n\n  // Click comment input area\n  await browser.click('[data-testid=\"comment-input\"], textarea.comment-input, [class*=\"comment_input\"], [class*=\"comment\"] textarea, [class*=\"new_comment\"] [contenteditable], [class*=\"comment_composer\"] [contenteditable]')\n\n  // Let input focus\n  await browser.wait(500)\n\n  // Type comment text\n  const type_result = await browser.evaluate(`const input = document.querySelector('[data-testid=\"comment-input\"], textarea.comment-input, [class*=\"comment_input\"], [class*=\"comment\"] textarea, [class*=\"new_comment\"] [contenteditable], [class*=\"comment_composer\"] [contenteditable]'); if (!input) throw new Error('Comment input not found'); input.focus(); if (input.tagName === 'TEXTAREA') { const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; nativeSetter.call(input, params.comment); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); } else if (input.tagName === 'INPUT') { const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; nativeSetter.call(input, params.comment); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); } else { input.textContent = params.comment; input.dispatchEvent(new Event('input', { bubbles: true })); } return { typed: true }`)\n\n  // Let input register\n  await browser.wait(500)\n\n  // Submit comment\n  const result = await browser.evaluate(`const submitBtn = document.querySelector('[class*=\"comment\"] button[type=\"submit\"], [data-testid=\"comment-submit\"], [class*=\"comment_submit\"], [class*=\"comment_composer\"] button[class*=\"submit\"], [class*=\"comment\"] [class*=\"send\"]'); if (submitBtn) { submitBtn.click(); } else { const input = document.querySelector('[data-testid=\"comment-input\"], textarea.comment-input, [class*=\"comment_input\"], [class*=\"comment\"] textarea, [class*=\"comment_composer\"] [contenteditable]'); if (input) { input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, ctrlKey: true, bubbles: true })); } } return { success: true, comment: params.comment, file_url: window.location.href }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "scholar-scrape-citations",
+    "slug": "scholar-scrape-citations",
+    "name": "scholar_scrape_citations",
+    "displayName": "Scholar Scrape Citations",
+    "description": "Scrape papers that cite a given paper on Google Scholar. Uses the 'Cited by' link to find all citing papers. Returns up to 10 citing papers with title, authors, year, snippet, and URL.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-scholar",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "citation_url",
+        "type": "string",
+        "description": "Google Scholar 'Cited by' URL (e.g. 'https://scholar.google.com/scholar?cites=1234567890') or direct Scholar paper cluster URL",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open citations page\n  await browser.open(`${params.citation_url}`)\n\n  // Wait for citation results\n  await browser.waitForSelector('.gs_r.gs_or.gs_scl, #gs_res_ccl', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract citing papers\n  const citations_data = await browser.evaluate(`const results = []; const items = document.querySelectorAll('.gs_r.gs_or.gs_scl'); for (let i = 0; i < Math.min(items.length, 10); i++) { const el = items[i]; const titleEl = el.querySelector('.gs_rt a'); const titleFallback = el.querySelector('.gs_rt'); const snippetEl = el.querySelector('.gs_rs'); const authorEl = el.querySelector('.gs_a'); const citedByEl = el.querySelector('.gs_fl a[href*=\"cites\"]'); const relatedEl = el.querySelector('.gs_fl a[href*=\"related\"]'); const linkEl = el.querySelector('.gs_rt a'); const pdfEl = el.querySelector('.gs_or_ggsm a, a[href*=\"pdf\"]'); const yearMatch = authorEl ? authorEl.textContent.match(/(\\d{4})/) : null; results.push({ title: titleEl ? titleEl.textContent.trim() : (titleFallback ? titleFallback.textContent.trim() : ''), url: linkEl ? linkEl.href : '', pdf_url: pdfEl ? pdfEl.href : '', authors_info: authorEl ? authorEl.textContent.trim() : '', year: yearMatch ? yearMatch[1] : '', snippet: snippetEl ? snippetEl.textContent.trim().substring(0, 500) : '', cited_by: citedByEl ? citedByEl.textContent.trim() : '', related_url: relatedEl ? relatedEl.href : '' }); } const resultsStatsEl = document.querySelector('#gs_ab_md .gs_ab_mdw'); const totalResults = resultsStatsEl ? resultsStatsEl.textContent.trim() : ''; return { total_results_info: totalResults, result_count: results.length, citing_papers: results, source_url: window.location.href }`)\n\n  return citations_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

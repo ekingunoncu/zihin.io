@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "notion-list-pages",
+    "slug": "notion-list-pages",
+    "name": "notion_list_pages",
+    "displayName": "Notion List Pages",
+    "description": "List recent pages from the Notion sidebar. Returns page titles and URLs visible in the sidebar navigation.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "notion"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Notion\n  await browser.open('https://www.notion.so')\n\n  // Wait for sidebar\n  await browser.waitForSelector('.notion-sidebar, .notion-scroller', 15000)\n\n  // Let sidebar render\n  await browser.wait(3000)\n\n  // Extract sidebar pages\n  const result = await browser.evaluate(`const pages = []; const items = document.querySelectorAll('.notion-sidebar .notion-sidebar-container [data-block-id], .notion-sidebar a[href*=\"notion.so\"]'); for (let i = 0; i < Math.min(items.length, 30); i++) { const item = items[i]; const titleEl = item.querySelector('.notranslate, [data-content-editable-leaf], span'); const title = titleEl?.textContent?.trim() || item.textContent?.trim() || ''; const blockId = item.getAttribute('data-block-id') || ''; const href = item.getAttribute('href') || ''; if (title && title.length > 1) { pages.push({ title: title.substring(0, 100), id: blockId, url: href || (blockId ? 'https://www.notion.so/' + blockId.replace(/-/g, '') : '') }); } } return { result_count: pages.length, pages: pages }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

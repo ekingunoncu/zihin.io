@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "facebook-scrape-profile",
+    "slug": "facebook-scrape-profile",
+    "name": "facebook_scrape_profile",
+    "displayName": "Facebook Scrape Profile",
+    "description": "Scrape a Facebook profile page. Returns the user's name, bio, profile picture, friends count, followers count, and recent posts.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "facebook",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "profile_url",
+        "type": "string",
+        "description": "Facebook profile URL (e.g. 'https://www.facebook.com/zuck')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Facebook profile\n  await browser.open(`${params.profile_url}`)\n\n  // Wait for profile to load\n  await browser.waitForSelector('[role=\\'main\\'], [data-pagelet=\\'ProfileTimeline\\'], h1', 15000)\n\n  // Let profile fully render\n  await browser.wait(3000)\n\n  // Scroll to load about section\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(2000)\n\n  // Scroll to load posts\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract profile information\n  const profile_data = await browser.evaluate(`const nameEl = document.querySelector('h1'); const name = nameEl ? nameEl.textContent.trim() : ''; let bio = ''; const bioEls = document.querySelectorAll('[data-pagelet=\"ProfileTilesFeed_0\"] span, [data-pagelet=\"ProfileTilesFeed\"] span, div[dir=\"auto\"]'); for (const el of bioEls) { const text = el.textContent.trim(); if (text.length > 10 && text.length < 500 && text !== name) { bio = text; break; } } let friendsCount = ''; let followersCount = ''; const allLinks = document.querySelectorAll('a[href*=\"friends\"], a[href*=\"followers\"], a span'); for (const link of allLinks) { const text = link.textContent.trim().toLowerCase(); if (text.includes('friend')) { friendsCount = text; } if (text.includes('follower')) { followersCount = text; } } const profileImg = document.querySelector('image[preserveAspectRatio], svg image, [role=\"main\"] img[alt*=\"profile\"], [data-pagelet=\"ProfileActions\"] ~ div img, g image'); let profilePicture = ''; if (profileImg) { profilePicture = profileImg.getAttribute('xlink:href') || profileImg.getAttribute('src') || ''; } const posts = []; const postEls = document.querySelectorAll('[role=\"article\"], [data-ad-preview]'); for (let i = 0; i < Math.min(postEls.length, 5); i++) { const post = postEls[i]; let postText = ''; const textEls = post.querySelectorAll('div[dir=\"auto\"]'); for (const t of textEls) { const txt = t.textContent.trim(); if (txt.length > 15) { postText = txt.substring(0, 500); break; } } let postTime = ''; const timeEl = post.querySelector('a[href*=\"/posts/\"] span, abbr, span[id] a'); if (timeEl) { postTime = timeEl.textContent.trim(); } let postLink = ''; const linkEl = post.querySelector('a[href*=\"/posts/\"], a[href*=\"/photos/\"], a[href*=\"/videos/\"]'); if (linkEl) { postLink = linkEl.getAttribute('href') || ''; } if (postText) { posts.push({ text: postText, time: postTime, url: postLink }); } } return { name: name, bio: bio, friends_count: friendsCount, followers_count: followersCount, profile_picture: profilePicture, recent_posts_count: posts.length, recent_posts: posts, profile_url: window.location.href }`)\n\n  return profile_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

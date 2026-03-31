@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "figma-bulk-scrape-files",
+    "slug": "figma-bulk-scrape-files",
+    "name": "figma_bulk_scrape_files",
+    "displayName": "Figma Bulk Scrape Files",
+    "description": "Scrape multiple Figma files in parallel using concurrent browser tabs. Use this instead of calling figma_scrape_file multiple times. Pass file URLs as a comma-separated string. You must be logged into Figma and have access to all files.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "figma",
+      "scrape",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "file_urls",
+        "type": "string",
+        "description": "Comma-separated Figma file URLs (e.g. 'https://www.figma.com/design/ABC/File1,https://www.figma.com/design/DEF/File2')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build file URL list\n  const items = await browser.evaluate(`return params.file_urls.split(',').map(u => ({ url: u.trim() }))`)\n\n  // Scrape each Figma file in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

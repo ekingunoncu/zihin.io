@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "jira-get-boards",
+    "slug": "jira-get-boards",
+    "name": "jira_get_boards",
+    "displayName": "Jira Get Boards",
+    "description": "List all Jira boards (Scrum and Kanban) in the instance. Returns board names, types, and project info.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "jira"
+    ],
+    "parameters": [
+      {
+        "name": "jira_url",
+        "type": "string",
+        "description": "Base URL of Jira instance (e.g. 'https://company.atlassian.net')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Jira\n  await browser.open(`${params.jira_url}/jira/software/projects`)\n\n  // Let Jira load\n  await browser.wait(2000)\n\n  // Fetch boards via Agile REST API\n  const result = await browser.evaluate(`const baseUrl = params.jira_url.replace(/\\/$/, ''); const resp = await fetch(baseUrl + '/rest/agile/1.0/board?maxResults=50', { credentials: 'same-origin' }); if (!resp.ok) throw new Error('Boards API error: ' + resp.status); const data = await resp.json(); const boards = (data.values || []).map(b => ({ id: b.id, name: b.name, type: b.type, project: b.location?.projectName || '' })); return { total: data.total || boards.length, result_count: boards.length, boards: boards }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

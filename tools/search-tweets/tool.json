@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-search-tweets",
+    "slug": "search-tweets",
+    "name": "search_tweets",
+    "displayName": "Search Tweets",
+    "description": "Search for tweets on X/Twitter and extract the results (up to 10 tweets).",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (supports X search operators like 'from:user', 'min_faves:100', etc.)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search X\n  await browser.open('https://x.com/search')\n\n  // Wait for tweets to appear\n  await browser.waitForSelector('article[data-testid=\\'tweet\\']', 15000)\n\n  // Let more tweets render\n  await browser.wait(1500)\n\n  // Scroll to load more tweets\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const tweets = []; const articles = document.querySelectorAll('article[data-testid=\"tweet\"]'); for (let i = 0; i < Math.min(articles.length, 10); i++) { const el = articles[i]; const userNameEl = el.querySelector('[data-testid=\"User-Name\"]'); const tweetTextEl = el.querySelector('[data-testid=\"tweetText\"]'); const timeEl = el.querySelector('time'); const linkEl = el.querySelector('a[href*=\"/status/\"]'); const likeEl = el.querySelector('[data-testid$=\"like\"] span, [data-testid$=\"unlike\"] span'); const retweetEl = el.querySelector('[data-testid$=\"retweet\"] span, [data-testid$=\"unretweet\"] span'); const replyEl = el.querySelector('[data-testid=\"reply\"] span'); tweets.push({ author: userNameEl ? userNameEl.textContent.trim() : 'Unknown', text: tweetTextEl ? tweetTextEl.textContent.trim() : '', time: timeEl ? timeEl.getAttribute('datetime') : '', url: linkEl ? 'https://x.com' + linkEl.getAttribute('href') : '', likes: likeEl ? likeEl.textContent.trim() : '0', retweets: retweetEl ? retweetEl.textContent.trim() : '0', replies: replyEl ? replyEl.textContent.trim() : '0' }); } return { tweet_count: tweets.length, tweets: tweets }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

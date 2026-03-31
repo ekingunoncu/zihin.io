@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "facebook-scrape-marketplace",
+    "slug": "facebook-scrape-marketplace",
+    "name": "facebook_scrape_marketplace",
+    "displayName": "Facebook Scrape Marketplace",
+    "description": "Browse and scrape Facebook Marketplace listings. Returns up to 15 listings with title, price, location, image, and URL.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "facebook",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query for Marketplace (e.g. 'used iphone', 'furniture', 'cars under 5000')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Facebook Marketplace\n  await browser.open(`https://www.facebook.com/marketplace/search/?query=${params.query}`)\n\n  // Wait for Marketplace results\n  await browser.waitForSelector('[role=\\'main\\'], a[href*=\\'/marketplace/item/\\']', 15000)\n\n  // Let listings render\n  await browser.wait(3000)\n\n  // Scroll to load more listings\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Scroll further down\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract Marketplace listings\n  const marketplace_results = await browser.evaluate(`const results = []; const itemLinks = document.querySelectorAll('a[href*=\"/marketplace/item/\"]'); const seen = new Set(); for (let i = 0; i < itemLinks.length && results.length < 15; i++) { const link = itemLinks[i]; const href = link.getAttribute('href') || ''; const itemId = href.match(/\\/marketplace\\/item\\/(\\d+)/); if (itemId && seen.has(itemId[1])) continue; if (itemId) seen.add(itemId[1]); const container = link.closest('div') || link; const spans = container.querySelectorAll('span'); let title = ''; let price = ''; let location = ''; for (const span of spans) { const text = span.textContent.trim(); if (!price && (text.startsWith('$') || text.startsWith('Free') || /^[\\d,.]+\\s*(USD|EUR|GBP|\\$)/.test(text) || text === 'Free')) { price = text; } else if (!title && text.length > 5 && text.length < 200 && !text.startsWith('$')) { title = text; } else if (!location && text.length > 2 && text.length < 100 && text !== title && !text.startsWith('$') && title) { location = text; } } const imgEl = container.querySelector('img'); const image = imgEl ? imgEl.getAttribute('src') || '' : ''; const fullUrl = href.startsWith('http') ? href : 'https://www.facebook.com' + href; if (title || price) { results.push({ title: title, price: price, location: location, image: image, url: fullUrl }); } } return { query: params.query, result_count: results.length, results: results }`)\n\n  return marketplace_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "duolingo-search",
+    "slug": "duolingo-search",
+    "name": "duolingo_search",
+    "displayName": "Duolingo Search",
+    "description": "Search Duolingo. Look up a Duolingo user profile by username.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "duolingo",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Duolingo username",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Duolingo search\n  await browser.open(`https://www.duolingo.com/profile/${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('[data-test=\"profile-header\"], h1, .profile-header', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const name = document.querySelector('h1, [data-test=\"profile-header\"] h1')?.textContent?.trim() || ''; let streak = ''; let xp = ''; document.querySelectorAll('span, div, p').forEach(el => { const t = el.textContent; if (t.match(/day streak/i)) { const m = t.match(/(\\d+)/); if (m) streak = m[1]; } if (t.match(/total.*xp/i) || t.match(/([\\d,]+)\\s*XP/i)) { const m = t.match(/([\\d,]+)\\s*XP/i); if (m) xp = m[1]; } }); return { display_name: name, streak, total_xp: xp, url: window.location.href };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

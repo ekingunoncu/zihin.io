@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "coinbase-search",
+    "slug": "coinbase-search",
+    "name": "coinbase_search",
+    "displayName": "Coinbase Search",
+    "description": "Search Coinbase. Returns matching results with details.",
+    "category": "Finance",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "coinbase",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Coinbase search\n  await browser.open(`https://www.coinbase.com/explore?query=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('table, a[href*=\\'/price/\\']', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const results = []; document.querySelectorAll('table tbody tr, a[href*=\"/price/\"]').forEach((el, i) => { if (i >= 20) return; const link = el.querySelector('a[href*=\"/price/\"]') || (el.matches?.('a[href*=\"/price/\"]') ? el : null); const name = el.querySelector('td:first-child, h2, p')?.textContent?.trim() || el.textContent?.trim() || ''; const price = el.querySelector('td:nth-child(2), [class*=\"Price\"]')?.textContent?.trim() || ''; const change = el.querySelector('td:nth-child(3), [class*=\"Change\"]')?.textContent?.trim() || ''; const href = link?.getAttribute?.('href') || ''; const url = href.startsWith('/') ? 'https://www.coinbase.com' + href : href; if (name && name.length < 100) results.push({ name, url, price, change }); }); return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

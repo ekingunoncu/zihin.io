@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "gmail-bulk-archive",
+    "slug": "gmail-bulk-archive",
+    "name": "gmail_bulk_archive",
+    "displayName": "Gmail Bulk Archive",
+    "description": "Archive multiple emails in Gmail in parallel using concurrent browser tabs. Each email is found by subject, selected, and archived independently. Pass all email subjects as a single comma-separated string. Use this instead of calling gmail_archive multiple times - it is faster and more efficient. You must be logged in to Gmail.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "gmail",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "subjects",
+        "type": "string",
+        "description": "Comma-separated subject lines (or partial subjects) of the emails to archive",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build email subject list\n  const items = await browser.evaluate(`return params.subjects.split(',').map(s => ({ subject: s.trim(), url: 'https://mail.google.com/mail/u/0/#search/subject:' + encodeURIComponent(s.trim()) }))`)\n\n  // Archive each email in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

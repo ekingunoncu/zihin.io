@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "zillow-scrape-agent",
+    "slug": "zillow-scrape-agent",
+    "name": "zillow_scrape_agent",
+    "displayName": "Zillow Scrape Agent",
+    "description": "Scrape a real estate agent's profile from Zillow. Returns agent name, brokerage, phone, rating, review count, active listings, past sales, and specialties.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "zillow",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "agent_url",
+        "type": "string",
+        "description": "Zillow agent profile URL (e.g. 'https://www.zillow.com/profile/AgentName/')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open agent profile\n  await browser.open(`${params.agent_url}`)\n\n  // Wait for profile to load\n  await browser.waitForSelector('[class*=\\'agent\\'], [class*=\\'profile\\'], h1', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract agent profile\n  const agent_data = await browser.evaluate(`const nameEl = document.querySelector('h1, [class*=\"agent-name\"], [class*=\"profile-name\"]'); const brokerEl = document.querySelector('[class*=\"brokerage\"], [class*=\"broker-name\"]'); const phoneEl = document.querySelector('[class*=\"phone\"], a[href^=\"tel:\"]'); const ratingEl = document.querySelector('[class*=\"rating\"], [class*=\"stars\"]'); const reviewCountEl = document.querySelector('[class*=\"review-count\"], [class*=\"reviews\"]'); const photoEl = document.querySelector('[class*=\"profile-photo\"] img, [class*=\"agent-photo\"] img, [class*=\"avatar\"] img'); const bioEl = document.querySelector('[class*=\"bio\"], [class*=\"about\"], [class*=\"description\"]'); const specialties = []; const specEls = document.querySelectorAll('[class*=\"specialty\"] li, [class*=\"specialization\"] li'); specEls.forEach(function(el) { specialties.push(el.textContent.trim()); }); const listings = []; const listingEls = document.querySelectorAll('[class*=\"listing-card\"], [class*=\"property-card\"]'); for (let i = 0; i < Math.min(listingEls.length, 10); i++) { const el = listingEls[i]; const addrEl = el.querySelector('[class*=\"address\"], address'); const priceEl = el.querySelector('[class*=\"price\"]'); const linkEl = el.querySelector('a'); listings.push({ address: addrEl ? addrEl.textContent.trim() : '', price: priceEl ? priceEl.textContent.trim() : '', url: linkEl ? linkEl.href : '' }); } const salesEl = document.querySelector('[class*=\"sales-count\"], [class*=\"past-sales\"]'); const activeListingsEl = document.querySelector('[class*=\"active-listings\"], [class*=\"for-sale\"]'); return { name: nameEl ? nameEl.textContent.trim() : '', brokerage: brokerEl ? brokerEl.textContent.trim() : '', phone: phoneEl ? phoneEl.textContent.trim() : '', rating: ratingEl ? ratingEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', bio: bioEl ? bioEl.textContent.trim().substring(0, 1000) : '', photo: photoEl ? photoEl.getAttribute('src') : '', specialties: specialties.slice(0, 10), past_sales: salesEl ? salesEl.textContent.trim() : '', active_listings_count: activeListingsEl ? activeListingsEl.textContent.trim() : '', listings: listings, url: window.location.href }`)\n\n  return agent_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

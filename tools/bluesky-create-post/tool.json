@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "bluesky-create-post",
+    "slug": "bluesky-create-post",
+    "name": "bluesky_create_post",
+    "displayName": "Bluesky Create Post",
+    "description": "Navigate to Bluesky compose screen to create a new post. Opens the new post composer with pre-filled text. Requires being logged in.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "bluesky",
+      "create"
+    ],
+    "parameters": [
+      {
+        "name": "text",
+        "type": "string",
+        "description": "Post text content (max 300 characters)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Bluesky\n  await browser.open('https://bsky.app/')\n\n  // Wait for compose button\n  await browser.waitForSelector('[data-testid=\\'composePostView\\'], button[aria-label*=\\'New\\'], button[aria-label*=\\'compose\\'], div[role=\\'button\\']', 15000)\n\n  await browser.wait(2000)\n\n  // Open compose dialog\n  const compose_data = await browser.evaluate(`const composeBtn = document.querySelector('button[aria-label*=\"New\"], button[aria-label*=\"compose\"], button[aria-label*=\"Write\"], div[role=\"button\"][tabindex=\"0\"]'); if (composeBtn) { composeBtn.click(); } return { status: composeBtn ? 'compose_opened' : 'compose_button_not_found', text_to_post: params.text, note: 'The compose dialog has been opened. The text needs to be typed manually or pasted by the user.', url: window.location.href }`)\n\n  return compose_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

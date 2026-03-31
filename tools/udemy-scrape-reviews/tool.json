@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "udemy-scrape-reviews",
+    "slug": "udemy-scrape-reviews",
+    "name": "udemy_scrape_reviews",
+    "displayName": "Udemy Scrape Reviews",
+    "description": "Scrape reviews from a Udemy course page. Returns student reviews with rating, content, author, date, and helpfulness count.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "udemy",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "course_url",
+        "type": "string",
+        "description": "Udemy course URL (e.g. 'https://www.udemy.com/course/the-web-developer-bootcamp/')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open course reviews\n  await browser.open(`${params.course_url}#reviews`)\n\n  // Wait for page to load\n  await browser.waitForSelector('h1, [data-purpose=\\'lead-title\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to reviews section\n  await browser.scroll({ direction: 'down', amount: 5000 })\n\n  await browser.wait(2000)\n\n  // Scroll to load more reviews\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(2000)\n\n  // Extract reviews\n  const reviews_data = await browser.evaluate(`const reviews = []; const reviewEls = document.querySelectorAll('[class*=\"review--review\"], [data-purpose=\"review-comment-content\"], [class*=\"ReviewCard\"]'); for (let i = 0; i < Math.min(reviewEls.length, 20); i++) { const el = reviewEls[i]; const authorEl = el.querySelector('[class*=\"review--reviewer\"], [class*=\"author\"], [class*=\"user-name\"]'); const ratingEl = el.querySelector('[class*=\"star-rating\"], [class*=\"rating\"] span, [aria-label*=\"Rating\"]'); const contentEl = el.querySelector('[class*=\"review--content\"], [data-purpose=\"review-comment-content\"], [class*=\"body\"]'); const dateEl = el.querySelector('[class*=\"review--date\"], time, [class*=\"date\"]'); const helpfulEl = el.querySelector('[class*=\"helpful\"], [class*=\"votes\"]'); if (contentEl && contentEl.textContent.trim().length > 0) { reviews.push({ author: authorEl ? authorEl.textContent.trim() : 'Anonymous', rating: ratingEl ? (ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim()) : '', content: contentEl.textContent.trim().substring(0, 500), date: dateEl ? dateEl.textContent.trim() : '', helpful: helpfulEl ? helpfulEl.textContent.trim() : '' }); } } const overallEl = document.querySelector('[data-purpose=\"rating-number\"], [class*=\"average-rating\"]'); const totalEl = document.querySelector('[class*=\"review-count\"], [class*=\"total-reviews\"]'); return { overall_rating: overallEl ? overallEl.textContent.trim() : '', total_reviews: totalEl ? totalEl.textContent.trim() : '', scraped_count: reviews.length, reviews: reviews, url: window.location.href }`)\n\n  return reviews_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

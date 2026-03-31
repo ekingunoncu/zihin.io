@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "glassdoor-search-jobs",
+    "slug": "glassdoor-search-jobs",
+    "name": "glassdoor_search_jobs",
+    "displayName": "Glassdoor Search Jobs",
+    "description": "Search for jobs on Glassdoor by keywords and optional location. Returns up to 15 job listings with title, company, location, salary estimate, and URL.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "glassdoor",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Job search query (e.g. 'software engineer', 'product manager')",
+        "required": true
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "description": "Optional location filter (e.g. 'New York, NY', 'San Francisco, CA')",
+        "required": false
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Glassdoor jobs\n  await browser.open('https://www.glassdoor.com/Job/jobs.htm')\n\n  // Wait for job results\n  await browser.waitForSelector('.jobCard, .react-job-listing, [data-test=\"jobListing\"], [class*=\"JobsList_jobListItem\"], li[data-jobid]', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Scroll to load more jobs\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract job listings\n  const search_results = await browser.evaluate(`const jobs = []; const cards = document.querySelectorAll('.jobCard, .react-job-listing, [data-test=\"jobListing\"], li[data-jobid], [class*=\"JobsList_jobListItem\"]'); for (let i = 0; i < Math.min(cards.length, 15); i++) { const card = cards[i]; const titleEl = card.querySelector('.job-title, .jobTitle, a[data-test=\"job-title\"], [class*=\"JobCard_jobTitle\"], .job-link'); const companyEl = card.querySelector('.employer-name, .job-employer, [data-test=\"employer-name\"], [class*=\"EmployerProfile_compactEmployerName\"], .employer-tile'); const locationEl = card.querySelector('.location, [data-test=\"emp-location\"], [class*=\"JobCard_location\"], .job-location'); const salaryEl = card.querySelector('.salary-estimate, [data-test=\"detailSalary\"], [class*=\"JobCard_salaryEstimate\"], .salary'); const ratingEl = card.querySelector('.rating, [data-test=\"rating\"], .employer-rating'); const linkEl = card.querySelector('a[href*=\"/job-listing/\"], a[href*=\"/partner/\"], a.jobTitle, a.job-link, a[data-test=\"job-title\"]'); let url = ''; if (linkEl) { const href = linkEl.getAttribute('href') || ''; url = href.startsWith('http') ? href : 'https://www.glassdoor.com' + href; } jobs.push({ title: titleEl ? titleEl.textContent.trim() : 'Unknown', company: companyEl ? companyEl.textContent.trim() : '', location: locationEl ? locationEl.textContent.trim() : '', salary_estimate: salaryEl ? salaryEl.textContent.trim() : 'Not listed', company_rating: ratingEl ? ratingEl.textContent.trim() : '', url: url }); } return { query: '' + params.query + '', location: '' + params.location + '', job_count: jobs.length, jobs: jobs }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

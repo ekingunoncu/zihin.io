@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "pinterest-scrape-board",
+    "slug": "pinterest-scrape-board",
+    "name": "pinterest_scrape_board",
+    "displayName": "Pinterest Scrape Board",
+    "description": "Scrape a Pinterest board. Navigates to the board URL and extracts board name, description, pin count, follower count, creator info, and the pins on the board.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "pinterest",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "board_url",
+        "type": "string",
+        "description": "Pinterest board URL (e.g. 'https://www.pinterest.com/username/board-name/')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Pinterest board\n  await browser.open(`${params.board_url}`)\n\n  // Wait for board pins to load\n  await browser.waitForSelector('[data-test-id=\\'pin\\'], [data-test-id=\\'pinWrapper\\'], div[data-grid-item]', 15000)\n\n  // Let board content fully render\n  await browser.wait(3000)\n\n  // Extract board info and pins\n  const board_data = await browser.evaluate(`const boardNameEl = document.querySelector('[data-test-id=\"board-header\"] h1, h1, [data-test-id=\"boardName\"]'); const descEl = document.querySelector('[data-test-id=\"board-description\"], [data-test-id=\"boardDescription\"]'); const pinCountEl = document.querySelector('[data-test-id=\"pin-count\"], [data-test-id=\"board-pin-count\"]'); const followerEl = document.querySelector('[data-test-id=\"follower-count\"], [data-test-id=\"board-follower-count\"]'); const creatorEl = document.querySelector('[data-test-id=\"board-owner-name\"] a, [data-test-id=\"creator-profile-name\"] a, [data-test-id=\"pinner-name\"] a'); const pins = []; const pinEls = document.querySelectorAll('[data-test-id=\"pin\"], [data-test-id=\"pinWrapper\"], div[data-grid-item]'); for (let i = 0; i < Math.min(pinEls.length, 25); i++) { const pin = pinEls[i]; const imgEl = pin.querySelector('img'); const linkEl = pin.querySelector('a[href*=\"/pin/\"]'); const titleEl = pin.querySelector('[data-test-id=\"pinTitle\"], [title]') || imgEl; pins.push({ title: titleEl ? (titleEl.getAttribute('title') || titleEl.getAttribute('alt') || titleEl.textContent || '').trim().slice(0, 200) : '', image_url: imgEl ? (imgEl.getAttribute('src') || '') : '', pin_url: linkEl ? 'https://www.pinterest.com' + linkEl.getAttribute('href') : '' }); } return { board_name: boardNameEl ? boardNameEl.textContent.trim() : '', description: descEl ? descEl.textContent.trim().slice(0, 500) : '', pin_count: pinCountEl ? pinCountEl.textContent.trim() : '', followers: followerEl ? followerEl.textContent.trim() : '', creator: creatorEl ? creatorEl.textContent.trim() : '', creator_url: creatorEl ? creatorEl.href : '', pins_scraped: pins.length, pins: pins, board_url: window.location.href }`)\n\n  return board_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "telegram-export-chat",
+    "slug": "telegram-export-chat",
+    "name": "telegram_export_chat",
+    "displayName": "Telegram Export Chat",
+    "description": "Export chat history from a Telegram chat. Searches for the chat, opens it, scrolls up to load more messages, and scrapes all visible messages into a structured format with author, content, timestamp, and direction.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "telegram"
+    ],
+    "parameters": [
+      {
+        "name": "chat_name",
+        "type": "string",
+        "description": "Name of the chat, group, or channel to export messages from",
+        "required": true
+      },
+      {
+        "name": "message_count",
+        "type": "string",
+        "description": "Approximate number of messages to export (default: 50). More messages require more scroll time.",
+        "required": false
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Telegram Web\n  await browser.open('https://web.telegram.org/k/')\n\n  // Wait for Telegram to load\n  await browser.waitForSelector('.input-search input, .chatlist-chat, .chat-list', 15000)\n\n  // Let app fully initialize\n  await browser.wait(2000)\n\n  // Search for the chat\n  const search_chat = await browser.evaluate(`const searchInput = document.querySelector('.input-search input') || document.querySelector('input[type=\"text\"]'); if (searchInput) { searchInput.focus(); searchInput.click(); await new Promise(r => setTimeout(r, 300)); searchInput.value = ''; searchInput.dispatchEvent(new Event('input', { bubbles: true })); document.execCommand('insertText', false, params.chat_name); searchInput.dispatchEvent(new Event('input', { bubbles: true })); } return { searched: true }`)\n\n  // Wait for search results\n  await browser.wait(2500)\n\n  // Click on the matching chat\n  const click_chat = await browser.evaluate(`const chatItems = document.querySelectorAll('.chatlist-chat, .chat-list .ListItem, .search-group .chatlist-chat'); let clicked = false; for (const item of chatItems) { const nameEl = item.querySelector('.peer-title, .user-title, .dialog-title'); if (nameEl && nameEl.textContent.trim().toLowerCase().includes(params.chat_name.toLowerCase())) { item.click(); clicked = true; break; } } if (!clicked && chatItems.length > 0) { chatItems[0].click(); clicked = true; } return { clicked: clicked }`)\n\n  // Wait for messages to load\n  await browser.wait(3000)\n\n  // Wait for message bubbles\n  await browser.waitForSelector('.bubble, .message, .bubble-content', 10000)\n\n  // Scroll up to load more messages\n  const scroll_up = await browser.evaluate(`const targetCount = parseInt(params.message_count || '50', 10); const scrollContainer = document.querySelector('.bubbles-inner, .scrollable-y, .bubbles .scrollable'); const scrollAttempts = Math.ceil(targetCount / 15); for (let i = 0; i < scrollAttempts; i++) { if (scrollContainer) { scrollContainer.scrollTop = 0; } else { const bubblesEl = document.querySelector('.bubbles'); if (bubblesEl) bubblesEl.scrollTop = 0; } await new Promise(r => setTimeout(r, 1500)); } return { scroll_attempts: scrollAttempts, target: targetCount }`)\n\n  // Wait for scrolled messages to render\n  await browser.wait(2000)\n\n  // Export all visible messages\n  const export_result = await browser.evaluate(`const targetCount = parseInt(params.message_count || '50', 10); const messages = []; const bubbles = document.querySelectorAll('.bubble:not(.is-date), .message'); const startIdx = Math.max(0, bubbles.length - targetCount); for (let i = startIdx; i < bubbles.length; i++) { const el = bubbles[i]; const authorEl = el.querySelector('.peer-title, .name, .bubble-name .peer-title'); const contentEl = el.querySelector('.text-content, .message-content, .message'); const timeEl = el.querySelector('.time, time, .bubble-content .time'); const content = contentEl ? contentEl.textContent.trim() : ''; if (!content) continue; const isOutgoing = el.classList.contains('is-out') || el.classList.contains('outgoing'); const replyEl = el.querySelector('.reply, .reply-title'); messages.push({ index: messages.length + 1, author: authorEl ? authorEl.textContent.trim() : '', content: content, timestamp: timeEl ? timeEl.textContent.trim() : '', direction: isOutgoing ? 'outgoing' : 'incoming', has_reply: replyEl ? true : false, reply_to: replyEl ? replyEl.textContent.trim() : '' }); } const chatTitle = document.querySelector('.chat-info .peer-title, .top .peer-title'); return { chat_name: chatTitle ? chatTitle.textContent.trim() : params.chat_name, total_exported: messages.length, target_count: targetCount, messages: messages }`)\n\n  return export_result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

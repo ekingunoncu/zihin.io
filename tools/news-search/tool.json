@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "news-search",
+    "slug": "news-search",
+    "name": "news_search",
+    "displayName": "News Search",
+    "description": "Search Google News for articles matching a query. Returns up to 20 news articles with title, source, time, snippet, and URL.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-news",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'artificial intelligence', 'climate change policy')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Google News\n  await browser.open('https://news.google.com/search')\n\n  // Wait for search results\n  await browser.waitForSelector('article, c-wiz article, [data-n-tid]', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Scroll to load more articles\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const articles = []; const items = document.querySelectorAll('article, c-wiz article'); for (let i = 0; i < Math.min(items.length, 20); i++) { const item = items[i]; const linkEl = item.querySelector('a[href*=\"./articles/\"], a[href*=\"./read/\"], a[href^=\"https\"]'); const titleEl = linkEl ? linkEl.querySelector('h3, h4, .JtKRv') || linkEl : null; const sourceEl = item.querySelector('.vr1PYe, [data-n-tid], .wsn2rd, time + span, div > div > a[data-n-tid]'); const timeEl = item.querySelector('time, .hvbAAd, datetime'); const snippetEl = item.querySelector('.GI74Re, .xBbh9, .Y8wuc'); let url = ''; if (linkEl) { const href = linkEl.getAttribute('href') || ''; if (href.startsWith('./')) { url = 'https://news.google.com/' + href.slice(2); } else if (href.startsWith('http')) { url = href; } else { url = 'https://news.google.com/' + href; } } articles.push({ title: titleEl ? titleEl.textContent.trim() : '', source: sourceEl ? sourceEl.textContent.trim() : '', time: timeEl ? (timeEl.getAttribute('datetime') || timeEl.textContent.trim()) : '', snippet: snippetEl ? snippetEl.textContent.trim().slice(0, 300) : '', url: url }); } const urlParams = new URLSearchParams(window.location.search); return { query: urlParams.get('q') || '', article_count: articles.length, articles: articles }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

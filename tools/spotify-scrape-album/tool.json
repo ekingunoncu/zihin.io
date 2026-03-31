@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "spotify-scrape-album",
+    "slug": "spotify-scrape-album",
+    "name": "spotify_scrape_album",
+    "displayName": "Spotify Scrape Album",
+    "description": "Scrape album details from Spotify including album name, artist, release year, and full track list with durations.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "spotify",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "album_url",
+        "type": "string",
+        "description": "Spotify album URL (e.g. 'https://open.spotify.com/album/4aawyAB9vmqN3uQ7FjRGTy')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Spotify album page\n  await browser.open(`${params.album_url}`)\n\n  // Wait for album page to load\n  await browser.waitForSelector('[data-testid=\"tracklist-row\"], [data-testid=\"entityTitle\"]', 15000)\n\n  // Let album page fully render\n  await browser.wait(2500)\n\n  // Extract album track list\n  const album_data = await browser.evaluate(`const titleEl = document.querySelector('[data-testid=\"entityTitle\"] h1, [data-testid=\"entityTitle\"], h1'); const albumName = titleEl ? titleEl.textContent.trim() : ''; const artistEl = document.querySelector('[data-testid=\"creator-link\"], a[href^=\"/artist\"]'); const artistName = artistEl ? artistEl.textContent.trim() : ''; let year = ''; const metaSpans = document.querySelectorAll('span.encore-text, span'); for (const s of metaSpans) { const match = s.textContent.match(/\\b(19|20)\\d{2}\\b/); if (match) { year = match[0]; break; } } let totalDuration = ''; for (const s of metaSpans) { if (s.textContent.match(/\\d+\\s*(hr|min|hour|minute)/i)) { totalDuration = s.textContent.trim(); break; } } const tracks = []; const rows = document.querySelectorAll('[data-testid=\"tracklist-row\"]'); for (let i = 0; i < rows.length; i++) { const row = rows[i]; const nameEl = row.querySelector('[data-testid=\"internal-track-link\"] div, [data-testid=\"internal-track-link\"], a[href^=\"/track\"] div'); const trackArtistEl = row.querySelector('a[href^=\"/artist\"]'); let duration = ''; const allSpans = row.querySelectorAll('span.encore-text'); for (const s of allSpans) { if (s.textContent.match(/^\\d+:\\d+$/)) { duration = s.textContent.trim(); break; } } tracks.push({ position: i + 1, title: nameEl ? nameEl.textContent.trim() : '', artist: trackArtistEl ? trackArtistEl.textContent.trim() : artistName, duration: duration }); } return { album_name: albumName, artist: artistName, year: year, total_duration: totalDuration, track_count: tracks.length, tracks: tracks }`)\n\n  return album_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

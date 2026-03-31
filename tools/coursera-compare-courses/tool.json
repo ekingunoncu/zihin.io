@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "coursera-compare-courses",
+    "slug": "coursera-compare-courses",
+    "name": "coursera_compare_courses",
+    "displayName": "Coursera Compare Courses",
+    "description": "Compare multiple courses on Coursera by searching and extracting their ratings, providers, enrollment counts, and levels side by side.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "coursera"
+    ],
+    "parameters": [
+      {
+        "name": "courses",
+        "type": "string",
+        "description": "Comma-separated course names (e.g. 'machine learning,deep learning,data science')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.courses.split(',').map(c => ({ url: 'https://www.coursera.org/search?query=' + encodeURIComponent(c.trim()), course: c.trim() }))`)\n\n  // Search each course in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

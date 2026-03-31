@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "calendar-list-calendars",
+    "slug": "calendar-list-calendars",
+    "name": "calendar_list_calendars",
+    "displayName": "Calendar List Calendars",
+    "description": "List all calendars visible in Google Calendar. Returns calendar names, colors, and whether they are currently checked (visible) in the sidebar.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-calendar"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Google Calendar\n  await browser.open('https://calendar.google.com/calendar/r')\n\n  // Wait for calendar to load\n  await browser.waitForSelector('[role=\\'main\\'], [data-eventid], .FAxxKc', 20000)\n\n  // Let calendar and sidebar fully render\n  await browser.wait(3000)\n\n  // Scrape sidebar calendar list\n  const calendars_result = await browser.evaluate(`const calendars = []; const sidebarItems = document.querySelectorAll('[class*=\"calendar-list\"] li, .side-panel li, [data-calendarid], [role=\"listitem\"], li[data-calendarid]'); if (sidebarItems.length > 0) { sidebarItems.forEach(item => { const label = item.getAttribute('aria-label') || item.getAttribute('data-calendarid') || ''; const nameEl = item.querySelector('span, label, .calendar-label'); const name = nameEl ? nameEl.textContent.trim() : label || item.textContent.trim(); if (!name || name.length > 100) return; const checkbox = item.querySelector('input[type=\"checkbox\"], [role=\"checkbox\"]'); const isVisible = checkbox ? (checkbox.checked || checkbox.getAttribute('aria-checked') === 'true') : true; const colorEl = item.querySelector('[style*=\"background\"], .calendar-color-bullet, svg circle, [class*=\"color\"]'); let color = ''; if (colorEl) { const style = window.getComputedStyle(colorEl); color = style.backgroundColor || colorEl.getAttribute('fill') || ''; } const calId = item.getAttribute('data-calendarid') || ''; calendars.push({ name: name.substring(0, 100), calendar_id: calId, visible: isVisible, color: color }); }); } if (calendars.length === 0) { const allLabels = document.querySelectorAll('[aria-label*=\"calendar\" i], [data-calendarid]'); allLabels.forEach(el => { const name = el.getAttribute('aria-label') || el.getAttribute('data-calendarid') || el.textContent.trim(); if (!name) return; const calId = el.getAttribute('data-calendarid') || ''; const style = window.getComputedStyle(el); calendars.push({ name: name.substring(0, 100), calendar_id: calId, visible: true, color: style.backgroundColor || '' }); }); } const uniqueCalendars = []; const seenNames = new Set(); calendars.forEach(c => { const key = c.name.toLowerCase(); if (!seenNames.has(key)) { seenNames.add(key); uniqueCalendars.push(c); } }); return { calendar_count: uniqueCalendars.length, calendars: uniqueCalendars }`)\n\n  return calendars_result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

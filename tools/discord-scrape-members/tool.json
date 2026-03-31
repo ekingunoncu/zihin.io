@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "discord-scrape-members",
+    "slug": "discord-scrape-members",
+    "name": "discord_scrape_members",
+    "displayName": "Discord Scrape Members",
+    "description": "Scrape the member list of a Discord server. Returns usernames and roles for visible members.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "discord",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "channel_url",
+        "type": "string",
+        "description": "Any channel URL in the server (e.g. 'https://discord.com/channels/123/456')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Discord channel\n  await browser.open(`${params.channel_url}`)\n\n  // Wait for channel to load\n  await browser.waitForSelector('div[role=\\'textbox\\']', 15000)\n\n  await browser.wait(2000)\n\n  // Show member list\n  const show_members = await browser.evaluate(`const membersToggle = document.querySelector('button[aria-label*=\"Member\"], button[aria-label*=\"member\"]'); if (membersToggle) membersToggle.click(); return { toggled: true }`)\n\n  await browser.wait(2000)\n\n  // Extract member list\n  const members_list = await browser.evaluate(`const members = []; const memberList = document.querySelector('[aria-label=\"Members\"]') || document.querySelector('aside div[data-list-id=\"members\"]'); if (!memberList) { return { member_count: 0, members: [], error: 'Member list not found. It may be hidden or you may need to toggle it.' }; } let currentRole = ''; const items = memberList.querySelectorAll('[data-list-item-id]'); for (const el of items) { const itemId = el.getAttribute('data-list-item-id') || ''; if (itemId.startsWith('members-')) { const roleText = el.querySelector('h2, h3, span'); if (roleText) { currentRole = roleText.textContent.trim().replace(/\\s*-\\s*\\d+$/, '').replace(/\\s*\\d+$/, ''); continue; } } const nameEl = el.querySelector('[class*=\"username\"] span, [class*=\"name\"] span, span[class*=\"roleColor\"]'); if (!nameEl) { const innerSpans = el.querySelectorAll('span'); for (const s of innerSpans) { if (s.textContent.trim() && s.textContent.trim().length < 50 && !s.querySelector('span')) { members.push({ username: s.textContent.trim(), role: currentRole, status: '' }); break; } } continue; } const statusEl = el.querySelector('[aria-label*=\"status\"], [class*=\"status\"]'); members.push({ username: nameEl.textContent.trim(), role: currentRole, status: statusEl ? statusEl.getAttribute('aria-label') || statusEl.textContent.trim() : '' }); } return { member_count: members.length, members: members.slice(0, 50) }`)\n\n  return members_list\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

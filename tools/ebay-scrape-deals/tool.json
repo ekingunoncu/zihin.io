@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "ebay-scrape-deals",
+    "slug": "ebay-scrape-deals",
+    "name": "ebay_scrape_deals",
+    "displayName": "Ebay Scrape Deals",
+    "description": "Browse and scrape today's deals from eBay Daily Deals page. Returns current deals with product name, original price, deal price, discount percentage, and free shipping status.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "ebay",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open eBay deals page\n  await browser.open('https://www.ebay.com/deals')\n\n  // Wait for deals to load\n  await browser.waitForSelector('.dne-itemtile, .ebayui-dne-item-featured-card, .ebayui-dne-item-pattern-card, [class*=\\'deal-card\\'], [data-testid=\\'item-card\\']', 15000)\n\n  // Let deals page fully render\n  await browser.wait(3000)\n\n  // Scroll to load more deals\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Scroll for even more deals\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(2000)\n\n  // Extract current deals\n  const deals_data = await browser.evaluate(`const deals = []; const dealCards = document.querySelectorAll('.dne-itemtile, .ebayui-dne-item-featured-card, .ebayui-dne-item-pattern-card, [class*=\"deal-card\"], [data-testid=\"item-card\"], .dne-itemtile-detail'); dealCards.forEach(function(el, idx) { if (idx >= 20) return; const titleEl = el.querySelector('.dne-itemtile-title a, .ebayui-dne-item-featured-card__title a, [class*=\"item-title\"] a, a.dne-itemtile-title, h3 a, .s-item__title'); const dealPriceEl = el.querySelector('.dne-itemtile-price .first, .dne-itemtile-price span, [class*=\"deal-price\"], .s-item__price'); const originalPriceEl = el.querySelector('.dne-itemtile-original-price span, .itemtile-price-strikethrough, [class*=\"original-price\"], .s-item__price--original'); const discountEl = el.querySelector('.dne-itemtile-discount, [class*=\"discount-percentage\"], .s-item__discount'); const imgEl = el.querySelector('img[src*=\"ebayimg.com\"], .dne-itemtile-image img, img'); const linkEl = el.querySelector('a[href*=\"/itm/\"], a[href*=\"ebay.com\"], a.dne-itemtile-title'); const freeShippingEl = el.querySelector('.dne-itemtile-shipping, [class*=\"free-shipping\"], .s-item__freeXDays'); const soldEl = el.querySelector('.dne-itemtile-quantity-sold, [class*=\"quantity-sold\"]'); const url = linkEl ? (linkEl.href.startsWith('http') ? linkEl.href : 'https://www.ebay.com' + linkEl.getAttribute('href')) : ''; const title = titleEl ? titleEl.textContent.trim() : ''; if (title) { deals.push({ title: title.substring(0, 200), deal_price: dealPriceEl ? dealPriceEl.textContent.trim() : '', original_price: originalPriceEl ? originalPriceEl.textContent.trim() : '', discount: discountEl ? discountEl.textContent.trim() : '', free_shipping: !!freeShippingEl, sold: soldEl ? soldEl.textContent.trim() : '', image: imgEl ? imgEl.getAttribute('src') : '', url: url }); } }); return { deal_count: deals.length, deals: deals, scraped_at: new Date().toISOString() }`)\n\n  return deals_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

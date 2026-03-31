@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "reddit-scrape-user",
+    "slug": "reddit-scrape-user",
+    "name": "reddit_scrape_user",
+    "displayName": "Reddit Scrape User",
+    "description": "Scrape a Reddit user's profile: karma, account age, and recent posts/comments.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "reddit",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "username",
+        "type": "string",
+        "description": "Reddit username (without u/, e.g. 'spez')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open user profile\n  await browser.open(`https://old.reddit.com/user/${params.username}`)\n\n  // Wait for profile to load\n  await browser.waitForSelector('.thing, .titlebox', 15000)\n\n  await browser.wait(1500)\n\n  // Extract user profile\n  const user_profile = await browser.evaluate(`const karmaEls = document.querySelectorAll('.karma'); const cakeDay = document.querySelector('.age time, .titlebox .age'); const trophyEls = document.querySelectorAll('.trophy-name'); const trophies = []; trophyEls.forEach(t => trophies.push(t.textContent.trim())); const recentPosts = []; const things = document.querySelectorAll('.thing'); for (let i = 0; i < Math.min(things.length, 10); i++) { const thing = things[i]; const titleEl = thing.querySelector('a.title'); const linkEl = thing.querySelector('a.bylink, a.comments'); const subredditEl = thing.querySelector('a.subreddit'); const scoreEl = thing.querySelector('.score.unvoted'); const timeEl = thing.querySelector('time'); const isComment = thing.classList.contains('comment'); recentPosts.push({ type: isComment ? 'comment' : 'post', title: titleEl ? titleEl.textContent.trim() : '', subreddit: subredditEl ? subredditEl.textContent.trim() : '', score: scoreEl ? scoreEl.textContent.trim() : '', time: timeEl ? timeEl.getAttribute('datetime') || '' : '', url: linkEl ? linkEl.href : '' }); } return { username: '' + params.username + '', karma: karmaEls.length > 0 ? { post: karmaEls[0] ? karmaEls[0].textContent.trim() : '', comment: karmaEls[1] ? karmaEls[1].textContent.trim() : '' } : {}, cake_day: cakeDay ? cakeDay.getAttribute('datetime') || cakeDay.textContent.trim() : '', trophies: trophies.slice(0, 5), recent_activity: recentPosts, profile_url: window.location.href }`)\n\n  return user_profile\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "untappd-scrape-beer",
+    "slug": "untappd-scrape-beer",
+    "name": "untappd_scrape_beer",
+    "displayName": "Untappd Scrape Beer",
+    "description": "Scrape details for a specific beer on Untappd including name, brewery, style, ABV, rating, and description.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "untappd",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "beer_id",
+        "type": "string",
+        "description": "Beer numeric ID from Untappd URL (e.g. '1787965' from untappd.com/b/beer-name/1787965)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Untappd\n  await browser.open(`https://untappd.com/b/beer/${params.beer_id}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1, .name, .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const name = document.querySelector('h1, .name h1')?.textContent?.trim() || ''; const brewery = document.querySelector('.brewery a, h2 a')?.textContent?.trim() || ''; const style = document.querySelector('.style, .beer-style')?.textContent?.trim() || ''; const abv = document.querySelector('.abv, [class*=\"abv\"]')?.textContent?.trim() || ''; const rating = document.querySelector('.num, .rating .num, [class*=\"rating-num\"]')?.textContent?.trim() || ''; const desc = document.querySelector('.beer-descrption, .beer-description, .desc p')?.textContent?.trim()?.slice(0, 500) || ''; return { name, brewery, style, abv, rating, description: desc, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

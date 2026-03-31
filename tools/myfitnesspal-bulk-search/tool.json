@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "myfitnesspal-bulk-search",
+    "slug": "myfitnesspal-bulk-search",
+    "name": "myfitnesspal_bulk_search",
+    "displayName": "Myfitnesspal Bulk Search",
+    "description": "Search multiple queries on MyFitnessPal in parallel.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "myfitnesspal",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://www.myfitnesspal.com/food/search?search=' + encodeURIComponent(q.trim()) + '', query: q.trim() }))`)\n\n  // Search in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

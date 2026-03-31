@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tiktok-scrape-hashtag",
+    "slug": "tiktok-scrape-hashtag",
+    "name": "tiktok_scrape_hashtag",
+    "displayName": "Tiktok Scrape Hashtag",
+    "description": "Scrape a TikTok hashtag page. Returns the hashtag view count and top videos associated with the hashtag.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tiktok",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "hashtag",
+        "type": "string",
+        "description": "Hashtag without # (e.g. 'fyp', 'dance', 'cooking')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open hashtag page\n  await browser.open(`https://www.tiktok.com/tag/${params.hashtag}`)\n\n  // Wait for hashtag page to load\n  await browser.waitForSelector('[data-e2e=\"challenge-item\"], [data-e2e=\"challenge-vcard\"], div[class*=\"DivVideoCard\"]', 15000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Scroll to load more videos\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Scroll for additional content\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract hashtag info and top videos\n  const hashtag_data = await browser.evaluate(`const viewCountEl = document.querySelector('[data-e2e=\"challenge-vcount\"], [data-e2e=\"challenge-view-count\"], strong[class*=\"StrongNumber\"], h2[class*=\"H2ShareSubTitle\"]'); const descEl = document.querySelector('[data-e2e=\"challenge-desc\"], p[class*=\"PDesc\"], .challenge-description'); const videos = []; const items = document.querySelectorAll('[data-e2e=\"challenge-item\"], [data-e2e=\"challenge-vcard\"], div[class*=\"DivVideoCardBody\"], div[class*=\"DivWrapper\"] > div[class*=\"DivVideoCard\"]'); for (let i = 0; i < Math.min(items.length, 15); i++) { const el = items[i]; const descItemEl = el.querySelector('[data-e2e=\"challenge-item-desc\"], a[title], .card-desc'); const creatorEl = el.querySelector('[data-e2e=\"challenge-item-username\"], [data-e2e=\"creator-uniqueid\"], .author-uniqueid, p[class*=\"PAuthorTitle\"]'); const viewsEl = el.querySelector('[data-e2e=\"video-views\"], strong.video-count, .view-count, span[class*=\"SpanCount\"]'); const thumbEl = el.querySelector('img[src*=\"tiktokcdn\"], img.poster, picture img'); const linkEl = el.querySelector('a[href*=\"/video/\"], a[href*=\"/@\"]'); videos.push({ description: descItemEl ? (descItemEl.getAttribute('title') || descItemEl.textContent.trim()).substring(0, 300) : '', creator: creatorEl ? creatorEl.textContent.trim() : '', views: viewsEl ? viewsEl.textContent.trim() : '', thumbnail: thumbEl ? thumbEl.src : '', url: linkEl ? linkEl.href : '' }); } return { hashtag: '' + params.hashtag + '', total_views: viewCountEl ? viewCountEl.textContent.trim() : '', description: descEl ? descEl.textContent.trim().substring(0, 500) : '', video_count: videos.length, top_videos: videos }`)\n\n  return hashtag_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

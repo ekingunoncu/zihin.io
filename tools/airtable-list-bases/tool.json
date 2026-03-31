@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "airtable-list-bases",
+    "slug": "airtable-list-bases",
+    "name": "airtable_list_bases",
+    "displayName": "Airtable List Bases",
+    "description": "List all bases from the Airtable dashboard. Returns base names, icons, and URLs visible on the home screen.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "airtable"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Airtable dashboard\n  await browser.open('https://airtable.com')\n\n  // Wait for bases to load\n  await browser.waitForSelector('.baseContainer, [data-testid=\"base-card\"], .base-card', 15000)\n\n  // Let dashboard fully render\n  await browser.wait(3000)\n\n  // Extract base names, icons, and URLs\n  const result = await browser.evaluate(`const bases = []; const cards = document.querySelectorAll('[data-testid=\"base-card\"], .baseContainer, .base-card'); for (let i = 0; i < Math.min(cards.length, 50); i++) { const card = cards[i]; const nameEl = card.querySelector('[data-testid=\"base-name\"], .baseCardName, .base-name, h3, span'); const name = nameEl?.textContent?.trim() || card.textContent?.trim()?.substring(0, 60) || ''; const link = card.closest('a') || card.querySelector('a'); const url = link?.href || ''; const iconEl = card.querySelector('.baseIcon, [data-testid=\"base-icon\"], svg, img'); const icon = iconEl?.getAttribute('aria-label') || iconEl?.getAttribute('alt') || ''; if (name && name.length > 0) { bases.push({ name: name.substring(0, 100), url: url, icon: icon }); } } return { result_count: bases.length, bases: bases }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

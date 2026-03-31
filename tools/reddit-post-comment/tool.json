@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "reddit-post-comment",
+    "slug": "reddit-post-comment",
+    "name": "reddit_post_comment",
+    "displayName": "Reddit Post Comment",
+    "description": "Post a comment on a Reddit post. You must be logged in to Reddit.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "reddit"
+    ],
+    "parameters": [
+      {
+        "name": "post_url",
+        "type": "string",
+        "description": "Reddit post URL to comment on",
+        "required": true
+      },
+      {
+        "name": "comment",
+        "type": "string",
+        "description": "Comment text (supports Reddit markdown)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open post\n  await browser.open(`${params.post_url}`)\n\n  // Wait for comment box\n  await browser.waitForSelector('textarea[name=\\'text\\'], .usertext-edit textarea', 15000)\n\n  await browser.wait(1500)\n\n  // Type comment\n  const type_comment = await browser.evaluate(`const textarea = document.querySelector('.commentarea textarea[name=\"text\"], form.cloneable textarea[name=\"text\"]'); if (!textarea) return { success: false, message: 'Comment textarea not found - are you logged in?' }; textarea.focus(); textarea.value = params.comment; textarea.dispatchEvent(new Event('input', {bubbles: true})); textarea.dispatchEvent(new Event('change', {bubbles: true})); return { typed: true }`)\n\n  await browser.wait(500)\n\n  // Submit comment\n  const result = await browser.evaluate(`const saveBtn = document.querySelector('.commentarea .save, .commentarea button[type=\"submit\"]'); if (saveBtn) { saveBtn.click(); return { success: true, message: 'Comment posted' }; } return { success: false, message: 'Save button not found' }`)\n\n  await browser.wait(2000)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

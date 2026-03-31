@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "discogs-scrape-marketplace",
+    "slug": "discogs-scrape-marketplace",
+    "name": "discogs_scrape_marketplace",
+    "displayName": "Discogs Scrape Marketplace",
+    "description": "Scrape marketplace listings for a Discogs release. Returns seller, price, condition, and shipping.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "discogs",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "release_id",
+        "type": "string",
+        "description": "Discogs release ID",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open(`https://www.discogs.com/sell/release/${params.release_id}`)\n\n  // Wait for content\n  await browser.waitForSelector('table, [class*=\"Marketplace\"], .mpitems', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const listings = Array.from(document.querySelectorAll('table tbody tr, [class*=\"MarketplaceItem\"]')).slice(0,20).map(row => { const seller = row.querySelector('a[href*=\"/seller/\"], .seller_info a')?.textContent?.trim()||''; const price = row.querySelector('.price, [class*=\"Price\"]')?.textContent?.trim()||''; const cond = row.querySelector('.item_condition, [class*=\"Condition\"]')?.textContent?.trim()?.replace(/\\s+/g,' ')||''; const shipping = row.querySelector('.shipping_info, [class*=\"Shipping\"]')?.textContent?.trim()||''; return { seller, price, condition: cond, shipping }; }).filter(l=>l.price); return { release_id: '' + params.release_id + '', listings, url: window.location.href }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "maps-search-places",
+    "slug": "maps-search-places",
+    "name": "maps_search_places",
+    "displayName": "Maps Search Places",
+    "description": "Search for businesses or places on Google Maps. Returns up to 10 results with name, rating, address, and type.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-maps",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'coffee shops in San Francisco', 'dentist near me')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Google Maps\n  await browser.open(`https://www.google.com/maps/search/${params.query}`)\n\n  // Wait for results feed\n  await browser.waitForSelector('div[role=\\'feed\\']', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll results feed\n  await browser.scroll({ selector: '[role=\\'feed\\']', direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const feed = document.querySelector('[role=\"feed\"]'); if (!feed) return { result_count: 0, results: [] }; const items = feed.querySelectorAll('a.hfpxzc, div[jsaction] a[href*=\"/maps/place/\"]'); const seen = new Set(); for (let i = 0; i < items.length && results.length < 10; i++) { const link = items[i]; const href = link.href; if (seen.has(href)) continue; seen.add(href); const container = link.closest('div[jsaction]') || link.parentElement; if (!container) continue; const nameEl = container.querySelector('.qBF1Pd, .fontHeadlineSmall'); const ratingEl = container.querySelector('span[role=\"img\"]'); const categoryEl = container.querySelector('.fontBodyMedium span[style*=\"color\"]'); const addressEl = container.querySelectorAll('.fontBodyMedium span'); let address = ''; for (const sp of addressEl) { const t = sp.textContent.trim(); if (t.length > 10 && !t.includes('\\u00b7') && !t.includes('star')) { address = t; break; } } results.push({ name: nameEl ? nameEl.textContent.trim() : (link.getAttribute('aria-label') || 'Unknown'), rating: ratingEl ? ratingEl.getAttribute('aria-label') : '', category: categoryEl ? categoryEl.textContent.trim() : '', address: address, url: href }); } return { result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "stockx-scrape-product",
+    "slug": "stockx-scrape-product",
+    "name": "stockx_scrape_product",
+    "displayName": "Stockx Scrape Product",
+    "description": "Scrape a specific StockX product page. Returns name, prices, sales data, and size availability.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "stockx",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "product_slug",
+        "type": "string",
+        "description": "Product URL slug (e.g. \"air-jordan-1-retro-high-og-chicago\")",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open StockX page\n  await browser.open(`https://stockx.com/${params.product_slug}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1[data-component=\\'primary-product-title\\'], h1, [data-testid=\\'product-name\\']', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`let schema = {}; try { const schemaEl = document.querySelector('script[data-testid=\"product-schema\"]'); if (schemaEl) schema = JSON.parse(schemaEl.textContent); } catch(e) {} const name = document.querySelector('h1[data-component=\"primary-product-title\"], h1')?.textContent?.trim() || schema.name || ''; const prices = {}; document.querySelectorAll('[class*=\"price\"], [class*=\"stat\"], [data-testid*=\"price\"]').forEach(el => { const label = el.querySelector('span:first-child, dt, label')?.textContent?.trim()?.toLowerCase() || ''; const value = el.querySelector('span:last-child, dd, [class*=\"amount\"]')?.textContent?.trim() || el.textContent?.trim() || ''; if (label) prices[label] = value; }); const details = {}; document.querySelectorAll('[class*=\"detail\"], [class*=\"trait\"]').forEach(el => { const label = el.querySelector('span:first-child, dt')?.textContent?.trim()?.toLowerCase() || ''; const value = el.querySelector('span:last-child, dd')?.textContent?.trim() || ''; if (label) details[label] = value; }); const image = schema.image || document.querySelector('img[data-testid=\"product-image\"], [class*=\"product\"] img')?.src || ''; return { name, prices, details, image, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "myfitnesspal-search",
+    "slug": "myfitnesspal-search",
+    "name": "myfitnesspal_search",
+    "displayName": "Myfitnesspal Search",
+    "description": "Search MyFitnessPal. Search the MyFitnessPal food database. Returns food names, calories, and macros.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "myfitnesspal",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Food name to search",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open MyFitnessPal search\n  await browser.open(`https://www.myfitnesspal.com/food/search?search=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('.food-search-results, [class*=\"search-results\"], ul, .content', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const results = []; document.querySelectorAll('.food-search-results li, [class*=\"search-result\"], [class*=\"FoodItem\"]').forEach((el, i) => { if (i < 15) { const nameEl = el.querySelector('a, .food-name, [class*=\"name\"]'); const calEl = el.querySelector('.cal, [class*=\"calorie\"], [class*=\"nutrition\"]'); const servingEl = el.querySelector('.serving, [class*=\"serving\"]'); results.push({ name: nameEl?.textContent?.trim() || '', url: nameEl?.href || '', calories: calEl?.textContent?.trim() || '', serving: servingEl?.textContent?.trim() || '' }); } }); return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

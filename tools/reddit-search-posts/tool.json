@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "reddit-search-posts",
+    "slug": "reddit-search-posts",
+    "name": "reddit_search_posts",
+    "displayName": "Reddit Search Posts",
+    "description": "Search for posts across Reddit. Returns up to 10 results with title, subreddit, score, author, and URL.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "reddit",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query",
+        "required": true
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "description": "Sort order: 'relevance', 'hot', 'top', 'new', 'comments' (default: relevance)",
+        "required": false,
+        "default": "relevance"
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Reddit\n  await browser.open('https://old.reddit.com/search')\n\n  // Wait for search results\n  await browser.waitForSelector('.thing, .search-result', 15000)\n\n  // Let results render\n  await browser.wait(1500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const posts = document.querySelectorAll('.thing.link, .search-result-link'); for (let i = 0; i < Math.min(posts.length, 10); i++) { const post = posts[i]; const titleEl = post.querySelector('a.title, a.search-title'); const authorEl = post.querySelector('a.author'); const subredditEl = post.querySelector('a.subreddit'); const scoreEl = post.querySelector('.score.unvoted, .search-score'); const timeEl = post.querySelector('time, .live-timestamp'); const commentsEl = post.querySelector('a.comments, .search-comments'); results.push({ title: titleEl ? titleEl.textContent.trim() : '', subreddit: subredditEl ? subredditEl.textContent.trim() : post.getAttribute('data-subreddit') || '', author: authorEl ? authorEl.textContent.trim() : post.getAttribute('data-author') || '', score: scoreEl ? scoreEl.textContent.trim() : '', time: timeEl ? timeEl.getAttribute('datetime') || timeEl.getAttribute('title') || timeEl.textContent.trim() : '', comment_count: commentsEl ? commentsEl.textContent.trim().split(' ')[0] : '', url: titleEl ? titleEl.href : '' }); } return { result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

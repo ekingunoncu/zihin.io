@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "etsy-scrape-reviews",
+    "slug": "etsy-scrape-reviews",
+    "name": "etsy_scrape_reviews",
+    "displayName": "Etsy Scrape Reviews",
+    "description": "Scrape reviews from an Etsy listing. Navigates to the listing page reviews section and returns reviews with author, rating, content, date, and item purchased info.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "etsy",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "listing_url",
+        "type": "string",
+        "description": "Etsy listing URL (e.g. 'https://www.etsy.com/listing/1234567890/handmade-ring')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open listing page\n  await browser.open(`${params.listing_url}`)\n\n  // Wait for listing page to load\n  await browser.waitForSelector('h1[data-buy-box-listing-title], h1, [data-listing-id]', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll down to reviews section\n  await browser.scroll({ direction: 'down', amount: 3000 })\n\n  await browser.wait(2000)\n\n  // Scroll further to load more reviews\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(2000)\n\n  // Scroll even further\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(1500)\n\n  // Extract reviews\n  const reviews_data = await browser.evaluate(`const reviews = []; const reviewEls = document.querySelectorAll('[data-review-id], [data-reviews-container] > div > div, div[id*=\"review\"] > div'); if (reviewEls.length > 0) { for (let i = 0; i < Math.min(reviewEls.length, 20); i++) { const el = reviewEls[i]; if (el.textContent.trim().length < 10) continue; const authorEl = el.querySelector('a[href*=\"/people/\"], [aria-label*=\"profile\"]'); const ratingEl = el.querySelector('input[name=\"rating\"], [data-rating], [aria-label*=\"star\"]'); const contentEl = el.querySelector('p, [data-review-text]'); const dateEl = el.querySelector('time, [aria-label*=\"date\"], [data-date]'); const itemEl = el.querySelector('a[href*=\"/listing/\"], a[href*=\"/transaction/\"]'); const imgEl = el.querySelector('img[src*=\"etsystatic\"]'); if (contentEl || authorEl) { reviews.push({ author: authorEl ? authorEl.textContent.trim() : 'Anonymous', rating: ratingEl ? (ratingEl.getAttribute('value') || ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim()) : '', content: contentEl ? contentEl.textContent.trim().substring(0, 800) : '', date: dateEl ? (dateEl.getAttribute('datetime') || dateEl.textContent.trim()) : '', item_purchased: itemEl ? itemEl.textContent.trim() : '', has_image: !!imgEl }); } } } if (reviews.length === 0) { var ldData = {}; try { var scripts = document.querySelectorAll('script[type=\"application/ld+json\"]'); scripts.forEach(function(s) { try { var d = JSON.parse(s.textContent); if (d.review) ldData = d; } catch(e) {} }); } catch(e) {} if (ldData.review && Array.isArray(ldData.review)) { ldData.review.slice(0, 20).forEach(function(r) { reviews.push({ author: r.author ? (r.author.name || r.author) : 'Anonymous', rating: r.reviewRating ? r.reviewRating.ratingValue : '', content: (r.reviewBody || '').substring(0, 800), date: r.datePublished || '', item_purchased: '', has_image: false }); }); } } const overallRatingEl = document.querySelector('[data-reviews-container] [aria-label*=\"star\"], [data-rating][aria-label*=\"overall\"]'); const totalReviewsEl = document.querySelector('[data-reviews-container] h2, a[href*=\"reviews\"] span'); return { overall_rating: overallRatingEl ? (overallRatingEl.getAttribute('aria-label') || overallRatingEl.textContent.trim()) : '', total_reviews: totalReviewsEl ? totalReviewsEl.textContent.trim() : '', scraped_count: reviews.length, reviews: reviews, url: window.location.href }`)\n\n  return reviews_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

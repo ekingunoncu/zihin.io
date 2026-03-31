@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "canva-scrape-template",
+    "slug": "canva-scrape-template",
+    "name": "canva_scrape_template",
+    "displayName": "Canva Scrape Template",
+    "description": "Scrape full template details from a Canva template page. Returns template name, description, dimensions, category, creator, related templates, and usage count.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "canva",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "template_url",
+        "type": "string",
+        "description": "Canva template URL (e.g. 'https://www.canva.com/templates/EAF1234/template-name/')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open template page\n  await browser.open(`${params.template_url}`)\n\n  // Wait for template page to load\n  await browser.waitForSelector('h1, [role=\\'heading\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load content\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract template details\n  const template_data = await browser.evaluate(`const titleEl = document.querySelector('h1, [role=\"heading\"]'); const metaDesc = document.querySelector('meta[name=\"description\"]'); const descEl = document.querySelector('main p, article p'); const breadcrumbs = document.querySelectorAll('nav a, [aria-label=\"breadcrumb\"] a'); const categoryEl = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : null; const imgEl = document.querySelector('main img, article img, [role=\"img\"]'); const proEl = document.querySelector('[aria-label*=\"Pro\"], [aria-label*=\"premium\"]'); const tagEls = document.querySelectorAll('a[href*=\"/templates/s/\"]'); const tags = []; tagEls.forEach(function(el) { const t = el.textContent.trim(); if (t && t.length < 50 && !tags.includes(t)) tags.push(t); }); const relatedEls = document.querySelectorAll('a[href*=\"/templates/\"]'); const related = []; const seen = new Set(); seen.add(window.location.href); relatedEls.forEach(function(el) { if (related.length >= 6) return; const href = el.href || ''; if (!href || seen.has(href)) return; seen.add(href); const iEl = el.querySelector('img'); const label = el.getAttribute('aria-label') || ''; const tEl = el.querySelector('h3, h4, [aria-label]'); related.push({ title: label || (tEl ? (tEl.getAttribute('aria-label') || tEl.textContent.trim()) : ''), url: href, image: iEl ? iEl.getAttribute('src') : '' }); }); return { title: titleEl ? titleEl.textContent.trim() : '', description: metaDesc ? metaDesc.getAttribute('content') : (descEl ? descEl.textContent.trim().substring(0, 1000) : ''), category: categoryEl ? categoryEl.textContent.trim() : '', is_premium: !!proEl, tags: tags.slice(0, 10), image: imgEl ? imgEl.getAttribute('src') : '', related_templates: related, url: window.location.href }`)\n\n  return template_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

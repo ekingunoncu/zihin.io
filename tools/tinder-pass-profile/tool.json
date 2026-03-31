@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tinder-pass-profile",
+    "slug": "tinder-pass-profile",
+    "name": "tinder_pass_profile",
+    "displayName": "Tinder Pass Profile",
+    "description": "Pass/Nope the currently shown profile on Tinder. Requires login.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tinder"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Tinder\n  await browser.open('https://tinder.com/app/recs')\n\n  // Wait for cards\n  await browser.waitForSelector('[class*=\"recsCardboard\"], main', 15000)\n\n  // Let card render\n  await browser.wait(2000)\n\n  // Click pass\n  const result = await browser.evaluate(`const nopeBtn = document.querySelector('[aria-label=\"Nope\"], button[class*=\"recsGamepad__button--nope\"], button[class*=\"nope\"], button[class*=\"Bgi($g-ds-background-nope)\"]'); if (nopeBtn) { nopeBtn.click(); return { success: true, action: 'passed' }; } return { success: false, message: 'Nope button not found' };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

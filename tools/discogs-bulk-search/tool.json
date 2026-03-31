@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "discogs-bulk-search",
+    "slug": "discogs-bulk-search",
+    "name": "discogs_bulk_search",
+    "displayName": "Discogs Bulk Search",
+    "description": "Search multiple queries on Discogs in parallel.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "discogs",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://www.discogs.com/search/?q=' + encodeURIComponent(q.trim()) + '&type=all', query: q.trim() }))`)\n\n  // Search in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

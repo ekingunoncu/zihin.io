@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "linkedin-scrape-job",
+    "slug": "linkedin-scrape-job",
+    "name": "linkedin_scrape_job",
+    "displayName": "Linkedin Scrape Job",
+    "description": "Scrape detailed information about a LinkedIn job posting: title, company, description, requirements, and application details.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "linkedin",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "job_url",
+        "type": "string",
+        "description": "LinkedIn job URL (e.g. 'https://www.linkedin.com/jobs/view/123456789')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open job posting\n  await browser.open(`${params.job_url}`)\n\n  // Wait for job details\n  await browser.waitForSelector('.jobs-unified-top-card, .job-details-jobs-unified-top-card__job-title, .top-card-layout__title', 15000)\n\n  // Let page settle\n  await browser.wait(2000)\n\n  // Expand description\n  const expand_description = await browser.evaluate(`const seeMore = document.querySelector('button[aria-label*=\"Show more\"], button.jobs-description__footer-button'); if (seeMore) seeMore.click(); return { expanded: true }`)\n\n  await browser.wait(1000)\n\n  // Extract job details\n  const job_details = await browser.evaluate(`const titleEl = document.querySelector('.job-details-jobs-unified-top-card__job-title h1, .jobs-unified-top-card__job-title, .top-card-layout__title'); const companyEl = document.querySelector('.job-details-jobs-unified-top-card__company-name a, .jobs-unified-top-card__company-name a, .topcard__org-name-link'); const locationEl = document.querySelector('.job-details-jobs-unified-top-card__bullet, .jobs-unified-top-card__bullet, .topcard__flavor--bullet'); const descEl = document.querySelector('.jobs-description__content, .jobs-description-content__text, .description__text'); const criteriaEls = document.querySelectorAll('.job-details-jobs-unified-top-card__job-insight span, .jobs-unified-top-card__workplace-type, li.job-criteria__item'); const criteria = []; criteriaEls.forEach(el => { const text = el.textContent.trim(); if (text && text.length < 100) criteria.push(text); }); return { title: titleEl ? titleEl.textContent.trim() : 'Unknown', company: companyEl ? companyEl.textContent.trim() : '', location: locationEl ? locationEl.textContent.trim() : '', description: descEl ? descEl.textContent.trim().slice(0, 2000) : '', job_criteria: criteria.slice(0, 10), url: window.location.href }`)\n\n  return job_details\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

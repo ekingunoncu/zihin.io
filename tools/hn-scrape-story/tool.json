@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "hn-scrape-story",
+    "slug": "hn-scrape-story",
+    "name": "hn_scrape_story",
+    "displayName": "HN Scrape Story",
+    "description": "Scrape a Hacker News story and its comments. Returns story info (title, URL, score, author, time) and the top 30 comments with author, content, time, and indent depth.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "hackernews",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "story_url",
+        "type": "string",
+        "description": "Hacker News story URL (e.g. 'https://news.ycombinator.com/item?id=12345')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open story page\n  await browser.open(`${params.story_url}`)\n\n  // Wait for story to load\n  await browser.waitForSelector('.athing, .fatitem', 15000)\n\n  // Let comments load\n  await browser.wait(2000)\n\n  // Extract story and comments\n  const story_data = await browser.evaluate(`const titleEl = document.querySelector('.titleline > a'); const subtext = document.querySelector('.subtext'); const scoreEl = subtext ? subtext.querySelector('.score') : null; const authorEl = subtext ? subtext.querySelector('.hnuser') : null; const ageEl = subtext ? subtext.querySelector('.age a') : null; let storyCommentCount = '0'; if (subtext) { const links = subtext.querySelectorAll('a'); for (const link of links) { const text = link.textContent.trim(); if (text.includes('comment')) { storyCommentCount = text.split('\\u00a0')[0] || text.split(' ')[0]; break; } } } const comments = []; const commentRows = document.querySelectorAll('.comtr'); for (let i = 0; i < Math.min(commentRows.length, 30); i++) { const c = commentRows[i]; const indentTd = c.querySelector('td.ind'); const depth = indentTd && indentTd.getAttribute('indent') ? parseInt(indentTd.getAttribute('indent'), 10) : 0; const cAuthor = c.querySelector('.hnuser'); const cText = c.querySelector('.commtext'); const cAge = c.querySelector('.age a'); comments.push({ author: cAuthor ? cAuthor.textContent.trim() : '[deleted]', content: cText ? cText.textContent.trim().slice(0, 800) : '[deleted]', time: cAge ? cAge.textContent.trim() : '', depth: depth }); } return { title: titleEl ? titleEl.textContent.trim() : '', url: titleEl ? titleEl.href : '', score: scoreEl ? scoreEl.textContent.trim() : '0 points', author: authorEl ? authorEl.textContent.trim() : '', time: ageEl ? ageEl.textContent.trim() : '', total_comments: storyCommentCount, comments_scraped: comments.length, comments: comments, story_url: window.location.href }`)\n\n  return story_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

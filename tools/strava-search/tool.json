@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "strava-search",
+    "slug": "strava-search",
+    "name": "strava_search",
+    "displayName": "Strava Search",
+    "description": "Search for athletes on Strava. Returns names, profile URLs, and locations.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "strava",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Athlete name to search",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Strava search\n  await browser.open(`https://www.strava.com/athletes/search?utf8=%E2%9C%93&text=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('.athlete-list, .search-results, .content', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const results = []; document.querySelectorAll('.athlete-list li, .search-results .row, .text-headline a[href*=\"/athletes/\"]').forEach((el, i) => { if (i < 15) { const nameEl = el.querySelector('a[href*=\"/athletes/\"], .text-headline'); const locEl = el.querySelector('.location, .text-caption'); results.push({ name: nameEl?.textContent?.trim() || '', url: nameEl?.href || '', location: locEl?.textContent?.trim() || '' }); } }); return { query: '' + params.query + '', result_count: results.length, results };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

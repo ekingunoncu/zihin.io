@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "amazon-compare-prices",
+    "slug": "amazon-compare-prices",
+    "name": "amazon_compare_prices",
+    "displayName": "Amazon Compare Prices",
+    "description": "Compare prices from different sellers for an Amazon product. Navigates to the 'Other Sellers' or 'New & Used' section and scrapes all available offers with seller name, price, shipping cost, and condition.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "amazon"
+    ],
+    "parameters": [
+      {
+        "name": "product_url",
+        "type": "string",
+        "description": "Amazon product URL (e.g. 'https://www.amazon.com/dp/B09V3KXJPB')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open product page\n  await browser.open(`${params.product_url}`)\n\n  // Wait for product page to load\n  await browser.waitForSelector('#productTitle, .a-size-large.product-title-word-break', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Get main offer and navigate to all offers\n  const main_offer = await browser.evaluate(`const titleEl = document.querySelector('#productTitle'); const productTitle = titleEl ? titleEl.textContent.trim() : ''; const mainPriceEl = document.querySelector('.a-price .a-offscreen, #priceblock_ourprice, #corePrice_feature_div .a-offscreen'); const mainPrice = mainPriceEl ? mainPriceEl.textContent.trim() : ''; const mainSellerEl = document.querySelector('#sellerProfileTriggerId, #merchant-info a, .tabular-buybox-text a'); const mainSeller = mainSellerEl ? mainSellerEl.textContent.trim() : 'Amazon.com'; const offersLink = document.querySelector('#olp-upd-new a, a[href*=\"/gp/offer-listing/\"], #buybox-see-all-buying-choices a, a#buybox-see-all-buying-choices-announce, .olp-text-box a, a[href*=\"offer-listing\"]'); if (offersLink) { window.location.href = offersLink.href; } else { const asin = window.location.pathname.match(/\\/(?:dp|gp\\/product)\\/([A-Z0-9]{10})/); if (asin) { window.location.href = 'https://www.amazon.com/gp/offer-listing/' + asin[1]; } } return { product_title: productTitle, main_price: mainPrice, main_seller: mainSeller, navigated: true }`)\n\n  // Wait for offers page to load\n  await browser.wait(3000)\n\n  // Scroll to load all offers\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract seller offers\n  const price_comparison = await browser.evaluate(`const offers = []; const offerEls = document.querySelectorAll('#aod-offer, .olpOffer, [id^=\"aod-price-\"]'); if (offerEls.length > 0) { const aodOffers = document.querySelectorAll('#aod-offer'); aodOffers.forEach(function(el, idx) { if (idx >= 20) return; const priceEl = el.querySelector('.a-price .a-offscreen, .a-price-whole'); const conditionEl = el.querySelector('#aod-offer-heading h5, .aod-offer-condition'); const shippingEl = el.querySelector('#aod-offer-shipsFrom .a-fixed-left-grid-col.a-col-right span, #delivery-message span, .a-color-secondary'); const sellerEl = el.querySelector('#aod-offer-soldBy .a-fixed-left-grid-col.a-col-right a, #aod-offer-soldBy a, .a-fixed-left-grid-col a[role=\"link\"]'); const sellerRatingEl = el.querySelector('#aod-offer-seller-rating, .seller-rating'); offers.push({ seller: sellerEl ? sellerEl.textContent.trim() : 'Unknown Seller', price: priceEl ? priceEl.textContent.trim() : '', condition: conditionEl ? conditionEl.textContent.trim() : 'New', shipping: shippingEl ? shippingEl.textContent.trim() : '', seller_rating: sellerRatingEl ? sellerRatingEl.textContent.trim() : '' }); }); } const olpOffers = document.querySelectorAll('.olpOffer'); olpOffers.forEach(function(el, idx) { if (idx >= 20) return; const priceEl = el.querySelector('.olpOfferPrice, .a-color-price'); const conditionEl = el.querySelector('.olpCondition'); const shippingEl = el.querySelector('.olpShippingInfo, .a-color-secondary'); const sellerEl = el.querySelector('.olpSellerName a, .olpSellerColumn a'); offers.push({ seller: sellerEl ? sellerEl.textContent.trim() : 'Unknown Seller', price: priceEl ? priceEl.textContent.trim() : '', condition: conditionEl ? conditionEl.textContent.trim() : 'New', shipping: shippingEl ? shippingEl.textContent.trim() : '' }); }); return { offer_count: offers.length, offers: offers, url: window.location.href }`)\n\n  return price_comparison\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "todoist-search",
+    "slug": "todoist-search",
+    "name": "todoist_search",
+    "displayName": "Todoist Search",
+    "description": "Search Todoist tasks using the search dialog. Returns matching tasks with names, due dates, and priorities. Requires login.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "todoist",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'meeting', 'p1', '@work')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Todoist\n  await browser.open('https://app.todoist.com/app/today')\n\n  // Wait for app to load\n  await browser.waitForSelector('main, [class*=\"task\"], .content', 15000)\n\n  // Let app fully render\n  await browser.wait(2500)\n\n  // Open search dialog\n  const open_search = await browser.evaluate(`const searchBtn = document.querySelector('[aria-label=\"Search\"], button[class*=\"search\"], a[href*=\"search\"], [data-testid=\"search\"]'); if (searchBtn) { searchBtn.click(); } else { document.dispatchEvent(new KeyboardEvent('keydown', { key: '/', code: 'Slash', keyCode: 191, bubbles: true })); } return { opened: true };`)\n\n  // Wait for search dialog\n  await browser.wait(1500)\n\n  // Type search query\n  const type_query = await browser.evaluate(`const input = document.querySelector('input[type=\"search\"], input[placeholder*=\"Search\"], input[placeholder*=\"search\"], [role=\"combobox\"], [data-testid=\"search-input\"], dialog input, [class*=\"search\"] input'); if (input) { input.focus(); input.value = ''; document.execCommand('insertText', false, '' + params.query + ''); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); } return { typed: !!input };`)\n\n  // Wait for search results\n  await browser.wait(3000)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const tasks = []; document.querySelectorAll('.task_list_item, [class*=\"task_list_item\"], [data-testid=\"task\"], [class*=\"search\"] li, [class*=\"result\"] [class*=\"task\"]').forEach((el, i) => { if (i < 20) { const nameEl = el.querySelector('.task_content, [class*=\"task_content\"], [data-testid=\"task-name\"], [class*=\"content\"]'); const dueEl = el.querySelector('.due_date, [class*=\"due\"], time, [class*=\"date\"]'); const prioEl = el.querySelector('[class*=\"priority\"]'); tasks.push({ name: nameEl?.textContent?.trim() || '', due_date: dueEl?.textContent?.trim() || '', priority: prioEl?.className?.match(/priority_(\\d)/)?.[1] || prioEl?.getAttribute('data-priority') || '' }); } }); return { query: '' + params.query + '', task_count: tasks.length, tasks: tasks.filter(t => t.name) };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

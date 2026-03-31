@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "pinterest-scrape-pin",
+    "slug": "pinterest-scrape-pin",
+    "name": "pinterest_scrape_pin",
+    "displayName": "Pinterest Scrape Pin",
+    "description": "Scrape detailed information from a Pinterest pin page. Extracts the pin image, title, description, save count, comments, source link, and pinner info.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "pinterest",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "pin_url",
+        "type": "string",
+        "description": "Pinterest pin URL (e.g. 'https://www.pinterest.com/pin/123456789/')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open pin page\n  await browser.open(`${params.pin_url}`)\n\n  // Wait for pin image to load\n  await browser.waitForSelector('[data-test-id=\\'pin-closeup-image\\'] img, [data-test-id=\\'closeup-image\\'] img, div[data-test-id=\\'visual-content-container\\'] img', 15000)\n\n  // Let pin details fully load\n  await browser.wait(3000)\n\n  // Extract pin details\n  const pin_data = await browser.evaluate(`const imgEl = document.querySelector('[data-test-id=\"pin-closeup-image\"] img, [data-test-id=\"closeup-image\"] img, div[data-test-id=\"visual-content-container\"] img'); const titleEl = document.querySelector('[data-test-id=\"pinTitle\"], h1, [data-test-id=\"truncated-description\"]'); const descEl = document.querySelector('[data-test-id=\"truncated-description\"], [data-test-id=\"pin-description\"], [data-test-id=\"richPinInformation\"]'); const savesEl = document.querySelector('[data-test-id=\"pin-action-dropdown\"] span, [data-test-id=\"saves\"], button[aria-label*=\"save\" i] span'); const pinnerEl = document.querySelector('[data-test-id=\"pinner-name\"] a, [data-test-id=\"creator-profile-name\"] a'); const pinnerAvatarEl = document.querySelector('[data-test-id=\"pinner-avatar\"] img, [data-test-id=\"creator-avatar\"] img'); const sourceLinkEl = document.querySelector('[data-test-id=\"source-link\"] a, a[data-test-id=\"attribution-link\"]'); const commentEls = document.querySelectorAll('[data-test-id=\"comment\"], [data-test-id=\"pin-comment\"]'); const comments = []; for (let i = 0; i < Math.min(commentEls.length, 15); i++) { const c = commentEls[i]; const authorEl = c.querySelector('a[href*=\"/\"], [data-test-id=\"comment-author\"]'); const textEl = c.querySelector('[data-test-id=\"comment-text\"], span'); comments.push({ author: authorEl ? authorEl.textContent.trim() : '', text: textEl ? textEl.textContent.trim().slice(0, 500) : '' }); } return { title: titleEl ? titleEl.textContent.trim().slice(0, 300) : '', image_url: imgEl ? (imgEl.getAttribute('src') || '') : '', description: descEl ? descEl.textContent.trim().slice(0, 1000) : '', saves: savesEl ? savesEl.textContent.trim() : '', pinner: pinnerEl ? pinnerEl.textContent.trim() : '', pinner_url: pinnerEl ? pinnerEl.href : '', pinner_avatar: pinnerAvatarEl ? (pinnerAvatarEl.getAttribute('src') || '') : '', source_url: sourceLinkEl ? sourceLinkEl.href : '', comment_count: comments.length, comments: comments, pin_url: window.location.href }`)\n\n  return pin_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

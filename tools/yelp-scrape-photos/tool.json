@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "yelp-scrape-photos",
+    "slug": "yelp-scrape-photos",
+    "name": "yelp_scrape_photos",
+    "displayName": "Yelp Scrape Photos",
+    "description": "Scrape photos from a Yelp business page. Returns photo URLs, captions, and uploader info.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "yelp",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "business_url",
+        "type": "string",
+        "description": "Yelp business URL (e.g. 'https://www.yelp.com/biz/house-of-prime-rib-san-francisco')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open business page\n  await browser.open(`${params.business_url}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1, [class*=\\'businessName\\']', 15000)\n\n  await browser.wait(2000)\n\n  // Scroll to photos\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract photos\n  const photos_data = await browser.evaluate(`const photos = []; const photoEls = document.querySelectorAll('[class*=\"photo-box\"] img, [class*=\"biz-photos\"] img, [class*=\"gallery\"] img, [class*=\"photo-header\"] img'); photoEls.forEach(function(img) { const src = img.getAttribute('src') || ''; const alt = img.getAttribute('alt') || ''; if (src && src.includes('yelp') && !photos.find(function(p) { return p.url === src; })) { const captionEl = img.closest('[class*=\"photo\"]') ? img.closest('[class*=\"photo\"]').querySelector('[class*=\"caption\"], p') : null; photos.push({ url: src, alt: alt, caption: captionEl ? captionEl.textContent.trim() : '' }); } }); const totalPhotosEl = document.querySelector('[class*=\"photo-count\"], a[href*=\"photos\"]'); const nameEl = document.querySelector('h1'); return { business_name: nameEl ? nameEl.textContent.trim() : '', total_photos_text: totalPhotosEl ? totalPhotosEl.textContent.trim() : '', photo_count: photos.length, photos: photos.slice(0, 20), url: window.location.href }`)\n\n  return photos_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "todoist-bulk-search",
+    "slug": "todoist-bulk-search",
+    "name": "todoist_bulk_search",
+    "displayName": "Todoist Bulk Search",
+    "description": "Search multiple queries on Todoist in parallel. Each query opens a separate tab, triggers the search dialog, types the query, and extracts results.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "todoist",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'meeting,urgent,@work')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build query list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://app.todoist.com/app/today#__q=' + encodeURIComponent(q.trim()), query: q.trim() }))`)\n\n  // Search in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

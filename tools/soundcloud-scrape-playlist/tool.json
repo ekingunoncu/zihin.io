@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "soundcloud-scrape-playlist",
+    "slug": "soundcloud-scrape-playlist",
+    "name": "soundcloud_scrape_playlist",
+    "displayName": "Soundcloud Scrape Playlist",
+    "description": "Scrape a SoundCloud playlist/set page. Returns playlist name, creator, track count, total duration, like count, and all tracks with details.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "soundcloud",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "playlist_url",
+        "type": "string",
+        "description": "SoundCloud playlist URL (e.g. 'https://soundcloud.com/artist/sets/playlist-name')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open playlist page\n  await browser.open(`${params.playlist_url}`)\n\n  // Wait for playlist to load\n  await browser.waitForSelector('.soundTitle__title, h1, [class*=\\'listenDetails\\'], [class*=\\'playlist\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load tracks\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Extract playlist details\n  const playlist_data = await browser.evaluate(`const titleEl = document.querySelector('.soundTitle__title span, h1 span, [class*=\"listenDetails\"] h1'); const creatorEl = document.querySelector('.soundTitle__username, a[class*=\"soundTitle__username\"]'); const likesEl = document.querySelector('[class*=\"likeCount\"], button[class*=\"like\"] span'); const repostsEl = document.querySelector('[class*=\"repostCount\"], button[class*=\"repost\"] span'); const descEl = document.querySelector('[class*=\"truncatedAudioInfo__content\"], [class*=\"description\"]'); const imgEl = document.querySelector('.image__full, .sc-artwork img'); const dateEl = document.querySelector('time, [class*=\"relativeTime\"]'); const tracks = []; const trackEls = document.querySelectorAll('.trackList__item, [class*=\"trackList__item\"], [class*=\"compactTrackList\"] li'); for (let i = 0; i < Math.min(trackEls.length, 30); i++) { const el = trackEls[i]; const trackTitleEl = el.querySelector('.trackItem__trackTitle, a[class*=\"trackTitle\"], [class*=\"title\"]'); const trackArtistEl = el.querySelector('.trackItem__username, [class*=\"username\"]'); const durationEl = el.querySelector('[class*=\"duration\"], .playbackTimeline__duration'); const linkEl = el.querySelector('a[href*=\"/\"]'); tracks.push({ title: trackTitleEl ? trackTitleEl.textContent.trim() : '', artist: trackArtistEl ? trackArtistEl.textContent.trim() : '', duration: durationEl ? durationEl.textContent.trim() : '', url: linkEl ? linkEl.href : '' }); } return { name: titleEl ? titleEl.textContent.trim() : '', creator: creatorEl ? creatorEl.textContent.trim() : '', likes: likesEl ? likesEl.textContent.trim() : '', reposts: repostsEl ? repostsEl.textContent.trim() : '', description: descEl ? descEl.textContent.trim().substring(0, 500) : '', date: dateEl ? (dateEl.getAttribute('datetime') || dateEl.textContent.trim()) : '', image: imgEl ? imgEl.getAttribute('src') : '', track_count: tracks.length, tracks: tracks, url: window.location.href }`)\n\n  return playlist_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

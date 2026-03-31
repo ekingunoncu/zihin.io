@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tripadvisor-bulk-search",
+    "slug": "tripadvisor-bulk-search",
+    "name": "tripadvisor_bulk_search",
+    "displayName": "Tripadvisor Bulk Search",
+    "description": "Bulk search multiple destinations on TripAdvisor in parallel using concurrent browser tabs. Pass all queries as a single comma-separated string. Returns search results for each destination.",
+    "category": "Travel",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tripadvisor",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'hotels in Paris,restaurants in Rome,things to do Tokyo')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build query list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ query: q.trim(), url: 'https://www.tripadvisor.com/Search?q=' + encodeURIComponent(q.trim()) }))`)\n\n  // Search each destination in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

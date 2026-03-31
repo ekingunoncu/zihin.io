@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "craigslist-browse-category",
+    "slug": "craigslist-browse-category",
+    "name": "craigslist_browse_category",
+    "displayName": "Craigslist Browse Category",
+    "description": "Browse a Craigslist category. Returns listings with titles, prices, and locations.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "craigslist"
+    ],
+    "parameters": [
+      {
+        "name": "city",
+        "type": "string",
+        "description": "City subdomain (e.g. 'newyork', 'sfbay')",
+        "required": true
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "description": "Category code (e.g. 'cta' for cars, 'apa' for apartments)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open(`https://${params.city}.craigslist.org/search/${params.category}`)\n\n  // Wait for content\n  await browser.waitForSelector('.cl-search-result, .result-row, .cl-static-search-result, body', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const results = []; document.querySelectorAll('.cl-search-result, .result-row, .cl-static-search-result').forEach((el,i) => { if(i>=20) return; const titleEl = el.querySelector('a.posting-title, a.result-title, a.cl-app-anchor'); const priceEl = el.querySelector('.priceinfo, .result-price'); const locEl = el.querySelector('.result-hood, .meta'); results.push({ title: titleEl?titleEl.textContent.trim():'', url: titleEl?titleEl.href:'', price: priceEl?priceEl.textContent.trim():'', location: locEl?locEl.textContent.trim():'' }); }); return { city: '' + params.city + '', category: '' + params.category + '', result_count: results.length, results }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "instagram-like-post",
+    "slug": "instagram-like-post",
+    "name": "instagram_like_post",
+    "displayName": "Instagram Like Post",
+    "description": "Like an Instagram post. Navigates to the post and clicks the like button. You must be logged in to Instagram.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "instagram"
+    ],
+    "parameters": [
+      {
+        "name": "post_url",
+        "type": "string",
+        "description": "Full URL of the Instagram post to like (e.g. 'https://www.instagram.com/p/ABC123/')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Instagram post\n  await browser.open(`${params.post_url}`)\n\n  // Wait for post to load\n  await browser.waitForSelector('article, article[role=\\'presentation\\'], main[role=\\'main\\'] div[role=\\'presentation\\']', 15000)\n\n  // Let post fully render\n  await browser.wait(2000)\n\n  // Like the post\n  const result = await browser.evaluate(`const unlikeSvg = document.querySelector('svg[aria-label=\"Unlike\"]'); if (unlikeSvg) { return { success: true, message: 'Post is already liked', already_liked: true }; } const likeSvg = document.querySelector('svg[aria-label=\"Like\"]'); if (likeSvg) { const likeBtn = likeSvg.closest('button') || likeSvg.closest('div[role=\"button\"]') || likeSvg.parentElement; if (likeBtn) { likeBtn.click(); await new Promise(r => setTimeout(r, 1000)); const confirmUnlike = document.querySelector('svg[aria-label=\"Unlike\"]'); return { success: !!confirmUnlike, message: confirmUnlike ? 'Post liked successfully' : 'Like button clicked but could not confirm', post_url: params.post_url }; } } return { success: false, message: 'Like button not found. Make sure you are logged in and the post URL is valid.' }`)\n\n  // Wait for like to register\n  await browser.wait(1000)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

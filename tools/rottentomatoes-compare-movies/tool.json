@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "rottentomatoes-compare-movies",
+    "slug": "rottentomatoes-compare-movies",
+    "name": "rottentomatoes_compare_movies",
+    "displayName": "Rottentomatoes Compare Movies",
+    "description": "Compare Rotten Tomatoes scores for multiple movies by searching and extracting their Tomatometer and audience scores side by side.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "rottentomatoes"
+    ],
+    "parameters": [
+      {
+        "name": "movies",
+        "type": "string",
+        "description": "Comma-separated movie titles (e.g. 'The Matrix,Inception,Interstellar')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.movies.split(',').map(m => ({ url: 'https://www.rottentomatoes.com/search?search=' + encodeURIComponent(m.trim()), movie: m.trim() }))`)\n\n  // Search each movie in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

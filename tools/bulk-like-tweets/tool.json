@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "x-auto-bulk-like-tweets",
+    "slug": "bulk-like-tweets",
+    "name": "bulk_like_tweets",
+    "displayName": "Bulk Like Tweets",
+    "description": "Like multiple tweets in parallel by their URLs. Skips already-liked tweets.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "x-automation",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "tweet_urls",
+        "type": "string",
+        "description": "Comma-separated tweet URLs to like (e.g. 'https://x.com/user/status/123,https://x.com/user/status/456')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build tweet URL list\n  const items = await browser.evaluate(`return params.tweet_urls.split(',').map(u => ({ url: u.trim() }))`)\n\n  // Like each tweet in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

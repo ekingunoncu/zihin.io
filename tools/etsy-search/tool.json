@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "etsy-search",
+    "slug": "etsy-search",
+    "name": "etsy_search",
+    "displayName": "Etsy Search",
+    "description": "Search for products on Etsy. Returns up to 15 results with title, price, rating, review count, shop name, image, and URL.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "etsy",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'handmade jewelry', 'custom wedding invitations')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Etsy\n  await browser.open(`https://www.etsy.com/search?q=${params.query}`)\n\n  // Wait for search results\n  await browser.waitForSelector('.v2-listing-card, a.listing-link, li[data-listing-id]', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further down\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract product results\n  const search_results = await browser.evaluate(`const results = []; const cards = document.querySelectorAll('.v2-listing-card'); if (cards.length === 0) { const altCards = document.querySelectorAll('li[data-listing-id], [data-palette-listing-id]'); for (let i = 0; i < Math.min(altCards.length, 15); i++) { const el = altCards[i]; const titleEl = el.querySelector('h2, h3, a[title]'); const priceEl = el.querySelector('span.currency-value, [data-currency-value]'); const currencyEl = el.querySelector('span.currency-symbol'); const linkEl = el.querySelector('a.listing-link, a[href*=\"/listing/\"]'); const imgEl = el.querySelector('img'); const ratingEl = el.querySelector('[aria-label*=\"star\"], [aria-label*=\"rating\"]'); const shopEl = el.querySelector('p a[href*=\"/shop/\"], [aria-label*=\"shop\"]'); const reviewCountEl = el.querySelector('[aria-label*=\"review\"], [aria-label*=\"sale\"]'); const freeShippingEl = el.querySelector('[aria-label*=\"shipping\"], [data-free-shipping]'); if (titleEl || linkEl) { results.push({ title: titleEl ? (titleEl.getAttribute('title') || titleEl.textContent.trim()) : '', price: (currencyEl ? currencyEl.textContent.trim() : '') + (priceEl ? priceEl.textContent.trim() : ''), url: linkEl ? linkEl.href : '', image: imgEl ? imgEl.getAttribute('src') : '', rating: ratingEl ? ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', shop_name: shopEl ? shopEl.textContent.trim() : '', free_shipping: !!freeShippingEl }); } } } else { for (let i = 0; i < Math.min(cards.length, 15); i++) { const el = cards[i]; const titleEl = el.querySelector('h2.v2-listing-card__title, h3.v2-listing-card__title, h2, h3, a[title]'); const priceEl = el.querySelector('span.currency-value, [data-currency-value]'); const currencyEl = el.querySelector('span.currency-symbol'); const linkEl = el.querySelector('a.listing-link, a[href*=\"/listing/\"]'); const imgEl = el.querySelector('img'); const ratingEl = el.querySelector('[aria-label*=\"star\"], [aria-label*=\"rating\"]'); const shopEl = el.querySelector('p a[href*=\"/shop/\"], [aria-label*=\"shop\"]'); const reviewCountEl = el.querySelector('[aria-label*=\"review\"], [aria-label*=\"sale\"]'); const freeShippingEl = el.querySelector('[aria-label*=\"shipping\"], [data-free-shipping]'); results.push({ title: titleEl ? (titleEl.getAttribute('title') || titleEl.textContent.trim()) : '', price: (currencyEl ? currencyEl.textContent.trim() : '') + (priceEl ? priceEl.textContent.trim() : ''), url: linkEl ? linkEl.href : '', image: imgEl ? imgEl.getAttribute('src') : '', rating: ratingEl ? ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim() : '', review_count: reviewCountEl ? reviewCountEl.textContent.trim() : '', shop_name: shopEl ? shopEl.textContent.trim() : '', free_shipping: !!freeShippingEl }); } } return { query: params.query, result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

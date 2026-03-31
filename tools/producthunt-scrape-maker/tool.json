@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "producthunt-scrape-maker",
+    "slug": "producthunt-scrape-maker",
+    "name": "producthunt_scrape_maker",
+    "displayName": "Producthunt Scrape Maker",
+    "description": "Scrape a Product Hunt maker/user profile. Returns name, bio, follower count, products made, upvotes received, and social links.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "producthunt",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "username",
+        "type": "string",
+        "description": "Product Hunt username (e.g. 'rrhoover', 'levelsio')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open maker profile\n  await browser.open(`https://www.producthunt.com/@${params.username}`)\n\n  // Wait for profile to load\n  await browser.waitForSelector('h1, [class*=\\'profile\\'], [class*=\\'user-name\\'], [class*=\\'hero\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load content\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract maker profile\n  const maker_data = await browser.evaluate(`const nameEl = document.querySelector('h1, [class*=\"profile\"] h1, [class*=\"user-name\"]'); const bioEl = document.querySelector('[class*=\"bio\"], [class*=\"about\"], [class*=\"headline\"]'); const followersEl = document.querySelector('[class*=\"followers\"] span, [class*=\"follower-count\"]'); const followingEl = document.querySelector('[class*=\"following\"] span'); const avatarEl = document.querySelector('[class*=\"avatar\"] img, [class*=\"profile\"] img'); const products = []; const productEls = document.querySelectorAll('[class*=\"post-item\"], a[href*=\"/posts/\"]'); const seen = new Set(); for (let i = 0; i < Math.min(productEls.length, 10); i++) { const el = productEls[i]; const titleEl = el.querySelector('h3, strong, [class*=\"title\"]'); const href = el.getAttribute('href') || (el.querySelector('a') ? el.querySelector('a').href : ''); if (seen.has(href)) continue; seen.add(href); const taglineEl = el.querySelector('p, [class*=\"tagline\"]'); const upvotesEl = el.querySelector('[class*=\"vote\"] span'); products.push({ name: titleEl ? titleEl.textContent.trim() : '', tagline: taglineEl ? taglineEl.textContent.trim() : '', upvotes: upvotesEl ? upvotesEl.textContent.trim() : '', url: href.startsWith('http') ? href : 'https://www.producthunt.com' + href }); } const socialEls = document.querySelectorAll('a[href*=\"twitter.com\"], a[href*=\"github.com\"], a[href*=\"linkedin.com\"], a[class*=\"social\"]'); const socials = []; socialEls.forEach(function(el) { socials.push(el.href); }); return { name: nameEl ? nameEl.textContent.trim() : '' + params.username + '', bio: bioEl ? bioEl.textContent.trim().substring(0, 500) : '', followers: followersEl ? followersEl.textContent.trim() : '', following: followingEl ? followingEl.textContent.trim() : '', avatar: avatarEl ? avatarEl.getAttribute('src') : '', products: products, social_links: socials.slice(0, 5), profile_url: window.location.href }`)\n\n  return maker_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "craigslist-search-housing",
+    "slug": "craigslist-search-housing",
+    "name": "craigslist_search_housing",
+    "displayName": "Craigslist Search Housing",
+    "description": "Search Craigslist housing/apartment listings in a specific city. Returns apartments/rooms with price, location, and details.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "craigslist",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "city",
+        "type": "string",
+        "description": "City subdomain (e.g. 'newyork', 'sfbay', 'chicago')",
+        "required": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. '2 bedroom', 'studio downtown')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open housing search\n  await browser.open(`https://${params.city}.craigslist.org/search/apa?query=${params.query}`)\n\n  // Wait for content\n  await browser.waitForSelector('.cl-search-result, .result-row, .cl-static-search-result, body', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const results = []; document.querySelectorAll('.cl-search-result, .result-row, .cl-static-search-result').forEach((el,i) => { if(i>=15) return; const titleEl = el.querySelector('a.posting-title, a.result-title, a.cl-app-anchor'); const priceEl = el.querySelector('.priceinfo, .result-price'); const meta = el.querySelector('.housing, .meta, .result-meta')?.textContent?.trim()||''; results.push({ title: titleEl?titleEl.textContent.trim():'', url: titleEl?titleEl.href:'', price: priceEl?priceEl.textContent.trim():'', details: meta }); }); return { city: '' + params.city + '', query: '' + params.query + '', result_count: results.length, results }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

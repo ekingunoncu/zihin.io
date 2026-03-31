@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "trello-list-boards",
+    "slug": "trello-list-boards",
+    "name": "trello_list_boards",
+    "displayName": "Trello List Boards",
+    "description": "List all Trello boards you have access to. Returns board names, URLs, and organization info.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "trello"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Trello\n  await browser.open('https://trello.com')\n\n  // Let Trello load\n  await browser.wait(3000)\n\n  // Fetch boards via Trello REST API\n  const result = await browser.evaluate(`const resp = await fetch('/1/members/me/boards?fields=name,url,shortUrl,closed,idOrganization,dateLastActivity', { credentials: 'same-origin' }); if (!resp.ok) throw new Error('Trello API error: ' + resp.status); const boards = await resp.json(); const active = boards.filter(b => !b.closed).map(b => ({ name: b.name, url: b.url || b.shortUrl, last_activity: b.dateLastActivity, org_id: b.idOrganization || '' })); return { result_count: active.length, boards: active }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

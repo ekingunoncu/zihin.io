@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "myfitnesspal-scrape-exercise",
+    "slug": "myfitnesspal-scrape-exercise",
+    "name": "myfitnesspal_scrape_exercise",
+    "displayName": "Myfitnesspal Scrape Exercise",
+    "description": "Search and scrape exercise data on MyFitnessPal. Returns exercise name and calories burned per duration.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "myfitnesspal",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "exercise_name",
+        "type": "string",
+        "description": "Exercise name to search for",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open page\n  await browser.open(`https://www.myfitnesspal.com/exercise/search?search=${params.exercise_name}`)\n\n  // Wait for content\n  await browser.waitForSelector('.exercise-item, [class*=\"Exercise\"], li', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract data\n  const page_data = await browser.evaluate(`const results = Array.from(document.querySelectorAll('.exercise-item, [class*=\"Exercise\"], li')).slice(0,10).map(el => { const name = el.querySelector('a, [class*=\"name\"]')?.textContent?.trim()||el.textContent.trim(); const cal = el.querySelector('[class*=\"calories\"], .calories-burned')?.textContent?.trim()||''; return { name: name.substring(0,100), calories_burned: cal }; }).filter(r=>r.name); return { search: '' + params.exercise_name + '', results }`)\n\n  return page_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

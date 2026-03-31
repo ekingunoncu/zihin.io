@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "maps-get-directions",
+    "slug": "maps-get-directions",
+    "name": "maps_get_directions",
+    "displayName": "Maps Get Directions",
+    "description": "Get directions between two locations on Google Maps. Returns distance, duration, and step-by-step directions.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-maps"
+    ],
+    "parameters": [
+      {
+        "name": "origin",
+        "type": "string",
+        "description": "Starting location (address or place name)",
+        "required": true
+      },
+      {
+        "name": "destination",
+        "type": "string",
+        "description": "Destination location (address or place name)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open directions\n  await browser.open(`https://www.google.com/maps/dir/${params.origin}/${params.destination}`)\n\n  // Wait for directions to load\n  await browser.waitForSelector('div[role=\\'list\\'], div[data-trip-index=\\'0\\'], .directions-mode-group', 15000)\n\n  // Let directions calculate\n  await browser.wait(3000)\n\n  // Extract directions\n  const directions = await browser.evaluate(`const main = document.querySelector('[role=\"main\"]'); const allText = main ? main.innerText : ''; const distMatch = allText.match(/(\\d[\\d.,]+\\s*(?:km|mi|miles|m|ft))/i); const durMatch = allText.match(/(\\d+\\s*(?:h(?:ours?)?|min(?:utes?)?|hr)[\\s\\d]*(?:min(?:utes?)?)?)/i); const steps = []; const stepEls = document.querySelectorAll('div[data-step-index], div[role=\"list\"] div[role=\"listitem\"], .directions-mode-step'); stepEls.forEach((step, i) => { if (i >= 15) return; const t = step.textContent.trim(); if (t.length > 2) steps.push(t); }); if (steps.length === 0) { const listItems = document.querySelectorAll('div[role=\"list\"] > div'); listItems.forEach((item, i) => { if (i >= 15) return; const t = item.textContent.trim(); if (t.length > 5) steps.push(t); }); } return { distance: distMatch ? distMatch[1] : '', duration: durMatch ? durMatch[1] : '', steps: steps, url: window.location.href }`)\n\n  return directions\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

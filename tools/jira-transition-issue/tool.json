@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "jira-transition-issue",
+    "slug": "jira-transition-issue",
+    "name": "jira_transition_issue",
+    "displayName": "Jira Transition Issue",
+    "description": "Transition a Jira issue to a new status (e.g. To Do → In Progress → Done). Lists available transitions if target_status is not found.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "jira"
+    ],
+    "parameters": [
+      {
+        "name": "jira_url",
+        "type": "string",
+        "description": "Base URL of Jira instance (e.g. 'https://company.atlassian.net')",
+        "required": true
+      },
+      {
+        "name": "issue_key",
+        "type": "string",
+        "description": "Jira issue key (e.g. 'PROJ-123')",
+        "required": true
+      },
+      {
+        "name": "target_status",
+        "type": "string",
+        "description": "Target status name (e.g. 'In Progress', 'Done', 'To Do')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Jira issue\n  await browser.open(`${params.jira_url}/browse/${params.issue_key}`)\n\n  // Let page load\n  await browser.wait(2000)\n\n  // Transition issue via REST API\n  const result = await browser.evaluate(`const baseUrl = params.jira_url.replace(/\\/$/, ''); const target = params.target_status.toLowerCase(); const tResp = await fetch(baseUrl + '/rest/api/3/issue/' + params.issue_key + '/transitions', { credentials: 'same-origin' }); if (!tResp.ok) throw new Error('Failed to get transitions: ' + tResp.status); const tData = await tResp.json(); const transitions = tData.transitions || []; const match = transitions.find(t => t.name.toLowerCase() === target || t.to.name.toLowerCase() === target); if (!match) return { success: false, message: 'Status not available', available_transitions: transitions.map(t => ({ id: t.id, name: t.name, to: t.to.name })) }; const resp = await fetch(baseUrl + '/rest/api/3/issue/' + params.issue_key + '/transitions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ transition: { id: match.id } }) }); if (!resp.ok) throw new Error('Transition failed: ' + resp.status); return { success: true, key: '' + params.issue_key + '', transitioned_to: match.to.name }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

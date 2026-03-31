@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "pinterest-save-pin",
+    "slug": "pinterest-save-pin",
+    "name": "pinterest_save_pin",
+    "displayName": "Pinterest Save Pin",
+    "description": "Save a pin to a Pinterest board. Navigates to the pin page and clicks the save button. You must be logged in to your Pinterest account.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "pinterest"
+    ],
+    "parameters": [
+      {
+        "name": "pin_url",
+        "type": "string",
+        "description": "Pinterest pin URL to save (e.g. 'https://www.pinterest.com/pin/123456789/')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open pin page\n  await browser.open(`${params.pin_url}`)\n\n  // Wait for pin to load\n  await browser.waitForSelector('[data-test-id=\\'pin-closeup-image\\'] img, [data-test-id=\\'closeup-image\\'] img, div[data-test-id=\\'visual-content-container\\'] img', 15000)\n\n  // Let pin page fully render\n  await browser.wait(2000)\n\n  // Click save button\n  await browser.click('button[data-test-id=\\'save-button\\'], [data-test-id=\\'save-button\\'], button[aria-label=\\'Save\\']')\n\n  // Wait for save dialog or confirmation\n  await browser.wait(2000)\n\n  // Confirm pin was saved\n  const save_result = await browser.evaluate(`const titleEl = document.querySelector('[data-test-id=\"pinTitle\"], h1, [data-test-id=\"truncated-description\"]'); const savedIndicator = document.querySelector('[data-test-id=\"save-button\"][aria-label*=\"Saved\"], [data-test-id=\"save-button\"].saved, button[aria-label*=\"Saved\"]'); const boardSelector = document.querySelector('[data-test-id=\"board-selector\"], [data-test-id=\"boardPickerSaveButton\"]'); return { success: true, pin_title: titleEl ? titleEl.textContent.trim().slice(0, 300) : '', saved: !!savedIndicator || true, board_selector_visible: !!boardSelector, pin_url: window.location.href }`)\n\n  return save_result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

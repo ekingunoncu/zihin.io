@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "telegram-send-message",
+    "slug": "telegram-send-message",
+    "name": "telegram_send_message",
+    "displayName": "Telegram Send Message",
+    "description": "Send a message in a Telegram chat. Searches for the chat by name, opens it, types the message, and sends it. You must be logged in to Telegram Web.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "telegram",
+      "messaging"
+    ],
+    "parameters": [
+      {
+        "name": "chat_name",
+        "type": "string",
+        "description": "Name of the chat, group, or channel to send the message to",
+        "required": true
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "description": "Message text to send",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Telegram Web\n  await browser.open('https://web.telegram.org/k/')\n\n  // Wait for Telegram to load\n  await browser.waitForSelector('.input-search input, .chatlist-chat, .chat-list', 15000)\n\n  // Let app fully initialize\n  await browser.wait(2000)\n\n  // Search for the chat\n  const search_chat = await browser.evaluate(`const searchInput = document.querySelector('.input-search input') || document.querySelector('input[type=\"text\"]'); if (searchInput) { searchInput.focus(); searchInput.click(); await new Promise(r => setTimeout(r, 300)); searchInput.value = ''; searchInput.dispatchEvent(new Event('input', { bubbles: true })); document.execCommand('insertText', false, params.chat_name); searchInput.dispatchEvent(new Event('input', { bubbles: true })); } return { searched: true }`)\n\n  // Wait for search results\n  await browser.wait(2500)\n\n  // Click on the matching chat\n  const click_chat = await browser.evaluate(`const chatItems = document.querySelectorAll('.chatlist-chat, .chat-list .ListItem, .search-group .chatlist-chat'); let clicked = false; for (const item of chatItems) { const nameEl = item.querySelector('.peer-title, .user-title, .dialog-title'); if (nameEl && nameEl.textContent.trim().toLowerCase().includes(params.chat_name.toLowerCase())) { item.click(); clicked = true; break; } } if (!clicked && chatItems.length > 0) { chatItems[0].click(); clicked = true; } return { clicked: clicked }`)\n\n  // Wait for chat to open\n  await browser.wait(2000)\n\n  // Wait for message input\n  await browser.waitForSelector('[contenteditable=\\'true\\'].input-message-input, .input-message-input', 10000)\n\n  // Type message\n  const type_message = await browser.evaluate(`const el = document.querySelector('.input-message-input[contenteditable=\"true\"]') || document.querySelector('[contenteditable=\"true\"].input-message-input'); if (!el) throw new Error('Message input not found'); el.focus(); await new Promise(r => setTimeout(r, 300)); document.execCommand('insertText', false, params.message); el.dispatchEvent(new Event('input', { bubbles: true })); return { typed: true }`)\n\n  await browser.wait(500)\n\n  // Send message\n  const result = await browser.evaluate(`const sendBtn = document.querySelector('.btn-send, .send-btn, button.btn-icon.send'); if (sendBtn) { sendBtn.click(); } else { const el = document.querySelector('.input-message-input[contenteditable=\"true\"]') || document.querySelector('[contenteditable=\"true\"].input-message-input'); if (el) { el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true })); } } return { success: true, message: 'Message sent' }`)\n\n  await browser.wait(1500)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

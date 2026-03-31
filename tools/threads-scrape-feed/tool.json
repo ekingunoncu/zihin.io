@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "threads-scrape-feed",
+    "slug": "threads-scrape-feed",
+    "name": "threads_scrape_feed",
+    "displayName": "Threads Scrape Feed",
+    "description": "Scrape the Threads main feed. Returns up to 15 posts with author, content preview, likes, replies count, and timestamp. You must be logged in to Threads.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "threads",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Threads home feed\n  await browser.open('https://www.threads.net/')\n\n  // Wait for feed to load\n  await browser.waitForSelector('[class*=\\'ThreadItem\\'], article, div[role=\\'article\\'], [data-pressable-container=\\'true\\']', 15000)\n\n  // Let initial posts render\n  await browser.wait(3000)\n\n  // Scroll to load more posts\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  // Wait for posts to load\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  // Wait for more posts\n  await browser.wait(2000)\n\n  // Scroll for more posts\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(2000)\n\n  // Extract feed posts\n  const feed_posts = await browser.evaluate(`const posts = []; const postEls = document.querySelectorAll('[class*=\"ThreadItem\"], article, div[role=\"article\"], [data-pressable-container=\"true\"]'); for (let i = 0; i < Math.min(postEls.length, 15); i++) { const el = postEls[i]; const authorEl = el.querySelector('a[href^=\"/@\"] span, a[href*=\"threads.net/@\"] span, [class*=\"username\"]'); const author = authorEl ? authorEl.textContent.trim() : ''; const authorLink = el.querySelector('a[href^=\"/@\"], a[href*=\"threads.net/@\"]'); const authorUrl = authorLink ? (authorLink.href.startsWith('http') ? authorLink.href : 'https://www.threads.net' + authorLink.getAttribute('href')) : ''; const contentEl = el.querySelector('[class*=\"text\"], [class*=\"content\"], [class*=\"body\"] span, [class*=\"TextContent\"]'); let content = ''; if (contentEl) { content = contentEl.textContent.trim().substring(0, 300); } else { const spans = el.querySelectorAll('span[dir=\"auto\"]'); for (const span of spans) { const text = span.textContent.trim(); if (text.length > content.length && text !== author) content = text.substring(0, 300); } } const timeEl = el.querySelector('time, [class*=\"time\"], [class*=\"timestamp\"]'); const timestamp = timeEl ? (timeEl.getAttribute('datetime') || timeEl.textContent.trim()) : ''; const likesEl = el.querySelector('[class*=\"like\"] span, [aria-label*=\"like\"], [class*=\"LikeCount\"]'); const likes = likesEl ? (likesEl.getAttribute('aria-label') || likesEl.textContent.trim()) : ''; const repliesEl = el.querySelector('[class*=\"reply\"] span, [aria-label*=\"repl\"], [class*=\"ReplyCount\"]'); const replies = repliesEl ? (repliesEl.getAttribute('aria-label') || repliesEl.textContent.trim()) : ''; const postLink = el.querySelector('a[href*=\"/post/\"], a[href*=\"/t/\"]'); const postUrl = postLink ? (postLink.href.startsWith('http') ? postLink.href : 'https://www.threads.net' + postLink.getAttribute('href')) : ''; const imgEl = el.querySelector('img[src*=\"scontent\"], img[class*=\"media\"]'); const image = imgEl ? imgEl.src : ''; const avatarEl = el.querySelector('[class*=\"avatar\"] img, img[alt*=\"profile\"]'); const avatar = avatarEl ? avatarEl.src : ''; posts.push({ author: author, author_url: authorUrl, avatar: avatar, content: content, likes: likes, replies: replies, timestamp: timestamp, image: image, post_url: postUrl }); } return { post_count: posts.length, posts: posts }`)\n\n  return feed_posts\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

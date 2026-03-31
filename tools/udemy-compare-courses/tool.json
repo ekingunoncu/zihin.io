@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "udemy-compare-courses",
+    "slug": "udemy-compare-courses",
+    "name": "udemy_compare_courses",
+    "displayName": "Udemy Compare Courses",
+    "description": "Compare multiple courses on Udemy by searching and extracting their ratings, prices, student counts, and instructor info side by side.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "udemy"
+    ],
+    "parameters": [
+      {
+        "name": "courses",
+        "type": "string",
+        "description": "Comma-separated course names (e.g. 'python bootcamp,javascript course,react complete guide')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.courses.split(',').map(c => ({ url: 'https://www.udemy.com/courses/search/?q=' + encodeURIComponent(c.trim()), course: c.trim() }))`)\n\n  // Search each course in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

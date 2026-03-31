@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "wikipedia-scrape-article",
+    "slug": "wikipedia-scrape-article",
+    "name": "wikipedia_scrape_article",
+    "displayName": "Wikipedia Scrape Article",
+    "description": "Scrape a full Wikipedia article. Returns title, summary, sections with content, infobox data, images, and table of contents.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "wikipedia",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "article_url",
+        "type": "string",
+        "description": "Wikipedia article URL (e.g. 'https://en.wikipedia.org/wiki/Artificial_intelligence')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open article page\n  await browser.open(`${params.article_url}`)\n\n  // Wait for article to load\n  await browser.waitForSelector('#firstHeading, .mw-page-title-main, h1', 15000)\n\n  // Let page render\n  await browser.wait(1500)\n\n  // Scroll to load content\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1000)\n\n  // Extract article content\n  const article_data = await browser.evaluate(`const titleEl = document.querySelector('#firstHeading, .mw-page-title-main, h1'); const content = document.querySelector('#mw-content-text .mw-parser-output, #bodyContent'); const paragraphs = content ? content.querySelectorAll(':scope > p') : []; let summary = ''; for (let i = 0; i < Math.min(paragraphs.length, 3); i++) { const text = paragraphs[i].textContent.trim(); if (text.length > 50) { summary += text + ' '; } } const sections = []; const headings = content ? content.querySelectorAll('h2, h3') : []; headings.forEach(function(h) { const titleText = h.querySelector('.mw-headline, span') ? h.querySelector('.mw-headline, span').textContent.trim() : h.textContent.trim(); let sectionText = ''; let sibling = h.nextElementSibling; while (sibling && !sibling.matches('h2, h3')) { if (sibling.matches('p')) { sectionText += sibling.textContent.trim() + ' '; } sibling = sibling.nextElementSibling; } if (titleText && titleText !== 'References' && titleText !== 'External links' && titleText !== 'See also') { sections.push({ heading: titleText, level: h.tagName === 'H2' ? 2 : 3, content: sectionText.substring(0, 500) }); } }); const infobox = {}; const infoboxEl = document.querySelector('.infobox, .vcard'); if (infoboxEl) { const rows = infoboxEl.querySelectorAll('tr'); rows.forEach(function(row) { const th = row.querySelector('th'); const td = row.querySelector('td'); if (th && td) { infobox[th.textContent.trim()] = td.textContent.trim().substring(0, 200); } }); } const toc = []; const tocItems = document.querySelectorAll('#toc li a, .toc li a, [class*=\"sidebar-toc\"] li a'); tocItems.forEach(function(a) { toc.push(a.textContent.trim()); }); const images = []; const imgEls = content ? content.querySelectorAll('img[src*=\"upload.wikimedia\"]') : []; imgEls.forEach(function(img) { const src = img.getAttribute('src'); if (src && src.includes('upload.wikimedia') && !images.includes(src)) images.push(src.startsWith('//') ? 'https:' + src : src); }); return { title: titleEl ? titleEl.textContent.trim() : '', summary: summary.trim().substring(0, 2000), section_count: sections.length, sections: sections.slice(0, 15), infobox: infobox, table_of_contents: toc.slice(0, 20), images: images.slice(0, 5), url: window.location.href }`)\n\n  return article_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

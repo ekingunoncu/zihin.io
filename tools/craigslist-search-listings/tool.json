@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "craigslist-search-listings",
+    "slug": "craigslist-search-listings",
+    "name": "craigslist_search_listings",
+    "displayName": "Craigslist Search Listings",
+    "description": "Search Craigslist for-sale listings in a specific city. Returns results with title, price, and URL.",
+    "category": "E-Commerce",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "craigslist",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "city",
+        "type": "string",
+        "description": "City slug (e.g. \"newyork\", \"sfbay\", \"chicago\", \"losangeles\")",
+        "required": true
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Craigslist city search\n  await browser.open(`https://${params.city}.craigslist.org/search/sss?query=${params.query}`)\n\n  // Wait for page\n  await browser.waitForSelector('.cl-search-result, .result-row, .cl-static-search-result, body', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Scroll for more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract data\n  const result = await browser.evaluate(`const results = []; document.querySelectorAll('.cl-search-result, .result-row, .cl-static-search-result').forEach((el, i) => { if (i < 20) { const titleEl = el.querySelector('a.posting-title, a.result-title, .titlestring, a.cl-app-anchor'); const priceEl = el.querySelector('.priceinfo, .result-price'); results.push({ title: titleEl?.textContent?.trim() || '', url: titleEl?.href || '', price: priceEl?.textContent?.trim() || '' }); } }); return { city: '' + params.city + '', query: '' + params.query + '', result_count: results.length, results };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

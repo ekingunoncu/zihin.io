@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "hn-scrape-best",
+    "slug": "hn-scrape-best",
+    "name": "hn_scrape_best",
+    "displayName": "HN Scrape Best",
+    "description": "Scrape the best stories from Hacker News. Returns the top 30 best-rated stories with rank, title, URL, score, author, comment count, and age.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "hackernews",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Hacker News best page\n  await browser.open('https://news.ycombinator.com/best')\n\n  // Wait for stories to load\n  await browser.waitForSelector('.athing', 15000)\n\n  // Let page settle\n  await browser.wait(1500)\n\n  // Extract best stories\n  const best_data = await browser.evaluate(`const stories = []; const storyRows = document.querySelectorAll('.athing'); for (let i = 0; i < Math.min(storyRows.length, 30); i++) { const row = storyRows[i]; const subtext = row.nextElementSibling; const rankEl = row.querySelector('.rank'); const titleEl = row.querySelector('.titleline > a'); const scoreEl = subtext ? subtext.querySelector('.score') : null; const authorEl = subtext ? subtext.querySelector('.hnuser') : null; const ageEl = subtext ? subtext.querySelector('.age a') : null; let commentCount = '0'; if (subtext) { const links = subtext.querySelectorAll('a'); for (const link of links) { const text = link.textContent.trim(); if (text.includes('comment')) { commentCount = text.split('\\u00a0')[0] || text.split(' ')[0]; break; } } } stories.push({ rank: rankEl ? parseInt(rankEl.textContent.trim().replace('.', ''), 10) : i + 1, title: titleEl ? titleEl.textContent.trim() : '', url: titleEl ? titleEl.href : '', score: scoreEl ? scoreEl.textContent.trim() : '0 points', author: authorEl ? authorEl.textContent.trim() : '', comment_count: commentCount, age: ageEl ? ageEl.textContent.trim() : '' }); } return { source: 'Hacker News - Best', story_count: stories.length, stories: stories }`)\n\n  return best_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

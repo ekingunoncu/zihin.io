@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "coursera-scrape-instructor",
+    "slug": "coursera-scrape-instructor",
+    "name": "coursera_scrape_instructor",
+    "displayName": "Coursera Scrape Instructor",
+    "description": "Scrape a Coursera instructor profile page. Returns name, title, institution, bio, courses taught, learner count, and rating.",
+    "category": "Education",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "coursera",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "instructor_url",
+        "type": "string",
+        "description": "Coursera instructor URL (e.g. 'https://www.coursera.org/instructor/andrewng')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open instructor page\n  await browser.open(`${params.instructor_url}`)\n\n  // Wait for profile to load\n  await browser.waitForSelector('h1', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load courses\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract instructor profile\n  const instructor_data = await browser.evaluate(`const nameEl = document.querySelector('h1'); const allText = document.body.innerText; const titleEl = document.querySelector('h1 + p, h1 + div p, [class*=\"title\"] p'); const institutionEls = document.querySelectorAll('a[href*=\"/partners/\"]'); const institutions = []; institutionEls.forEach(function(el) { const t = el.textContent.trim(); if (t && t.length < 80 && !institutions.includes(t)) institutions.push(t); }); const bioEls = document.querySelectorAll('section p, [class*=\"bio\"] p, [class*=\"about\"] p'); let bio = ''; bioEls.forEach(function(el) { const t = el.textContent.trim(); if (t.length > bio.length && t.length > 50) bio = t; }); const avatarEl = document.querySelector('img[alt*=\"instructor\" i], img[alt*=\"profile\" i], [class*=\"avatar\"] img, [class*=\"profile\"] img, main img'); const learnersMatch = allText.match(/(\\d[\\d,\\.]+[KkMm]?)\\s*(learner|student)/i); const ratingEl = document.querySelector('[role=\"meter\"], [aria-label*=\"stars\"], [class*=\"cds-RatingStar\"]'); const coursesCountMatch = allText.match(/(\\d+)\\s*(course|specialization)/i); const courses = []; const courseLinks = document.querySelectorAll('a[href*=\"/learn/\"], a[href*=\"/specializations/\"]'); const seen = new Set(); courseLinks.forEach(function(el) { const href = el.getAttribute('href') || ''; if (seen.has(href) || courses.length >= 10) return; const h = el.querySelector('h3, h2, strong'); const text = h ? h.textContent.trim() : el.textContent.trim().substring(0, 100); if (!text || text.length < 3) return; seen.add(href); const parent = el.closest('li, div[class*=\"card\"], div[class*=\"Card\"]'); const rEl = parent ? parent.querySelector('[role=\"meter\"], [aria-label*=\"stars\"]') : null; courses.push({ name: text, rating: rEl ? (rEl.getAttribute('aria-label') || rEl.textContent.trim()) : '', url: href.startsWith('http') ? href : 'https://www.coursera.org' + href }); }); return { name: nameEl ? nameEl.textContent.trim() : '', title: titleEl ? titleEl.textContent.trim() : '', institution: institutions.join(', '), bio: bio.substring(0, 500), avatar: avatarEl ? avatarEl.getAttribute('src') : '', learners: learnersMatch ? learnersMatch[0] : '', rating: ratingEl ? (ratingEl.getAttribute('aria-label') || ratingEl.textContent.trim()) : '', course_count: coursesCountMatch ? coursesCountMatch[1] : String(courses.length), courses: courses, profile_url: window.location.href }`)\n\n  return instructor_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

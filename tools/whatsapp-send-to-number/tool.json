@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "whatsapp-send-to-number",
+    "slug": "whatsapp-send-to-number",
+    "name": "whatsapp_send_to_number",
+    "displayName": "Whatsapp Send To Number",
+    "description": "Send a WhatsApp message directly to a phone number. The number does not need to be in your contacts.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "whatsapp",
+      "messaging"
+    ],
+    "parameters": [
+      {
+        "name": "phone_number",
+        "type": "string",
+        "description": "Phone number with country code, no spaces or dashes (e.g. '14155552671')",
+        "required": true
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "description": "Message text to send",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open WhatsApp chat with number\n  await browser.open('https://web.whatsapp.com/send')\n\n  // Wait for chat to open\n  await browser.waitForSelector('div[contenteditable=\\'true\\'][data-tab=\\'10\\'], footer div[contenteditable=\\'true\\']', 30000)\n\n  // Let chat load\n  await browser.wait(3000)\n\n  // Send message\n  const result = await browser.evaluate(`const sendBtn = document.querySelector('span[data-icon=\"send\"], button[aria-label=\"Send\"]'); if (sendBtn) { sendBtn.closest('button')?.click() || sendBtn.click(); await new Promise(r => setTimeout(r, 1500)); return { success: true, phone: '' + params.phone_number + '', message: params.message }; } const msgBox = document.querySelector('div[contenteditable=\"true\"][data-tab=\"10\"]') || document.querySelector('footer div[contenteditable=\"true\"]'); if (msgBox) { msgBox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true })); await new Promise(r => setTimeout(r, 1500)); return { success: true, phone: '' + params.phone_number + '', message: params.message }; } return { success: false, message: 'Could not send - chat may not have loaded properly' }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

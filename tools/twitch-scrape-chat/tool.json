@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "twitch-scrape-chat",
+    "slug": "twitch-scrape-chat",
+    "name": "twitch_scrape_chat",
+    "displayName": "Twitch Scrape Chat",
+    "description": "Scrape recent chat messages from a live Twitch stream. Returns chat messages with usernames, badges, message content, and timestamps.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "twitch",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "channel_name",
+        "type": "string",
+        "description": "Twitch channel name (e.g. 'shroud', 'pokimane')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open stream page\n  await browser.open(`https://www.twitch.tv/${params.channel_name}`)\n\n  // Wait for chat to load\n  await browser.waitForSelector('[class*=\\'chat-line\\'], [data-a-target=\\'chat-line-message\\'], [class*=\\'chat-scrollable\\']', 15000)\n\n  // Wait for chat messages to accumulate\n  await browser.wait(5000)\n\n  // Extract chat messages\n  const chat_data = await browser.evaluate(`const messages = []; const chatLines = document.querySelectorAll('[data-a-target=\"chat-line-message\"], [class*=\"chat-line__message\"], [class*=\"chat-line\"]'); for (let i = Math.max(0, chatLines.length - 50); i < chatLines.length; i++) { const el = chatLines[i]; const usernameEl = el.querySelector('[data-a-target=\"chat-message-username\"], [class*=\"chat-author\"], button[data-a-user]'); const messageEl = el.querySelector('[data-a-target=\"chat-message-text\"], [class*=\"text-fragment\"], span[class*=\"message\"]'); const badges = []; el.querySelectorAll('[class*=\"badge\"] img, [data-a-target=\"chat-badge\"]').forEach(function(badge) { const alt = badge.getAttribute('alt') || badge.getAttribute('aria-label') || ''; if (alt) badges.push(alt); }); if (usernameEl || messageEl) { messages.push({ username: usernameEl ? usernameEl.textContent.trim() : '', message: messageEl ? messageEl.textContent.trim() : el.textContent.trim().substring(0, 500), badges: badges }); } } const isLive = !!document.querySelector('[class*=\"live-indicator\"]'); const viewersEl = document.querySelector('[data-a-target=\"animated-channel-viewers-count\"]'); return { channel_name: '' + params.channel_name + '', is_live: isLive, viewer_count: viewersEl ? viewersEl.textContent.trim() : '', message_count: messages.length, messages: messages, url: window.location.href }`)\n\n  return chat_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

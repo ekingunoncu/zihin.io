@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "stackoverflow-scrape-answers",
+    "slug": "stackoverflow-scrape-answers",
+    "name": "stackoverflow_scrape_answers",
+    "displayName": "Stackoverflow Scrape Answers",
+    "description": "Scrape answers from a Stack Overflow question page. Returns all answers with vote count, author, date, content, and whether it is the accepted answer.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "stackoverflow",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "question_url",
+        "type": "string",
+        "description": "Stack Overflow question URL (e.g. 'https://stackoverflow.com/questions/12345678/how-to-do-something')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open question page\n  await browser.open(`${params.question_url}`)\n\n  // Wait for answers to load\n  await browser.waitForSelector('#answers, .answer, [data-answerid]', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load answers\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(1500)\n\n  // Scroll even further\n  await browser.scroll({ direction: 'down', amount: 2000 })\n\n  await browser.wait(1500)\n\n  // Extract answers\n  const answers_data = await browser.evaluate(`const titleEl = document.querySelector('#question-header h1 a, h1'); const answers = []; const answerEls = document.querySelectorAll('.answer, [data-answerid]'); for (let i = 0; i < Math.min(answerEls.length, 15); i++) { const el = answerEls[i]; const bodyEl = el.querySelector('.s-prose, .post-text, .js-post-body'); const votesEl = el.querySelector('.js-vote-count'); const authorEl = el.querySelector('.user-details a, .post-signature:last-child .user-details a'); const dateEl = el.querySelector('.relativetime, time'); const isAccepted = el.classList.contains('accepted-answer') || !!el.querySelector('.js-accepted-answer-indicator:not(.d-none)'); const commentEls = el.querySelectorAll('.comment-body, .comment-text'); const comments = []; commentEls.forEach(function(c, idx) { if (idx < 3) { const userEl = c.querySelector('.comment-user, a'); comments.push({ author: userEl ? userEl.textContent.trim() : '', text: c.textContent.trim().substring(0, 200) }); } }); answers.push({ answer_id: el.getAttribute('data-answerid') || '', is_accepted: isAccepted, votes: votesEl ? votesEl.textContent.trim() : '0', body: bodyEl ? bodyEl.textContent.trim().substring(0, 1500) : '', author: authorEl ? authorEl.textContent.trim() : '', date: dateEl ? (dateEl.getAttribute('title') || dateEl.textContent.trim()) : '', comment_count: commentEls.length, comments: comments }); } return { question_title: titleEl ? titleEl.textContent.trim() : '', answer_count: answers.length, answers: answers, url: window.location.href }`)\n\n  return answers_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

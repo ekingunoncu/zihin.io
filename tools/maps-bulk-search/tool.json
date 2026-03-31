@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "maps-bulk-search",
+    "slug": "maps-bulk-search",
+    "name": "maps_bulk_search",
+    "displayName": "Maps Bulk Search",
+    "description": "Search multiple queries on Google Maps in parallel using concurrent browser tabs. Use this instead of calling maps_search_places multiple times - it is faster and more efficient. Pass all queries as a single comma-separated string. Example: 'cafes in Berlin,restaurants in Berlin,bars in Berlin'.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-maps",
+      "search",
+      "bulk"
+    ],
+    "parameters": [
+      {
+        "name": "queries",
+        "type": "string",
+        "description": "Comma-separated search queries (e.g. 'pizza in NYC,sushi in LA,tacos in Austin')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Build search URL list\n  const items = await browser.evaluate(`return params.queries.split(',').map(q => ({ url: 'https://www.google.com/maps/search/' + encodeURIComponent(q.trim()), query: q.trim() }))`)\n\n  // Search each query in parallel\n  // TODO: Unsupported step type \"forEachItem\"\n\n  return items\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

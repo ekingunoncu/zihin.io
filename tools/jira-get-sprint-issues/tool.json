@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "jira-get-sprint-issues",
+    "slug": "jira-get-sprint-issues",
+    "name": "jira_get_sprint_issues",
+    "displayName": "Jira Get Sprint Issues",
+    "description": "Get all issues in a specific sprint. Returns issue keys, summaries, statuses, and assignees.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "jira"
+    ],
+    "parameters": [
+      {
+        "name": "jira_url",
+        "type": "string",
+        "description": "Base URL of Jira instance (e.g. 'https://company.atlassian.net')",
+        "required": true
+      },
+      {
+        "name": "sprint_id",
+        "type": "string",
+        "description": "Sprint ID number",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Jira\n  await browser.open(`${params.jira_url}/jira/software/projects`)\n\n  // Let Jira load\n  await browser.wait(2000)\n\n  // Fetch sprint issues via Agile REST API\n  const result = await browser.evaluate(`const baseUrl = params.jira_url.replace(/\\/$/, ''); const resp = await fetch(baseUrl + '/rest/agile/1.0/sprint/' + params.sprint_id + '/issue?maxResults=50&fields=summary,status,assignee,priority,issuetype', { credentials: 'same-origin' }); if (!resp.ok) throw new Error('Sprint API error: ' + resp.status); const data = await resp.json(); const issues = (data.issues || []).map(i => ({ key: i.key, summary: i.fields.summary, status: i.fields.status?.name || '', assignee: i.fields.assignee?.displayName || 'Unassigned', priority: i.fields.priority?.name || '', type: i.fields.issuetype?.name || '' })); return { total: data.total || issues.length, result_count: issues.length, issues: issues }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

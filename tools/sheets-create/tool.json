@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "sheets-create",
+    "slug": "sheets-create",
+    "name": "sheets_create",
+    "displayName": "Sheets Create",
+    "description": "Create a new Google Spreadsheet. Optionally provide a title to rename the spreadsheet from the default 'Untitled spreadsheet'.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-sheets",
+      "create"
+    ],
+    "parameters": [
+      {
+        "name": "title",
+        "type": "string",
+        "description": "Title for the new spreadsheet (leave empty for default 'Untitled spreadsheet')",
+        "required": false,
+        "default": ""
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Create a new spreadsheet\n  await browser.open('https://docs.google.com/spreadsheets/create')\n\n  // Wait for new spreadsheet to fully load\n  await browser.waitForSelector('table.waffle, .waffle', 25000)\n\n  // Let the new spreadsheet initialize completely\n  await browser.wait(4000)\n\n  // Rename spreadsheet if title provided\n  const create_result = await browser.evaluate(`const title = params.title; if (title) { let titleInput = document.querySelector('.docs-title-input, input.docs-title-input'); if (!titleInput) { const titleBar = document.querySelector('.docs-titlebar-text'); if (titleBar) { titleBar.click(); await new Promise(r => setTimeout(r, 500)); titleInput = document.querySelector('.docs-title-input, input.docs-title-input'); } } if (titleInput) { titleInput.focus(); titleInput.click(); await new Promise(r => setTimeout(r, 500)); titleInput.select(); await new Promise(r => setTimeout(r, 300)); document.execCommand('insertText', false, title); await new Promise(r => setTimeout(r, 300)); titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, code: 'Enter', bubbles: true })); await new Promise(r => setTimeout(r, 1500)); } } const finalTitle = document.querySelector('.docs-title-input, input.docs-title-input'); const displayTitle = finalTitle ? (finalTitle.value || finalTitle.textContent || '').trim() : document.title.replace(/ - Google Sheets$/, '').trim(); return { success: true, title: displayTitle, url: window.location.href, spreadsheet_id: window.location.href.match(/\\/d\\/([a-zA-Z0-9_-]+)/)?.[1] || '' }`)\n\n  return create_result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

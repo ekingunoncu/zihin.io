@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "yahoo-finance-scrape-financials",
+    "slug": "yahoo-finance-scrape-financials",
+    "name": "yahoo_finance_scrape_financials",
+    "displayName": "Yahoo Finance Scrape Financials",
+    "description": "Scrape financial statements from Yahoo Finance for a given stock. Returns income statement, balance sheet data, revenue, net income, total assets, and key financial metrics.",
+    "category": "Finance",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "yahoo-finance",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "symbol",
+        "type": "string",
+        "description": "Stock ticker symbol (e.g. 'AAPL', 'GOOGL', 'MSFT')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open financials page\n  await browser.open(`https://finance.yahoo.com/quote/${params.symbol}/financials/`)\n\n  // Wait for financial data to load\n  await browser.waitForSelector('table, [class*=\\'financials\\'], [data-testid=\\'fin-row\\']', 15000)\n\n  // Let page fully render\n  await browser.wait(2000)\n\n  // Scroll to see more data\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further down\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract financial statements\n  const financials_data = await browser.evaluate(`const financials = []; const rows = document.querySelectorAll('[data-testid=\"fin-row\"], table tbody tr, [class*=\"financials\"] [class*=\"row\"]'); rows.forEach(function(row) { const labelEl = row.querySelector('[class*=\"label\"], td:first-child, [title]'); const valueCells = row.querySelectorAll('[class*=\"cell\"]:not(:first-child), td:not(:first-child)'); const values = []; valueCells.forEach(function(cell) { values.push(cell.textContent.trim()); }); if (labelEl) { financials.push({ metric: labelEl.getAttribute('title') || labelEl.textContent.trim(), values: values.slice(0, 5) }); } }); const headerCells = document.querySelectorAll('table thead th, [class*=\"header\"] [class*=\"cell\"], [class*=\"column-header\"]'); const periods = []; headerCells.forEach(function(cell) { const text = cell.textContent.trim(); if (text && text.match(/\\d{4}|TTM|\\d{1,2}\\/\\d{1,2}\\/\\d{4}/)) { periods.push(text); } }); const nameEl = document.querySelector('h1, [class*=\"quote-header\"] h1'); return { symbol: '' + params.symbol + '', name: nameEl ? nameEl.textContent.trim() : '', periods: periods.slice(0, 5), row_count: financials.length, financials: financials.slice(0, 30), url: window.location.href }`)\n\n  return financials_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

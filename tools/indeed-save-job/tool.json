@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "indeed-save-job",
+    "slug": "indeed-save-job",
+    "name": "indeed_save_job",
+    "displayName": "Indeed Save Job",
+    "description": "Save or bookmark a job listing on Indeed. Navigates to the job page and clicks the save/bookmark button. Requires being logged in to Indeed.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "indeed"
+    ],
+    "parameters": [
+      {
+        "name": "job_url",
+        "type": "string",
+        "description": "Indeed job URL to save (e.g. 'https://www.indeed.com/viewjob?jk=abc123')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open job posting\n  await browser.open(`${params.job_url}`)\n\n  // Wait for job page to load\n  await browser.waitForSelector('.jobsearch-JobInfoHeader-title, h1.jobsearch-JobInfoHeader-title, [data-testid=\"jobsearch-JobInfoHeader-title\"]', 15000)\n\n  // Let page settle\n  await browser.wait(2000)\n\n  // Get job info before saving\n  const job_info = await browser.evaluate(`const titleEl = document.querySelector('.jobsearch-JobInfoHeader-title, h1.jobsearch-JobInfoHeader-title, [data-testid=\"jobsearch-JobInfoHeader-title\"]'); const companyEl = document.querySelector('[data-testid=\"inlineHeader-companyName\"] a, .jobsearch-InlineCompanyRating a'); const jobTitle = titleEl ? titleEl.textContent.trim() : 'Unknown'; const company = companyEl ? companyEl.textContent.trim() : ''; return { job_title: jobTitle, company: company }`)\n\n  // Click save/bookmark button\n  const save_result = await browser.evaluate(`const saveBtn = document.querySelector('button[aria-label*=\"Save\"], button[aria-label*=\"save\"], button.jobsearch-SaveJobButton, [data-testid=\"save-job-button\"], button.css-1kwnlnx, #saveJobButton, button[id*=\"save\"]'); const alreadySaved = document.querySelector('button[aria-label*=\"Saved\"], button[aria-label*=\"saved\"], button.jobsearch-SaveJobButton.saved, [data-testid=\"saved-job-button\"]'); if (alreadySaved) { return { success: true, already_saved: true, message: 'Job is already saved' }; } if (saveBtn) { saveBtn.click(); return { success: true, already_saved: false, message: 'Save button clicked' }; } const heartBtn = document.querySelector('button[aria-label*=\"heart\"], button[aria-label*=\"favorite\"], .jobsearch-SaveJob button, button svg[aria-label*=\"save\"]'); if (heartBtn) { const btn = heartBtn.closest('button') || heartBtn; btn.click(); return { success: true, already_saved: false, message: 'Save button clicked (heart icon)' }; } return { success: false, already_saved: false, message: 'Save button not found. You may need to be logged in to Indeed.' }`)\n\n  // Wait for save action to complete\n  await browser.wait(2000)\n\n  // Confirm save action\n  const confirmation = await browser.evaluate(`const savedIndicator = document.querySelector('button[aria-label*=\"Saved\"], button[aria-label*=\"saved\"], button.jobsearch-SaveJobButton.saved, [data-testid=\"saved-job-button\"]'); const loginModal = document.querySelector('#login-modal, .auth-modal, [data-testid=\"login-modal\"], form[action*=\"login\"]'); if (loginModal) { return { confirmed: false, message: 'Login required. Please sign in to Indeed to save jobs.', url: window.location.href }; } return { confirmed: !!savedIndicator, message: savedIndicator ? 'Job saved successfully' : 'Save action completed - verify in your Indeed account', url: window.location.href }`)\n\n  return confirmation\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

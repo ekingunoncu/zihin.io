@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "transfermarkt-scrape-player",
+    "slug": "transfermarkt-scrape-player",
+    "name": "transfermarkt_scrape_player",
+    "displayName": "Transfermarkt Scrape Player",
+    "description": "Scrape a Transfermarkt player profile.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "transfermarkt",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "player_path",
+        "type": "string",
+        "description": "Player URL path",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Transfermarkt\n  await browser.open(`https://www.transfermarkt.com/${params.player_path}`)\n\n  // Wait for page\n  await browser.waitForSelector('h1.data-header__headline-wrapper, .data-header, .content', 15000)\n\n  // Let page render\n  await browser.wait(2500)\n\n  // Extract data\n  const result = await browser.evaluate(`const headerEl = document.querySelector('h1.data-header__headline-wrapper'); const name = headerEl ? Array.from(headerEl.childNodes).filter(n => n.nodeType === 3 || n.tagName === 'STRONG').map(n => n.textContent.trim()).filter(Boolean).join(' ') : ''; const info = {}; const fields = ['Name in home country','Full name','Date of birth/Age','Place of birth','Height','Citizenship','Position','Foot','Player agent','Current club','Joined','Contract expires','Outfitter']; for (const field of fields) { const labelSpan = Array.from(document.querySelectorAll('span')).find(s => s.textContent.trim().startsWith(field)); if (labelSpan) { const valueSpan = labelSpan.nextElementSibling; if (valueSpan) { const imgs = valueSpan.querySelectorAll('img.flaggenrahmen'); if (imgs.length > 0) { info[field.toLowerCase().replace(/\\//g,'_')] = Array.from(imgs).map(img => img.getAttribute('title')).join(', '); } else { info[field.toLowerCase().replace(/\\//g,'_')] = valueSpan.textContent.trim(); } } } } const birthEl = document.querySelector('span[itemprop=\"birthDate\"]'); if (birthEl) info['date_of_birth'] = birthEl.textContent.trim(); const shirtEl = document.querySelector('span.data-header__shirt-number'); if (shirtEl) info['shirt_number'] = shirtEl.textContent.trim(); const clubEl = document.querySelector('span.data-header__club a'); if (clubEl) info['current_club'] = clubEl.textContent.trim(); const value = document.querySelector('a.data-header__market-value-wrapper')?.textContent?.trim()?.replace(/\\s+/g,' ') || document.querySelector('.tm-player-market-value-development__current-value')?.textContent?.trim() || ''; const imgEl = document.querySelector('img.data-header__profile-image'); const image = imgEl?.getAttribute('src') || ''; return { name, info, market_value: value, image, url: window.location.href };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

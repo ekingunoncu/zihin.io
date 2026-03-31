@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "quora-scrape-trending",
+    "slug": "quora-scrape-trending",
+    "name": "quora_scrape_trending",
+    "displayName": "Quora Scrape Trending",
+    "description": "Scrape trending questions and content from Quora homepage. Returns trending questions, popular answers, and featured content.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "quora",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open Quora homepage\n  await browser.open('https://www.quora.com/')\n\n  // Wait for feed\n  await browser.waitForSelector('[class*=\\'Question\\'], [class*=\\'question\\'], [class*=\\'feed\\']', 15000)\n\n  await browser.wait(2000)\n\n  // Scroll feed\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Scroll more\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Extract trending content\n  const trending_data = await browser.evaluate(`const trending = []; const feedItems = document.querySelectorAll('[class*=\"feed\"] > div, [class*=\"Question\"], [class*=\"pagedList\"] > div'); for (let i = 0; i < Math.min(feedItems.length, 20); i++) { const el = feedItems[i]; const questionEl = el.querySelector('[class*=\"question_text\"], [class*=\"Question\"] a span'); const answerEl = el.querySelector('[class*=\"answer\"], [class*=\"inline\"]'); const authorEl = el.querySelector('[class*=\"user\"] a, [class*=\"author\"]'); const upvotesEl = el.querySelector('[class*=\"upvote\"]'); const linkEl = el.querySelector('a[href*=\"/\"]'); if (questionEl) { trending.push({ question: questionEl.textContent.trim(), answer_preview: answerEl ? answerEl.textContent.trim().substring(0, 300) : '', author: authorEl ? authorEl.textContent.trim() : '', upvotes: upvotesEl ? upvotesEl.textContent.trim() : '', url: linkEl ? linkEl.href : '' }); } } return { trending_count: trending.length, trending: trending, url: window.location.href }`)\n\n  return trending_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

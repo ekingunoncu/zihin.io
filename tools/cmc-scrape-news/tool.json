@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "cmc-scrape-news",
+    "slug": "cmc-scrape-news",
+    "name": "cmc_scrape_news",
+    "displayName": "CMC Scrape News",
+    "description": "Scrape the latest cryptocurrency news headlines from CoinMarketCap Academy. Returns article title, source, date, summary, and link for recent crypto news articles.",
+    "category": "Finance",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "coinmarketcap",
+      "scrape"
+    ],
+    "parameters": [],
+    "code": "async (params, browser) => {\n  // Open CoinMarketCap crypto news page\n  await browser.open('https://coinmarketcap.com/academy/categories/cmc-crypto-news')\n\n  // Wait for news articles to load\n  await browser.waitForSelector('a[href*=\\'/academy/article/\\'], article, h2, h3', 15000)\n\n  // Let articles render\n  await browser.wait(2500)\n\n  // Scroll to load more articles\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(2000)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1500 })\n\n  await browser.wait(1500)\n\n  // Extract news articles\n  const news_data = await browser.evaluate(`const articles = []; const links = document.querySelectorAll('a[href*=\"/academy/article/\"]'); const seen = new Set(); for (let i = 0; i < links.length; i++) { const link = links[i]; const href = link.href; if (seen.has(href)) continue; seen.add(href); const container = link.closest('article, div, li') || link; const titleEl = container.querySelector('h2, h3, h4') || link.querySelector('h2, h3, h4'); const title = titleEl ? titleEl.textContent.trim() : link.textContent.trim(); if (!title || title.length < 5) continue; const dateEl = container.querySelector('time, [datetime]'); const summaryEl = container.querySelector('p'); const imgEl = container.querySelector('img'); articles.push({ title: title, date: dateEl ? (dateEl.getAttribute('datetime') || dateEl.textContent.trim()) : '', summary: summaryEl ? summaryEl.textContent.trim().substring(0, 300) : '', image: imgEl ? (imgEl.src || imgEl.dataset.src || '') : '', url: href }); if (articles.length >= 20) break; } return { article_count: articles.length, articles: articles, url: window.location.href }`)\n\n  return news_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

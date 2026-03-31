@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "lastfm-search",
+    "slug": "lastfm-search",
+    "name": "lastfm_search",
+    "displayName": "Lastfm Search",
+    "description": "Search Last.fm. Returns matching artists and tracks.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "lastfm",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Last.fm search\n  await browser.open(`https://www.last.fm/search?q=${params.query}`)\n\n  // Wait for results\n  await browser.waitForSelector('.grid-items-item-details, .chartlist-row, .page-content', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Extract results\n  const search_results = await browser.evaluate(`const artists = []; document.querySelectorAll('.grid-items-item-details').forEach((el, i) => { if (i < 10) { const nameEl = el.querySelector('.grid-items-item-main-text a.link-block-target'); const auxEl = el.querySelector('.grid-items-item-aux-text'); artists.push({ name: nameEl?.textContent?.trim() || '', url: nameEl?.href || '', listeners: auxEl?.textContent?.trim() || '' }); } }); const tracks = []; document.querySelectorAll('.chartlist-row').forEach((el, i) => { if (i < 10) { const nameEl = el.querySelector('.chartlist-name a.link-block-target'); const artistEl = el.querySelector('.chartlist-artist a'); const countEl = el.querySelector('.chartlist-count-bar-value'); tracks.push({ name: nameEl?.textContent?.trim() || '', url: nameEl?.href || '', artist: artistEl?.textContent?.trim() || '', plays: countEl?.textContent?.trim() || '' }); } }); return { query: '' + params.query + '', artist_count: artists.length, artists, track_count: tracks.length, tracks };`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

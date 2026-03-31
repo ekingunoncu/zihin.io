@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "builtin-play-store-search",
+    "slug": "search-play-store",
+    "name": "search_play_store",
+    "displayName": "Search Play Store",
+    "description": "searches app on play store with app name or description or category",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "play-store",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "q",
+        "type": "string",
+        "description": "the key to search (app name or description or category)",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  await browser.open('https://play.google.com/store/search')\n\n  // 45 items - 5 fields (list)\n  // TODO: Unsupported step type \"extract\"\n\n  // For each item in link\n  // TODO: Unsupported step type \"forEachItem\"\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "tiktok-search",
+    "slug": "tiktok-search",
+    "name": "tiktok_search",
+    "displayName": "Tiktok Search",
+    "description": "Search for videos on TikTok. Returns up to 10 results with title/description, creator, views, likes, and thumbnail URL.",
+    "category": "Social Media",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "tiktok",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'cooking recipes', 'dance challenge')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search TikTok\n  await browser.open(`https://www.tiktok.com/search?q=${params.query}`)\n\n  // Wait for search results\n  await browser.waitForSelector('[data-e2e=\"search_video-item\"], .search-card-container', 15000)\n\n  // Let results render\n  await browser.wait(2500)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(2000)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const items = document.querySelectorAll('[data-e2e=\"search_video-item\"], .search-card-container'); for (let i = 0; i < Math.min(items.length, 10); i++) { const el = items[i]; const descEl = el.querySelector('[data-e2e=\"search-card-desc\"] a, .card-desc a, a[title]'); const creatorEl = el.querySelector('[data-e2e=\"search-card-user-unique-id\"], [data-e2e=\"creator-uniqueid\"], .author-uniqueid, span.creator'); const viewsEl = el.querySelector('[data-e2e=\"search-card-like-count\"], .video-count, strong.view-count'); const likesEl = el.querySelector('[data-e2e=\"search-card-like-count\"], .like-count'); const thumbEl = el.querySelector('img[src*=\"tiktokcdn\"], img.poster, picture img'); const linkEl = el.querySelector('a[href*=\"/video/\"], a[href*=\"/@\"]'); results.push({ description: descEl ? descEl.textContent.trim().substring(0, 300) : '', creator: creatorEl ? creatorEl.textContent.trim() : '', views: viewsEl ? viewsEl.textContent.trim() : '', likes: likesEl ? likesEl.textContent.trim() : '', thumbnail: thumbEl ? thumbEl.src : '', url: linkEl ? linkEl.href : '' }); } return { query: '' + params.query + '', result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

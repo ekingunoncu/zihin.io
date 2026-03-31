@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "news-scrape-article",
+    "slug": "news-scrape-article",
+    "name": "news_scrape_article",
+    "displayName": "News Scrape Article",
+    "description": "Scrape a news article's details including title, content, author, publication date, and source. Navigates to the article URL and extracts structured data.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "google-news",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "article_url",
+        "type": "string",
+        "description": "Full URL of the news article to scrape (e.g. 'https://www.nytimes.com/2024/01/15/technology/ai-news.html')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open article page\n  await browser.open(`${params.article_url}`)\n\n  // Wait for article to load\n  await browser.waitForSelector('article, h1, [role=\\'main\\'], .article-body, .story-body', 15000)\n\n  // Let article render\n  await browser.wait(2500)\n\n  // Scroll to load full article\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract article details\n  const article_data = await browser.evaluate(`const titleEl = document.querySelector('h1, [data-testid=\"headline\"], .article-title, .headline, .entry-title, .post-title'); const authorEl = document.querySelector('[rel=\"author\"], .author-name, .byline, [data-testid=\"byline\"], .article-author, meta[name=\"author\"]'); let author = ''; if (authorEl) { author = authorEl.getAttribute('content') || authorEl.textContent.trim(); } const dateEl = document.querySelector('time, [data-testid=\"published-timestamp\"], .publish-date, .article-date, .entry-date, meta[property=\"article:published_time\"]'); let date = ''; if (dateEl) { date = dateEl.getAttribute('datetime') || dateEl.getAttribute('content') || dateEl.textContent.trim(); } const sourceEl = document.querySelector('meta[property=\"og:site_name\"]'); const source = sourceEl ? sourceEl.getAttribute('content') : window.location.hostname.replace('www.', ''); const contentParagraphs = []; const articleBody = document.querySelector('article, [role=\"main\"], .article-body, .story-body, .entry-content, .post-content, .article-content'); const container = articleBody || document.body; const paragraphs = container.querySelectorAll('p'); for (let i = 0; i < paragraphs.length; i++) { const text = paragraphs[i].textContent.trim(); if (text.length > 30 && !text.includes('cookie') && !text.includes('subscribe') && !text.includes('sign up') && !text.includes('advertisement')) { contentParagraphs.push(text); } } const descMeta = document.querySelector('meta[property=\"og:description\"], meta[name=\"description\"]'); const description = descMeta ? descMeta.getAttribute('content') : ''; return { title: titleEl ? titleEl.textContent.trim() : '', author: author, date: date, source: source, description: description, content: contentParagraphs.slice(0, 20).join('\\n\\n').slice(0, 5000), paragraph_count: contentParagraphs.length, article_url: window.location.href }`)\n\n  return article_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

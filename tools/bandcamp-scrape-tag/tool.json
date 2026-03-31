@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "bandcamp-scrape-tag",
+    "slug": "bandcamp-scrape-tag",
+    "name": "bandcamp_scrape_tag",
+    "displayName": "Bandcamp Scrape Tag",
+    "description": "Browse music by genre/tag on Bandcamp. Extracts album data from the tag page's embedded data blob. Returns album names, artists, and URLs.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "bandcamp",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "tag",
+        "type": "string",
+        "description": "Genre tag (e.g. 'electronic', 'jazz', 'hip-hop-rap', 'ambient')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Bandcamp tag page\n  await browser.open(`https://bandcamp.com/tag/${params.tag}`)\n\n  // Wait for tag page\n  await browser.waitForSelector('#pagedata, .hub-columns', 15000)\n\n  // Let page fully render\n  await browser.wait(3000)\n\n  // Extract tag results\n  const result = await browser.evaluate(`const items = []; try { const pageData = document.querySelector('#pagedata'); if (pageData) { const blob = JSON.parse(pageData.getAttribute('data-blob') || '{}'); const tabs = blob?.hub?.tabs || []; for (const tab of tabs) { const collections = tab?.collections || []; for (const col of collections) { const colItems = col?.items || []; for (const item of colItems) { if (items.length < 20) { items.push({ title: item.title || '', artist: item.artist || item.band_name || '', url: item.tralbum_url || item.item_url || '', art_id: item.art_id || '', genre: item.genre || '' }); } } } } } } catch(e) {} if (items.length === 0) { document.querySelectorAll('.music-grid .music-grid-item, .item_list .item, li[data-item-id]').forEach((el, i) => { if (i < 20) { const linkEl = el.querySelector('a[href]'); const titleEl = el.querySelector('.title, .tralbum-name'); const artistEl = el.querySelector('.artist-override, .tralbum-artist'); items.push({ title: titleEl?.textContent?.trim() || linkEl?.textContent?.trim() || '', artist: artistEl?.textContent?.trim() || '', url: linkEl?.href || '' }); } }); } return { tag: '' + params.tag + '', item_count: items.length, items };`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

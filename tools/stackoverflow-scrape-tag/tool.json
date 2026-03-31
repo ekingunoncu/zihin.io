@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "stackoverflow-scrape-tag",
+    "slug": "stackoverflow-scrape-tag",
+    "name": "stackoverflow_scrape_tag",
+    "displayName": "Stackoverflow Scrape Tag",
+    "description": "Scrape a Stack Overflow tag page. Returns tag description, question count, related tags, and recent questions for the given tag.",
+    "category": "Development",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "stackoverflow",
+      "scrape"
+    ],
+    "parameters": [
+      {
+        "name": "tag",
+        "type": "string",
+        "description": "Tag name (e.g. 'javascript', 'python', 'react', 'docker')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open tag page\n  await browser.open(`https://stackoverflow.com/questions/tagged/${params.tag}`)\n\n  // Wait for questions to load\n  await browser.waitForSelector('.s-post-summary, .question-summary, [id*=\\'question-summary\\']', 15000)\n\n  // Let page render\n  await browser.wait(2000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1000 })\n\n  await browser.wait(1500)\n\n  // Extract tag content\n  const tag_data = await browser.evaluate(`const headingEl = document.querySelector('h1, [class*=\"tagged-header\"]'); const countEl = document.querySelector('[class*=\"questions-count\"], .fs-body3'); const questions = []; const qEls = document.querySelectorAll('.s-post-summary, .question-summary, [id*=\"question-summary\"]'); for (let i = 0; i < Math.min(qEls.length, 15); i++) { const el = qEls[i]; const titleEl = el.querySelector('h3 a, .s-post-summary--content-title a, .result-link a'); const votesEl = el.querySelector('.s-post-summary--stats-item__emphasized .s-post-summary--stats-item-number, .vote-count-post strong'); const answersEl = el.querySelector('.s-post-summary--stats-item:nth-child(2) .s-post-summary--stats-item-number, .status strong'); const viewsEl = el.querySelector('.s-post-summary--stats-item:nth-child(3) .s-post-summary--stats-item-number'); const tagEls = el.querySelectorAll('.s-tag, .post-tag'); const tags = []; tagEls.forEach(function(t) { tags.push(t.textContent.trim()); }); const authorEl = el.querySelector('.s-user-card--link a, .user-details a'); const dateEl = el.querySelector('.relativetime, time'); questions.push({ title: titleEl ? titleEl.textContent.trim() : '', votes: votesEl ? votesEl.textContent.trim() : '0', answers: answersEl ? answersEl.textContent.trim() : '0', views: viewsEl ? viewsEl.textContent.trim() : '', tags: tags.slice(0, 5), author: authorEl ? authorEl.textContent.trim() : '', date: dateEl ? (dateEl.getAttribute('title') || dateEl.textContent.trim()) : '', url: titleEl ? 'https://stackoverflow.com' + titleEl.getAttribute('href') : '' }); } const relatedTagEls = document.querySelectorAll('[class*=\"related-tag\"] a, .sidebar .s-tag'); const relatedTags = []; relatedTagEls.forEach(function(el) { const t = el.textContent.trim(); if (t && !relatedTags.includes(t) && t !== '' + params.tag + '') relatedTags.push(t); }); return { tag: params.tag, heading: headingEl ? headingEl.textContent.trim() : '', total_questions: countEl ? countEl.textContent.trim() : '', question_count: questions.length, questions: questions, related_tags: relatedTags.slice(0, 10), url: window.location.href }`)\n\n  return tag_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

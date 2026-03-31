@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "zillow-compare-listings",
+    "slug": "zillow-compare-listings",
+    "name": "zillow_compare_listings",
+    "displayName": "Zillow Compare Listings",
+    "description": "Compare property listings on Zillow for a given search query. Extracts pricing, size, and feature details from multiple listings sorted by price for easy comparison.",
+    "category": "Other",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "zillow"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Location search query to compare properties (e.g. 'San Francisco 2 bedroom', 'Austin TX condos')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search Zillow sorted by price\n  await browser.open(`https://www.zillow.com/homes/${params.query}_rb/?sortSelection=pricea`)\n\n  // Wait for results\n  await browser.waitForSelector('[data-test=\\'property-card\\'], article[class*=\\'property\\'], [class*=\\'ListItem\\']', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(1500)\n\n  // Scroll further\n  await browser.scroll({ direction: 'down', amount: 1200 })\n\n  await browser.wait(1500)\n\n  // Extract and compare listings\n  const comparison_data = await browser.evaluate(`const items = []; const cards = document.querySelectorAll('[data-test=\"property-card\"], article[class*=\"property\"], [class*=\"ListItem\"] article, [class*=\"StyledPropertyCard\"]'); for (let i = 0; i < Math.min(cards.length, 20); i++) { const el = cards[i]; const addressEl = el.querySelector('[data-test=\"property-card-addr\"], address, [class*=\"address\"]'); const priceEl = el.querySelector('[data-test=\"property-card-price\"], [class*=\"price\"]'); const linkEl = el.querySelector('a[href*=\"/homedetails/\"], a'); const detailText = el.textContent || ''; const bdMatch = detailText.match(/(\\d+)\\s*bd/i); const baMatch = detailText.match(/(\\d+)\\s*ba/i); const sqftMatch = detailText.match(/([\\d,]+)\\s*sqft/i); const statusEl = el.querySelector('[class*=\"status\"], [class*=\"cardStatus\"]'); const brokerEl = el.querySelector('[class*=\"broker\"], [class*=\"agent\"]'); items.push({ address: addressEl ? addressEl.textContent.trim() : '', price: priceEl ? priceEl.textContent.trim() : '', beds: bdMatch ? bdMatch[1] : '', baths: baMatch ? baMatch[1] : '', sqft: sqftMatch ? sqftMatch[1] : '', status: statusEl ? statusEl.textContent.trim() : '', broker: brokerEl ? brokerEl.textContent.trim() : '', url: linkEl ? linkEl.href : '' }); } const prices = items.map(function(item) { return parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0; }).filter(function(p) { return p > 0; }); const avgPrice = prices.length > 0 ? (prices.reduce(function(a, b) { return a + b; }, 0) / prices.length).toFixed(0) : '0'; const minPrice = prices.length > 0 ? Math.min.apply(null, prices).toFixed(0) : '0'; const maxPrice = prices.length > 0 ? Math.max.apply(null, prices).toFixed(0) : '0'; return { query: params.query, listing_count: items.length, price_summary: { average: '$' + Number(avgPrice).toLocaleString(), lowest: '$' + Number(minPrice).toLocaleString(), highest: '$' + Number(maxPrice).toLocaleString() }, listings: items }`)\n\n  return comparison_data\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

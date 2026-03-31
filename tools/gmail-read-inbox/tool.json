@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "gmail-read-inbox",
+    "slug": "gmail-read-inbox",
+    "name": "gmail_read_inbox",
+    "displayName": "Gmail Read Inbox",
+    "description": "Read messages from the Gmail inbox. Navigates to Gmail, waits for the inbox to load, and scrapes the top N messages with sender, subject, preview, date, unread status, and starred status. You must be logged in to Gmail.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "gmail"
+    ],
+    "parameters": [
+      {
+        "name": "count",
+        "type": "string",
+        "description": "Number of inbox messages to read (default: 10)",
+        "required": false,
+        "default": "10"
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Gmail inbox\n  await browser.open('https://mail.google.com/mail/u/0/#inbox')\n\n  // Wait for inbox to load\n  await browser.waitForSelector('tr.zA, [data-message-id], .yO', 15000)\n\n  // Let inbox fully render\n  await browser.wait(2000)\n\n  // Scrape inbox messages\n  const inbox_messages = await browser.evaluate(`const count = parseInt(params.count) || 10; const rows = document.querySelectorAll('tr.zA'); const messages = []; for (let i = 0; i < Math.min(rows.length, count); i++) { const row = rows[i]; const senderEl = row.querySelector('.yX .yW span[email], .zF'); const subjectEl = row.querySelector('.bog span, .y6 span'); const previewEl = row.querySelector('.y2'); const dateEl = row.querySelector('.xW span[title], .xW span'); const isUnread = row.classList.contains('zE'); const starEl = row.querySelector('.T-KT'); const isStarred = starEl ? starEl.classList.contains('T-KT-Jp') : false; messages.push({ sender: senderEl ? (senderEl.getAttribute('email') || senderEl.getAttribute('name') || senderEl.textContent.trim()) : '', subject: subjectEl ? subjectEl.textContent.trim() : '', preview: previewEl ? previewEl.textContent.trim().replace(/^\\s*-\\s*/, '') : '', date: dateEl ? (dateEl.getAttribute('title') || dateEl.textContent.trim()) : '', unread: isUnread, starred: isStarred }); } return { inbox_count: messages.length, messages: messages }`)\n\n  return inbox_messages\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

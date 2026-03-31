@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "youtube-search",
+    "slug": "youtube-search",
+    "name": "youtube_search",
+    "displayName": "Youtube Search",
+    "description": "Search for videos on YouTube. Returns up to 10 results with title, channel, views, duration, and URL.",
+    "category": "Entertainment",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "youtube",
+      "search"
+    ],
+    "parameters": [
+      {
+        "name": "query",
+        "type": "string",
+        "description": "Search query (e.g. 'javascript tutorial', 'lofi hip hop')",
+        "required": true
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Search YouTube\n  await browser.open(`https://www.youtube.com/results?search_query=${params.query}`)\n\n  // Wait for search results\n  await browser.waitForSelector('ytd-video-renderer', 15000)\n\n  // Let results render\n  await browser.wait(2000)\n\n  // Scroll to load more results\n  await browser.scroll({ direction: 'down', amount: 800 })\n\n  await browser.wait(1500)\n\n  // Extract search results\n  const search_results = await browser.evaluate(`const results = []; const renderers = document.querySelectorAll('ytd-video-renderer'); for (let i = 0; i < Math.min(renderers.length, 10); i++) { const el = renderers[i]; const titleEl = el.querySelector('#video-title'); const channelEl = el.querySelector('ytd-channel-name #text a, ytd-channel-name #text'); const metaItems = el.querySelectorAll('#metadata-line span.inline-metadata-item, #metadata-line span'); const views = metaItems[0] ? metaItems[0].textContent.trim() : ''; const uploadedTime = metaItems[1] ? metaItems[1].textContent.trim() : ''; const durationEl = el.querySelector('badge-shape .badge-shape-wiz__text, ytd-thumbnail-overlay-time-status-renderer span, span.ytd-thumbnail-overlay-time-status-renderer'); const url = titleEl ? 'https://www.youtube.com' + titleEl.getAttribute('href') : ''; results.push({ title: titleEl ? titleEl.textContent.trim() : 'Unknown', channel: channelEl ? channelEl.textContent.trim() : '', views: views, uploaded: uploadedTime, duration: durationEl ? durationEl.textContent.trim() : '', url: url }); } return { result_count: results.length, results: results }`)\n\n  return search_results\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}

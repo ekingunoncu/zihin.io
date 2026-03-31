@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "tool": {
+    "id": "jira-assign-issue",
+    "slug": "jira-assign-issue",
+    "name": "jira_assign_issue",
+    "displayName": "Jira Assign Issue",
+    "description": "Assign a Jira issue to a user by their account ID or email. Set assignee to empty to unassign.",
+    "category": "Productivity",
+    "author": {
+      "githubUsername": "ekingunoncu",
+      "displayName": "Ekin Gün Öncü",
+      "avatarUrl": "https://github.com/ekingunoncu.png"
+    },
+    "version": "1.0.0",
+    "tags": [
+      "jira"
+    ],
+    "parameters": [
+      {
+        "name": "jira_url",
+        "type": "string",
+        "description": "Base URL of Jira instance (e.g. 'https://company.atlassian.net')",
+        "required": true
+      },
+      {
+        "name": "issue_key",
+        "type": "string",
+        "description": "Jira issue key (e.g. 'PROJ-123')",
+        "required": true
+      },
+      {
+        "name": "assignee_query",
+        "type": "string",
+        "description": "User display name or email to search for and assign (leave empty to unassign)",
+        "required": false,
+        "default": ""
+      }
+    ],
+    "code": "async (params, browser) => {\n  // Open Jira issue\n  await browser.open(`${params.jira_url}/browse/${params.issue_key}`)\n\n  // Let page load\n  await browser.wait(2000)\n\n  // Assign issue via REST API\n  const result = await browser.evaluate(`const baseUrl = params.jira_url.replace(/\\/$/, ''); const query = params.assignee_query; let accountId = null; if (query) { const uResp = await fetch(baseUrl + '/rest/api/3/user/search?query=' + encodeURIComponent(query) + '&maxResults=1', { credentials: 'same-origin' }); if (!uResp.ok) throw new Error('User search failed: ' + uResp.status); const users = await uResp.json(); if (users.length === 0) return { success: false, message: 'No user found matching: ' + query }; accountId = users[0].accountId; } const resp = await fetch(baseUrl + '/rest/api/3/issue/' + params.issue_key + '/assignee', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ accountId: accountId }) }); if (!resp.ok) { const err = await resp.text(); throw new Error('Assign failed: ' + resp.status + ' ' + err); } return { success: true, key: '' + params.issue_key + '', assignee: query || 'Unassigned' }`)\n\n  return result\n}",
+    "createdAt": "2026-03-31T21:42:39.390Z",
+    "updatedAt": "2026-03-31T21:42:39.390Z"
+  }
+}
